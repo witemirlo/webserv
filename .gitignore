@@ -1,5 +1,5 @@
 .vscode/
-./webserv
+webserv
 
 # Prerequisites
 *.d
