@@ -1,5 +1,7 @@
 .vscode/
 webserv
+*.conf
+*.cnf
 
 # Prerequisites
 *.d

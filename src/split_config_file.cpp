@@ -72,6 +72,19 @@
 
 // poner en una linea la clave valor, si tiene '[' leer hasta que encuentre ']'
 
+std::vector<std::string> get_raw_file(std::string const& path)
+{
+	std::vector<std::string> container;
+	std::string              buffer, lined;
+	std::fstream             file(path.c_str());
+
+	if (!file.is_open())
+		return container;
+
+	file.close();
+	return container;
+}
+
 std::vector<std::string> split_config_file(std::string const& path)
 {
 	std::vector<std::string> container;
