@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 
-const std::string Server::rules[] = {"listen", "server_name", 0};
+const std::string Server::rules[] = {"listen", "server_name", ""};
 void (Server::* const Server::setters [])(std::string &) = {&Server::setListen, &Server::setServerName};
 
 Server::Server(std::string const &config)
@@ -23,8 +23,7 @@ void Server::procRule(std::string &rule)
 
 	for (int i = 0; rules[i].size(); i++)
 	{
-		std::cout << "WERK" << std::endl;
-		if (what.compare(rules[i].c_str()))
+		if (!what.compare(rules[i].c_str()))
 		{
 			(this->*setters[i])(to_set);
 			return ;
