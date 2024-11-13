@@ -4,7 +4,7 @@
 #include <vector>
 
 #ifndef DEFAULT_CONFIG_PATH
-# define DEFAULT_CONFIG_PATH "config.toml"
+# define DEFAULT_CONFIG_PATH "config.conf"
 #endif
 
 int main(int argc, char* argv[])

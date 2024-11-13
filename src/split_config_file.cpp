@@ -1,13 +1,14 @@
+#include <cstddef>
 #include <fstream>
 #include <sstream>
-#include <stdexcept>
+// #include <stdexcept>
 #include <string>
 #include <vector>
 
 
-#include <iostream>
+#include <iostream> // DEBUG
 
-std::string get_buffer(std::string const& path)
+static std::string get_buffer(std::string const& path)
 {
 	std::string  buffer, line, token;
 	std::fstream file(path.c_str());
@@ -15,21 +16,17 @@ std::string get_buffer(std::string const& path)
 	if (!file.is_open())
 		return buffer;
 
-	// line puede ser un istringstream??
 	while (std::getline(file, line)) {
 		std::istringstream stream(line);
 		while (true) {
 			stream >> token;
 			if (token.empty())
 				break;
-
-			// std::cout << __FILE__ << ": " << __LINE__ << ": " << token << std::endl;
-
 			buffer += token;
 			buffer += ' ';
 			token.clear();
 		}
-		buffer[buffer.size() - 1] = '\n';
+		buffer.back() = '\n';
 	}
 
 	file.close();
@@ -37,18 +34,38 @@ std::string get_buffer(std::string const& path)
 	return buffer;
 }
 
+
 std::vector<std::string> split_config_file(std::string const& path)
 {
 	std::vector<std::string> container;
 	std::string              buffer;
+	std::size_t              i, next;
 
 	buffer = get_buffer(path);
-	std::cout << buffer;
+	// if (buffer.size() == 0)
+	// std::cout << __FILE__ << ": " << __LINE__ << ": \n" << buffer;
+	// std::cout.flush();
+
+	i = 0;
+	while (buffer[i]) {
+		// std::cout << __FILE__ << ": " << __LINE__ << "| " << i << "->" << buffer[i] << std::endl;
+		// i = buffer.find("[server]\n", i);
+		// next = buffer.find("[server]\n", i + 1);
+		// container.push_back(buffer.substr(i, next));
+		// i = next;
+		i = buffer.find("\n", i);
+		next = buffer.find("\n", i + 1);
+		std::cout << buffer.substr(i, next);
+		i = next;
+	}
+
+	// for (std::vector<std::string>::iterator it = container.begin(); it != container.end(); it++)
+	// 	std::cout << *it << "\n\n";
 
 	return container;
 }
 
 int main()
 {
-	split_config_file("config.toml");
+	split_config_file("config.conf");
 }
