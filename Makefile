@@ -5,11 +5,13 @@ NAME = webserv
 
 CXX = c++
 
+CPPFLAGS = -I include/
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -O0 -g3 -Wshadow -Wno-shadow -pedantic -fsanitize=address,leak
 
 OBJ = $(SRC:.cpp=.o)
 
-SRC = src/main.cpp
+SRC = src/main.cpp \
+		src/Server.cpp
 
 #-------------------------------------------------------------------------------
 
@@ -18,7 +20,7 @@ all: $(NAME)
 re: fclean all
 
 $(NAME): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJ) -o $(NAME)
 
 clean:
 	@rm -f $(OBJ)
