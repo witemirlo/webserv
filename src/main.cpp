@@ -28,7 +28,6 @@ std::vector<Listener> setup()
 			listener_socks.push_back(Listener(my_servers[i].getListen()));
 			host_index[my_servers[i].getListen()] = host_index.size();
 		}
-		// std::cout << GREEN "Server " + my_servers[i].getServerName() + " setted" NC << std::endl;
 	}
 	return (listener_socks);
 }
@@ -36,6 +35,23 @@ std::vector<Listener> setup()
 int main(int argc, char* argv[])
 {
 	std::vector<Listener> sockets = setup();
+	struct pollfd *my_fds;
+	int fd_num;
+
+	sockets[0].addSocket(4);
+	sockets[0].addSocket(5);
+	sockets[0].addSocket(6);
+	sockets[0].addSocket(7);
+	while (42)
+	{
+		fd_num = sockets[0].getSockets(&my_fds);
+		for (int i = 0; i < fd_num; i++)
+		{
+			std::cout << "I have a socket : " << my_fds[i].fd << std::endl;
+		}
+		delete [] my_fds;
+		break;
+	}
 
 	return EXIT_SUCCESS;
 	if (!argc && !argv[0])

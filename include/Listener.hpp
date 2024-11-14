@@ -16,6 +16,8 @@ private:
 public:
 	Listener(std::string & where_to_listen);
 	void addServer(Server & server);
+	void addSocket(int fd);
+	int getSockets(struct pollfd ** sockets) const;
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

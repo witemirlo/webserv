@@ -27,6 +27,16 @@ void Listener::addServer(Server & server)
 	_assoc_servers.push_back(server);
 }
 
+void Listener::addSocket(int fd)
+{
+	struct pollfd skc;
+
+	skc.fd = fd;
+	skc.events = POLLIN;
+	_derived_socks.push_back(skc);
+}
+
+
 static int get_listener(std::string & host, std::string & port)
 {
 	struct addrinfo req;
@@ -76,6 +86,18 @@ static int get_listener(std::string & host, std::string & port)
 	}
 
 	return sfd;
+}
+
+int Listener::getSockets(struct pollfd ** sockets) const
+{
+	int size = _derived_socks.size() + 1;
+	struct pollfd * scks = new struct pollfd [size];
+
+	memset(scks, 0, size);
+	memcpy(scks, &_listener, sizeof(struct pollfd));
+	std::copy(_derived_socks.begin(), _derived_socks.end(), scks + 1);
+	*sockets = scks;
+	return (size);
 }
 
 //	OCCF
