@@ -13,9 +13,11 @@ private:
 	std::vector<struct pollfd> _derived_socks;
 	std::vector<Server> _assoc_servers;
 public:
+	Listener(int fd);
+	void addServer(Server & server);
 
 //	OCCF
-	Listener();
+	Listener(); //TODO: revisar OCCF
 	Listener(const Listener &other);
 	Listener &operator=(const Listener &other);
 	~Listener();

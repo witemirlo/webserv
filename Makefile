@@ -11,7 +11,8 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -O0 -g3 -Wshadow -Wno-shadow -pedant
 OBJ = $(SRC:.cpp=.o)
 
 SRC = src/main.cpp \
-		src/Server.cpp
+		src/Server.cpp \
+		src/Listener.cpp
 
 #-------------------------------------------------------------------------------
 
