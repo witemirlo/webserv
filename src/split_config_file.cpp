@@ -13,69 +13,6 @@
 
 #include <iostream> // DEBUG
 
-// static std::vector<std::string> get_raw_file(std::string const& path)
-// {
-// 	std::vector<std::string> container;
-// 	std::string              buffer, line, token;
-// 	std::fstream             file(path.c_str());
-
-// 	if (!file.is_open())
-// 		return container;
-
-// 	while (std::getline(file, line)) {
-// 		std::istringstream stream(line);
-// 		while (true) {
-// 			stream >> token;
-// 			if (token.empty() || token[0] == '#')
-// 				break;
-// 			buffer += token + ' ';
-// 			token.clear();
-// 		}
-// 		if (buffer.size()) {
-// 			buffer.back() = '\n';
-// 			container.push_back(buffer);
-// 			buffer.clear();
-// 		}
-// 	}
-
-// 	file.close();
-// 	return container;
-// }
-
-// static std::vector<std::string> split_raw_file(std::vector<std::string> const& other)
-// {
-// 	std::vector<std::string>::const_iterator current, next;
-// 	std::vector<std::string>                 container;
-// 	std::string                              buffer;
-
-// 	current = std::find(other.begin(), other.end(), "[server]\n");
-// 	if (current != other.begin())
-// 		return container;
-	
-// 	while (true) {
-// 		current = std::find(current, other.end(), "[server]\n");
-// 		next = std::find(current + 1, other.end(), "[server]\n");
-		
-// 		if (current == other.end())
-// 			break;
-
-// 		current++;
-// 		while (current != next) {
-// 			buffer += *current;
-// 			current++;
-// 		}
-
-// 		if (buffer.size()) {
-// 			container.push_back(buffer);
-// 			buffer.clear();
-// 		} else {
-// 			break;
-// 		}
-// 	}
-
-// 	return  container;
-// }
-
 std::string trim(std::string const& str)
 {
 	std::size_t start, end;
@@ -93,98 +30,134 @@ std::string trim(std::string const& str)
 	end = end - start;
 	buffer = str.substr(start, end + 1);
 	buffer = buffer.substr(0, buffer.find('#'));
-	buffer.push_back('\n');
+	if (buffer.size())
+		buffer.push_back('\n');
 	return buffer;
 }
 
-int get_case(std::string const& str)
+int get_line_case(char token, bool open_quote)
 {
-	std::string buffer = trim(str);
-	// std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
+	if (token == '\"')
+		return 3;
 
-	// TODO: mirar las lineas que solo tienen comentarios
-	if (buffer.size() == 0 || buffer[0] == '#' || buffer[0] == '\n')
-		return 2;
-
-	if (buffer == "[server]\n")
-		return 1;
-
-	if (buffer.find('=') == buffer.rfind('='))
+	if (open_quote)
 		return 0;
 
-	return 3;
+	if (token == '[')
+		return 1;
+
+	if (token == ']')
+		return 2;
+
+	if (token == '\n')
+		return 4;
+
+	return 0;
 }
 
 std::string get_line(std::istream& stream, std::string& buffer)
 {
-	std::string line;
+	std::string      line;
 	std::stack<char> container;
-	std::size_t i;
-	bool open_brace;
+	std::size_t      i;
+	bool             open_brace, open_quote;
 
 	i = 0;
 	open_brace = false;
+	open_quote = false;
 	do {
 		if (!buffer[i]) {
 			buffer.clear();
 			std::getline(stream, buffer);
+			if (buffer.empty())
+				throw std::invalid_argument("syntax error");
 			i = 0;
 		}
 
-		switch (buffer[i]) {
-		case '[':
+		switch (get_line_case(buffer[i], open_quote)) {
+		case 1:
 			open_brace = true;
 			container.push('[');
 			line += buffer[i];
 			break;
-		case ']':
+		case 2:
+			if (container.size() && container.top() != '[')
+				throw std::invalid_argument("syntax error");
 			container.pop();
 			if (container.size() == 0)
 				open_brace = false;
 			line += buffer[i];
 			break;
-		// case '#':
-		// 	buffer.clear();
-		// 	break;
+		case 3:
+			if (container.size() && container.top() == '\"') {
+				container.pop();
+				open_quote = false;
+			} else {
+				container.push('\"');
+				open_quote = true;
+			}
+			break;
+		case 4:
+			break;
 		default:
-			line += buffer[i];
+			if (open_quote)
+				line += buffer[i];
+			else {
+				if (!std::isspace(buffer[i]))
+					line += buffer[i];
+			}
 			break;
 		}
 
 		i++;
-	} while (container.size() != 0 && open_brace);
+	} while (container.size() != 0 || open_brace || open_quote || buffer[i]);
 
+	line = trim(line);
 	return line;
 }
 
-// poner en una linea la clave valor, si tiene '[' leer hasta que encuentre ']'
+bool get_case(std::string const& str)
+{
+	std::string buffer = trim(str);
+
+	std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
+	
+	if (buffer.size() == 0 || buffer[0] == '#')
+		return true;
+
+	if (buffer == "[server]\n")// ERROR: [   server    ]
+		return true;
+
+	if (buffer.find('=') == std::string::npos)
+		return false;
+
+	if (buffer.find('=') == buffer.rfind('='))
+		return true;
+
+	return false;
+}
+
 std::vector<std::string> get_raw_file(std::string const& path)
 {
 	std::vector<std::string> container;
 	std::string              buffer, line;
 	std::fstream             file(path.c_str());
-	// std::size_t              i;
 
 	if (!file.is_open())
 		return container;
 
 	while (std::getline(file, buffer)) {
-		switch (get_case(buffer)) {
-		case 0:		
+		buffer = trim(buffer);
+
+		if (get_case(buffer))
 			line = get_line(file, buffer);
-			break;
-		case 1:		
-			line = trim(buffer);
-			break;
-		case 2:
-			continue;
-		default:		
-			throw std::invalid_argument("invalid argument");
+		else
+			throw std::invalid_argument("syntax error");
+
+		if (line.size()) {
+			container.push_back(line);
 		}
-		// if (line.size() )
-		container.push_back(line);
 		buffer.clear();
-		line.clear();
 	}
 
 	file.close();
@@ -209,5 +182,4 @@ std::vector<std::string> split_config_file(std::string const& path)
 int main()
 {
 	split_config_file("config.conf");
-	// std::cout << trim("                h      \tola      \t      ");
 }
