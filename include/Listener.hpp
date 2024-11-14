@@ -3,6 +3,7 @@
 
 # include <poll.h>
 # include <vector>
+# include <string>
 
 # include "Server.hpp"
 
@@ -13,7 +14,7 @@ private:
 	std::vector<struct pollfd> _derived_socks;
 	std::vector<Server> _assoc_servers;
 public:
-	Listener(int fd);
+	Listener(std::string & where_to_listen);
 	void addServer(Server & server);
 
 //	OCCF

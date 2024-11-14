@@ -74,7 +74,7 @@ Server::Server(void)
 	std::cout << GREEN "Server default constructor called" NC << std::endl;
 }
 
-Server::Server(const Server &other)
+Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name)
 {
 	std::cout << YELOW "Server copy constructor called" NC << std::endl;
 	*this = other;
