@@ -86,9 +86,11 @@ std::string trim(std::string const& str)
 		start++;
 
 	end = str.size() - 1;
-	while (end && (str[end] == ' ' || str[end] == '\t' || buffer[end] == '\n'))
+	while (end && (str[end] == ' ' || str[end] == '\t' || str[end] == '\n')) {
 		end--;
-	
+	}
+
+	end = end - start;
 	buffer = str.substr(start, end + 1);
 	buffer = buffer.substr(0, buffer.find('#'));
 	buffer.push_back('\n');
@@ -98,7 +100,7 @@ std::string trim(std::string const& str)
 int get_case(std::string const& str)
 {
 	std::string buffer = trim(str);
-	std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
+	// std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
 
 	// TODO: mirar las lineas que solo tienen comentarios
 	if (buffer.size() == 0 || buffer[0] == '#' || buffer[0] == '\n')
@@ -161,7 +163,7 @@ std::vector<std::string> get_raw_file(std::string const& path)
 	std::vector<std::string> container;
 	std::string              buffer, line;
 	std::fstream             file(path.c_str());
-	std::size_t              i;
+	// std::size_t              i;
 
 	if (!file.is_open())
 		return container;
@@ -199,7 +201,7 @@ std::vector<std::string> split_config_file(std::string const& path)
 	// container = delete_quotes(container);
 
 	for (std::vector<std::string>::iterator it = container.begin(); it != container.end(); it++)
-		std::cout << *it << "---\n";
+		std::cout << *it/*  << "---\n" */;
 
 	return container;
 }
@@ -207,4 +209,5 @@ std::vector<std::string> split_config_file(std::string const& path)
 int main()
 {
 	split_config_file("config.conf");
+	// std::cout << trim("                h      \tola      \t      ");
 }
