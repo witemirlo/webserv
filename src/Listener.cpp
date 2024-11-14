@@ -87,20 +87,26 @@ Listener::Listener(void)
 
 Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers)
 {
+#ifdef DEBUG
 	std::cout << YELOW "Listener copy constructor called" NC << std::endl;
+#endif
 	*this = other;
 }
 
 Listener &Listener::operator=(const Listener &other)
 {
+#ifdef DEBUG
 	std::cout << YELOW "Listener copy assignment operator called" NC << std::endl;
+#endif
 	(void)other;
 	return (*this);
 }
 
 Listener::~Listener()
 {
+#ifdef DEBUG
 	std::cout << RED "Listener destrucutor called" NC << std::endl;
+#endif
 	close(_listener.fd);
 	for (size_t i = 0; i < _derived_socks.size(); i++)
 		close(_derived_socks[i].fd);
