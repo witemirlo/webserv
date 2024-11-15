@@ -4,6 +4,9 @@
 #include <map>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "Server.hpp"
 #include "Listener.hpp"
@@ -66,7 +69,7 @@ int where_is(int fd, std::vector<Listener> & sockets)
 		if (ind == FD_IS_LISTENER)
 			return ((i + 1) * - 1);
 		else
-			return (i);
+			return (i + 1);
 	}
 	return (0);
 }
@@ -87,7 +90,8 @@ void accept_new_conn(Listener & listener, int fd)
 void false_http(Listener & listener, int fd)
 {
 	char buffer[128]; //hay que verlo
-	int bytes = recv(fd, buffer, sizeof buffer, 0);
+	std::memset(buffer, 0, sizeof buffer);
+	int bytes = recv(fd, buffer, sizeof buffer - 1, 0);
 
 	if (bytes == -1)
 	{
@@ -96,10 +100,8 @@ void false_http(Listener & listener, int fd)
 	}
 
 	if (bytes == 0)
-	{
-		// close
-	}
-	(void)listener;
+		listener.deleteFd(fd);
+
 	std::cout << "Hi, im fd: " << fd << " and I proudly say: " << buffer << std::endl;
 }
 
@@ -125,10 +127,11 @@ int main(int argc, char* argv[])
 			if (my_fds[i].revents & POLLIN)
 			{
 				int loc = where_is(my_fds[i].fd, sockets);
+				// std::cerr << my_fds[i].fd << " is in " << loc << std::endl;
 				if (loc < 0)
-					accept_new_conn(sockets[loc * -1 - 1], my_fds[i].fd);
+					accept_new_conn(sockets[(loc * -1) - 1], my_fds[i].fd);
 				else if (loc > 0)
-					false_http(sockets[loc], my_fds[i].fd);
+					false_http(sockets[loc - 1], my_fds[i].fd);
 				// std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
 			}
 		}

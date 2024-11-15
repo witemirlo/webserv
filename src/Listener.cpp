@@ -118,6 +118,20 @@ int Listener::getListenFd(void) const
 	return _listener.fd;
 }
 
+void Listener::deleteFd(int fd)
+{
+	//TODO: exception?
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			close(fd); //TODO: esto falla?
+			_derived_socks.erase(_derived_socks.begin() + i);
+			return ;
+		}
+	}
+}
+
 //	OCCF
 
 Listener::Listener(void)

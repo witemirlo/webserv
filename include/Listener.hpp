@@ -27,6 +27,7 @@ public:
 
 	void closeFds(void);
 	int is_fd_here(int fd) const;
+	void deleteFd(int fd);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF
