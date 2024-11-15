@@ -61,27 +61,23 @@ static int get_listener(std::string & host, std::string & port)
 		sfd = socket(test->ai_family, test->ai_socktype, test->ai_protocol);
 		if (sfd == -1)
 			continue;
-
 		if (bind(sfd, test->ai_addr, test->ai_addrlen) == -1)
 		{
 			close(sfd);
 			continue;
 		}
-
 		break;
 	}	
 	freeaddrinfo(res);
-
 	if (test == NULL) 
 	{
 		std::cerr << RED "Failed to bind to host " + host + " at port " + port + NC << std::endl;
-		perror("wevos: ");
 		exit(EXIT_FAILURE);
-	} //TODO: a lo mejor tendria que ser un return -1 y luego un throw... QUITAR PERROR
+	} //TODO: a lo mejor tendria que ser un return -1 y luego un throw
 
 	if (listen(sfd, 10) == -1)
 	{
-		std::cerr << RED "Failed to bind to host listen" << std::endl;
+		std::cerr << RED "Failed to listen fd: " << sfd << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -98,6 +94,16 @@ int Listener::getSockets(struct pollfd ** sockets) const
 	std::copy(_derived_socks.begin(), _derived_socks.end(), scks + 1);
 	*sockets = scks;
 	return (size);
+}
+
+size_t Listener::getNumberofSockets(void) const
+{
+	return (_derived_socks.size() + 1);
+}
+
+int Listener::getListenFd(void) const
+{
+	return _listener.fd;
 }
 
 //	OCCF
@@ -129,6 +135,10 @@ Listener::~Listener()
 #ifdef DEBUG
 	std::cout << RED "Listener destrucutor called" NC << std::endl;
 #endif
+}
+
+void Listener::closeFds(void)
+{
 	close(_listener.fd);
 	for (size_t i = 0; i < _derived_socks.size(); i++)
 		close(_derived_socks[i].fd);

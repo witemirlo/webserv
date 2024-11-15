@@ -18,6 +18,10 @@ public:
 	void addServer(Server & server);
 	void addSocket(int fd);
 	int getSockets(struct pollfd ** sockets) const;
+	size_t getNumberofSockets(void) const;
+	int getListenFd(void) const;
+
+	void closeFds(void);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF
