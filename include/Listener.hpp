@@ -7,6 +7,10 @@
 
 # include "Server.hpp"
 
+# define FD_IS_LISTENER -1
+# define FD_NOT_HERE 0
+# define FD_INDEX(x), x - 1
+
 class Listener
 {
 private:
@@ -22,6 +26,7 @@ public:
 	int getListenFd(void) const;
 
 	void closeFds(void);
+	int is_fd_here(int fd) const;
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

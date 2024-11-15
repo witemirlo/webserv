@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #include "Server.hpp"
 #include "Listener.hpp"
@@ -54,7 +56,52 @@ int get_all_sockets(struct pollfd ** fds, std::vector<Listener> & sockets)
 	return (total_sz);
 }
 
-bool is_listener_fd(int fd, std::vector<Listener> & sockets);
+int where_is(int fd, std::vector<Listener> & sockets)
+{
+	for (size_t i = 0; i < sockets.size(); i++)
+	{
+		int ind = sockets[i].is_fd_here(fd);
+		if (ind == FD_NOT_HERE)
+			continue ;
+		if (ind == FD_IS_LISTENER)
+			return ((i + 1) * - 1);
+		else
+			return (i);
+	}
+	return (0);
+}
+
+void accept_new_conn(Listener & listener, int fd)
+{
+	int new_fd = accept(fd, NULL, NULL);
+	
+	if (new_fd == -1)
+	{
+		std::cerr << "Could not accept new connection" << std::endl;
+		exit (EXIT_FAILURE);
+	}
+
+	listener.addSocket(new_fd);
+}
+
+void false_http(Listener & listener, int fd)
+{
+	char buffer[128]; //hay que verlo
+	int bytes = recv(fd, buffer, sizeof buffer, 0);
+
+	if (bytes == -1)
+	{
+		std::cout << "Error while reciving" << std::endl;
+		exit (EXIT_FAILURE);
+	}
+
+	if (bytes == 0)
+	{
+		// close
+	}
+	(void)listener;
+	std::cout << "Hi, im fd: " << fd << " and I proudly say: " << buffer << std::endl;
+}
 
 int main(int argc, char* argv[])
 {
@@ -62,7 +109,7 @@ int main(int argc, char* argv[])
 	struct pollfd *my_fds;
 	int fd_num;
 
-	while (42)
+	while (42) //TODO: no es non blocking
 	{
 		fd_num = get_all_sockets(&my_fds, sockets);
 
@@ -77,21 +124,17 @@ int main(int argc, char* argv[])
 		{
 			if (my_fds[i].revents & POLLIN)
 			{
-				//is listner -> accept
-				//is other -> read
-				std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
+				int loc = where_is(my_fds[i].fd, sockets);
+				if (loc < 0)
+					accept_new_conn(sockets[loc * -1 - 1], my_fds[i].fd);
+				else if (loc > 0)
+					false_http(sockets[loc], my_fds[i].fd);
+				// std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
 			}
-			// if (my_fds[i].revents & POLLERR)
-			// 	std::cerr << my_fds[i].fd << ": POLLERR" << std::endl;
-			// if (my_fds[i].revents & POLLPRI)
-			// 	std::cerr << my_fds[i].fd << ": POLLPRI" << std::endl;
-			// if (my_fds[i].revents & POLLNVAL)
-			// 	std::cerr << my_fds[i].fd << ": POLLNVAL" << std::endl;
 		}
-		delete [] my_fds;
-		break;
 	}
 
+	delete [] my_fds;
 	return EXIT_SUCCESS;
 	if (!argc && !argv[0])
 		return 1;

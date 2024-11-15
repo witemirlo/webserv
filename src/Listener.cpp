@@ -96,6 +96,18 @@ int Listener::getSockets(struct pollfd ** sockets) const
 	return (size);
 }
 
+int Listener::is_fd_here(int fd) const
+{
+	if (fd == _listener.fd)
+		return FD_IS_LISTENER;
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+			return (i + 1);
+	}
+	return (FD_NOT_HERE);
+}
+
 size_t Listener::getNumberofSockets(void) const
 {
 	return (_derived_socks.size() + 1);
