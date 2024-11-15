@@ -49,8 +49,11 @@ int get_line_case(char token, bool open_quote)
 	if (token == ']')
 		return 2;
 
-	if (token == '\n')
+	if (token == '#')
 		return 4;
+
+	if (token == '\n')
+		return 5;
 
 	return 0;
 }
@@ -71,6 +74,7 @@ std::string get_line(std::istream& stream, std::string& buffer)
 			std::getline(stream, buffer);
 			if (buffer.empty())
 				throw std::invalid_argument("syntax error");
+			buffer = trim(buffer);
 			i = 0;
 		}
 
@@ -98,6 +102,10 @@ std::string get_line(std::istream& stream, std::string& buffer)
 			}
 			break;
 		case 4:
+			// buffer.clear();
+			i = buffer.find('\n') - 1;
+			break;
+		case 5:
 			break;
 		default:
 			if (open_quote)
@@ -120,7 +128,7 @@ bool get_case(std::string const& str)
 {
 	std::string buffer = trim(str);
 
-	std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
+	// std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
 	
 	if (buffer.size() == 0 || buffer[0] == '#')
 		return true;
