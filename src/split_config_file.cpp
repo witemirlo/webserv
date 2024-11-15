@@ -8,10 +8,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <map>
 #include <stack>
 
 
 #include <iostream> // DEBUG
+
+#define STX 2  // Start TeXt
+#define ETX 3  // End TeXt
+#define US  31 // Unit Separator
 
 std::string trim(std::string const& str)
 {
@@ -29,9 +34,10 @@ std::string trim(std::string const& str)
 
 	end = end - start;
 	buffer = str.substr(start, end + 1);
-	buffer = buffer.substr(0, buffer.find('#'));
-	if (buffer.size())
-		buffer.push_back('\n');
+	// buffer = buffer.substr(0, buffer.find('#'));
+	// if (buffer.size())
+	// 	buffer.push_back('\n');
+
 	return buffer;
 }
 
@@ -52,8 +58,11 @@ int get_line_case(char token, bool open_quote)
 	if (token == '#')
 		return 4;
 
-	if (token == '\n')
+	if (token == ',')
 		return 5;
+
+	if (token == '\n')
+		return 6;
 
 	return 0;
 }
@@ -73,8 +82,7 @@ std::string get_line(std::istream& stream, std::string& buffer)
 			buffer.clear();
 			std::getline(stream, buffer);
 			if (buffer.empty())
-				throw std::invalid_argument("syntax error");
-			buffer = trim(buffer);
+				throw std::invalid_argument("syntax error: missing operator");
 			i = 0;
 		}
 
@@ -82,15 +90,15 @@ std::string get_line(std::istream& stream, std::string& buffer)
 		case 1:
 			open_brace = true;
 			container.push('[');
-			line += buffer[i];
+			line += STX;
 			break;
 		case 2:
 			if (container.size() && container.top() != '[')
-				throw std::invalid_argument("syntax error");
+				throw std::invalid_argument("syntax error: missing '['");
 			container.pop();
 			if (container.size() == 0)
 				open_brace = false;
-			line += buffer[i];
+			line += ETX;
 			break;
 		case 3:
 			if (container.size() && container.top() == '\"') {
@@ -102,18 +110,16 @@ std::string get_line(std::istream& stream, std::string& buffer)
 			}
 			break;
 		case 4:
-			// buffer.clear();
-			i = buffer.find('\n') - 1;
+			i = buffer.length() - 1;
 			break;
 		case 5:
+			line += US;
+			break;
+		case 6:
 			break;
 		default:
-			if (open_quote)
+			if (open_quote || !std::isspace(buffer[i]))
 				line += buffer[i];
-			else {
-				if (!std::isspace(buffer[i]))
-					line += buffer[i];
-			}
 			break;
 		}
 
@@ -133,7 +139,7 @@ bool get_case(std::string const& str)
 	if (buffer.size() == 0 || buffer[0] == '#')
 		return true;
 
-	if (buffer == "[server]\n")// ERROR: [   server    ]
+	if (buffer == "[server]")// ERROR: [   server    ]
 		return true;
 
 	if (buffer.find('=') == std::string::npos)
@@ -155,7 +161,7 @@ std::vector<std::string> get_raw_file(std::string const& path)
 		return container;
 
 	while (std::getline(file, buffer)) {
-		buffer = trim(buffer);
+		// buffer = trim(buffer);
 
 		if (get_case(buffer))
 			line = get_line(file, buffer);
@@ -172,19 +178,33 @@ std::vector<std::string> get_raw_file(std::string const& path)
 	return container;
 }
 
-std::vector<std::string> split_config_file(std::string const& path)
+std::vector<std::map<std::string, std::string> > split_config_file(std::string const& path)
 {
-	std::vector<std::string> container;
-	std::string              buffer;
+	std::vector<std::map<std::string, std::string> > final;
+	std::vector<std::string> v_container;
+	std::vector<std::string>::iterator    v_it;
+	std::map<std::string, std::string>    m_container;
+	std::map<std::string, std::string>::iterator    m_it;
+	std::string              key, value;
 
-	container = get_raw_file(path);
-	// container = split_raw_file(container);
-	// container = delete_quotes(container);
+	v_container = get_raw_file(path);
+	// TODO: funcion para dividir en contenedores por cada [server], para luego que cada uno corresponda al que toca
+	v_it = v_container.begin();
+	while (v_it != v_container.end()) {
+		key = v_it->substr(0, v_it->find('='));
+		value = v_it->substr(v_it->find('=') + 1);
 
-	for (std::vector<std::string>::iterator it = container.begin(); it != container.end(); it++)
-		std::cout << *it/*  << "---\n" */;
 
-	return container;
+		m_it = m_container.find(key);
+		if (m_it != m_container.end())
+			throw std::invalid_argument("repeated value"); // TODO: poner la clave repetida
+		m_container[key] = value;
+		v_it++;
+
+	std::cerr << __FILE__ << ": " << __LINE__ << ": [key:" << key << ", value: " << value << "]" << std::endl;
+	}
+
+	return final;
 }
 
 int main()
