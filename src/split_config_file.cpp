@@ -34,9 +34,6 @@ std::string trim(std::string const& str)
 
 	end = end - start;
 	buffer = str.substr(start, end + 1);
-	// buffer = buffer.substr(0, buffer.find('#'));
-	// if (buffer.size())
-	// 	buffer.push_back('\n');
 
 	return buffer;
 }
@@ -132,8 +129,8 @@ std::string get_line(std::istream& stream, std::string& buffer)
 
 bool get_case(std::string const& str)
 {
-	std::string buffer = trim(str);
-
+	std::string buffer(str);
+	buffer.erase(std::remove_if(buffer.begin(), buffer.end(), ::isspace), buffer.end());
 	// std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
 	
 	if (buffer.size() == 0 || buffer[0] == '#')
