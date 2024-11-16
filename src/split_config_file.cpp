@@ -1,24 +1,29 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
-#include <endian.h>
 #include <fstream>
-#include <iterator>
-#include <stdexcept>
-#include <string>
-#include <sstream>
-#include <vector>
 #include <map>
 #include <stack>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
+#include "delimiter.hpp"
 
 #include <iostream> // DEBUG
 
-#define STX 2  // Start TeXt
-#define ETX 3  // End TeXt
-#define US  31 // Unit Separator
+enum token_case {
+	LITERAL,
+	QUOTE,
+	OPEN_BRACE,
+	CLOSE_BRACE,
+	COMMA,
+	COMMENT,
+	NEW_LINE
+};
 
-std::string trim(std::string const& str)
+static std::string
+trim(std::string const& str)
 {
 	std::size_t start, end;
 	std::string buffer;
@@ -42,43 +47,45 @@ std::string trim(std::string const& str)
 	return buffer;
 }
 
-int get_line_case(char token, bool open_quote)
+static enum token_case
+get_line_case(char token, bool open_quote)
 {
 	if (token == '\"')
-		return 3;
+		return QUOTE;
 
 	if (open_quote)
-		return 0;
+		return LITERAL;
 
 	if (token == '[')
-		return 1;
+		return OPEN_BRACE;
 
 	if (token == ']')
-		return 2;
+		return CLOSE_BRACE;
 
 	if (token == '#')
-		return 4;
+		return COMMENT;
 
 	if (token == ',')
-		return 5;
+		return COMMA;
 
 	if (token == '\n')
-		return 6;
+		return NEW_LINE;
 
-	return 0;
+	return LITERAL;
 }
 
-std::string get_line(std::istream& stream, std::string& buffer)
+static std::string
+get_line(std::istream& stream, std::string& buffer)
 {
-	std::string      line;
 	std::stack<char> container;
+	std::string      line;
 	std::size_t      i;
 	bool             open_brace, open_quote;
 
-	i = 0;
 	open_brace = false;
 	open_quote = false;
-	do {
+	i          = 0;
+ 	while (container.size() != 0 || open_brace || open_quote || buffer[i]) {
 		if (!buffer[i]) {
 			buffer.clear();
 			std::getline(stream, buffer);
@@ -88,21 +95,21 @@ std::string get_line(std::istream& stream, std::string& buffer)
 		}
 
 		switch (get_line_case(buffer[i], open_quote)) {
-		case 1:
+		case OPEN_BRACE:
 			open_brace = true;
 			container.push('[');
 			line += STX;
 			break;
-		case 2:
-			if (container.size() && container.top() != '[')
+		case CLOSE_BRACE:
+			if (container.size() != 0 && container.top() != '[')
 				throw std::invalid_argument("syntax error: missing '['");
 			container.pop();
 			if (container.size() == 0)
 				open_brace = false;
 			line += ETX;
 			break;
-		case 3:
-			if (container.size() && container.top() == '\"') {
+		case QUOTE:
+			if (container.size() != 0 && container.top() == '\"') {
 				container.pop();
 				open_quote = false;
 			} else {
@@ -110,37 +117,36 @@ std::string get_line(std::istream& stream, std::string& buffer)
 				open_quote = true;
 			}
 			break;
-		case 4:
+		case COMMENT:
 			i = buffer.length() - 1;
 			break;
-		case 5:
+		case COMMA:
 			line += US;
 			break;
-		case 6:
+		case NEW_LINE:
 			break;
 		default:
 			if (open_quote || !std::isspace(buffer[i]))
 				line += buffer[i];
 			break;
 		}
-
 		i++;
-	} while (container.size() != 0 || open_brace || open_quote || buffer[i]);
+	}
 
 	line = trim(line);
 	return line;
 }
 
-bool get_case(std::string const& str)
+static bool
+get_case(std::string const& str)
 {
 	std::string buffer(str);
 	buffer.erase(std::remove_if(buffer.begin(), buffer.end(), ::isspace), buffer.end());
-	// std::cerr << __FILE__ << ": " << __LINE__ << ": " << buffer;
 	
 	if (buffer.size() == 0 || buffer[0] == '#')
 		return true;
 
-	if (buffer == "[server]")// ERROR: [   server    ]
+	if (buffer == "[server]")
 		return true;
 
 	if (buffer.find('=') == std::string::npos)
@@ -152,26 +158,25 @@ bool get_case(std::string const& str)
 	return false;
 }
 
-std::vector<std::string> get_raw_file(std::string const& path)
+static std::vector<std::string>
+get_raw_file(std::string const& path)
 {
 	std::vector<std::string> container;
 	std::string              buffer, line;
 	std::fstream             file(path.c_str());
 
 	if (!file.is_open())
-		return container;
+		throw std::invalid_argument("failed to open config file");
 
 	while (std::getline(file, buffer)) {
-		// buffer = trim(buffer);
-
 		if (get_case(buffer))
 			line = get_line(file, buffer);
 		else
 			throw std::invalid_argument("syntax error");
 
-		if (line.size()) {
+		if (line.size() != 0)
 			container.push_back(line);
-		}
+
 		buffer.clear();
 	}
 
@@ -179,36 +184,59 @@ std::vector<std::string> get_raw_file(std::string const& path)
 	return container;
 }
 
-std::vector<std::map<std::string, std::string> > split_config_file(std::string const& path)
+static std::vector<std::map<std::string, std::string> >
+split_raw_file(std::vector<std::string> const& raw_file)
 {
-	std::vector<std::map<std::string, std::string> > final;
-	std::vector<std::string> v_container;
-	std::vector<std::string>::iterator    v_it;
-	std::map<std::string, std::string>    m_container;
-	std::map<std::string, std::string>::iterator    m_it;
-	std::string              key, value;
+	std::vector<std::map<std::string, std::string> > splited;
+	std::vector<std::string>::const_iterator         it;
+	std::map<std::string, std::string>               map;
+	std::string                                      key, value;
 
-	v_container = get_raw_file(path);
-	// TODO: funcion para dividir en contenedores por cada [server], para luego que cada uno corresponda al que toca
-	v_it = v_container.begin();
-	while (v_it != v_container.end()) {
-		key = v_it->substr(0, v_it->find('='));
-		value = v_it->substr(v_it->find('=') + 1);
+	it = raw_file.begin();
+	if (*it != ("\002server\003"))
+		throw std::invalid_argument("content outside [server] definition");
+	it++;
+	while (it != raw_file.end()) {
+		if (*it == "\002server\003") {
+			splited.push_back(map);
+			map.clear();
+			it++;
+			continue;
+		} 
 
+		key = it->substr(0, it->find('='));
+		value = it->substr(it->find('=') + 1);
 
-		m_it = m_container.find(key);
-		if (m_it != m_container.end())
-			throw std::invalid_argument("repeated value"); // TODO: poner la clave repetida
-		m_container[key] = value;
-		v_it++;
+		if (map.find(key) != map.end())
+			throw std::invalid_argument("repeated key");
 
-	std::cerr << __FILE__ << ": " << __LINE__ << ": [key:" << key << ", value: " << value << "]" << std::endl;
+		map[key] = value;
+		it++;
 	}
 
-	return final;
+	splited.push_back(map);
+	return splited;
 }
 
-int main()
+std::vector<std::map<std::string, std::string> >
+split_config_file(std::string const& path)
 {
-	split_config_file("config.conf");
+	std::vector<std::map<std::string, std::string> > final;
+	std::vector<std::string>                         raw_file;
+
+	raw_file = get_raw_file(path);
+	final    = split_raw_file(raw_file);
+
+	// NOTE: debug, print returned container---------------------------------------------------------------------------------------------
+	std::map<std::string, std::string>::iterator i;
+	std::vector<std::map<std::string, std::string> >::iterator it;
+	std::size_t n = 0;
+	for (it = final.begin(); it < final.end(); it++) {
+		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
+		for (i = it->begin(); i != it->end(); i++)
+			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
+		n++;
+	}
+	//-----------------------------------------------------------------------------------------------------------------------------------
+	return final;
 }
