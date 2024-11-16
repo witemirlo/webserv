@@ -23,12 +23,16 @@ std::string trim(std::string const& str)
 	std::size_t start, end;
 	std::string buffer;
 
+	if (str.size() == 0)
+		return str;
+
 	start = 0;
-	while (str.size() && (str[start] == ' ' || str[start] == '\t'))
+	while (str[start] == ' ' || str[start] == '\t')
 		start++;
 
 	end = str.size() - 1;
-	while (end && (str[end] == ' ' || str[end] == '\t' || str[end] == '\n')) {
+	while (end != 0 &&
+	      (str[end] == ' ' || str[end] == '\t' || str[end] == '\n')) {
 		end--;
 	}
 
