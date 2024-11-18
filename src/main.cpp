@@ -12,13 +12,14 @@
 #include "Listener.hpp"
 #include "get_config_data.hpp"
 
-std::vector<Listener> setup(void)
+std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & config)
 {
 	std::vector<Server> my_servers;
-	my_servers.push_back(Server(std::string("listen = 4143\nserver_name = mundo.com")));
-	my_servers.push_back(Server(std::string("listen = 1024\nserver_name = aver")));
-	my_servers.push_back(Server(std::string("listen = 4143\nserver_name = psacrist")));
 
+	for (size_t i = 0; i < config.size(); i++)
+	{
+		my_servers.push_back(Server(config[i]));
+	}
 	std::map<std::string, int> host_index; //revisar, se puede hacer + limpio
 	std::vector<Listener> listener_socks;
 
@@ -116,7 +117,7 @@ int main(int argc, char* argv[])
 	std::vector<std::map<std::string, std::string> > server_config;
 	server_config = get_config_data((argc == 2) ? argv[1] : DEFAULT_CONFIG_PATH);
 
-	std::vector<Listener> sockets = setup();
+	std::vector<Listener> sockets = setup(server_config);
 	struct pollfd *my_fds;
 	int fd_num;
 

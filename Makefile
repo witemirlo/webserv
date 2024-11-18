@@ -11,7 +11,7 @@ OBJ = $(SRC:.cpp=.o)
 
 SRC = \
 	src/main.cpp\
-	src/get_config_data.cpp
+	src/get_config_data.cpp\
 	src/Listener.cpp\
 	src/Server.cpp
 

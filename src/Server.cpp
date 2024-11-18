@@ -4,22 +4,18 @@
 #include <sstream>
 
 const std::string Server::rules[] = {"listen", "server_name", ""};
-void (Server::* const Server::setters [])(std::string &) = {&Server::setListen, &Server::setServerName};
+void (Server::* const Server::setters [])(std::string const &) = {&Server::setListen, &Server::setServerName};
 
-Server::Server(std::string const &config)
+Server::Server(std::map<std::string, std::string> & config)
 {
-	std::stringstream str(config);
-	std::string rule;
-
-	while (getline(str, rule))
-        procRule(rule);
+	for (std::map<std::string, std::string>::iterator it = config.begin(); it != config.end(); it++)
+	{
+		procRule(it->first, it->second);
+	}
 }
 
-void Server::procRule(std::string &rule)
+void Server::procRule(std::string const &what, std::string const &to_set)
 {
-	size_t eq_index = rule.find(" = "); //CHECKEAR
-	std::string what = rule.substr(0, eq_index);
-	std::string to_set = rule.substr(eq_index + 3, std::string::npos);
 
 	for (int i = 0; rules[i].size(); i++)
 	{
@@ -32,12 +28,12 @@ void Server::procRule(std::string &rule)
 	//control de errores
 }
 
-void Server::setServerName(std::string &server_name)
+void Server::setServerName(std::string const &server_name)
 {
 	_server_name = server_name; //Y SI HAY VARIOS
 }
 
-void Server::setListen(std::string &listen)
+void Server::setListen(std::string const &listen)
 {
 	if (listen.find(":") != std::string::npos) //CHECK CHECK
 		_listen = listen;
