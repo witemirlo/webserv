@@ -1,11 +1,9 @@
 #include <cstdlib>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-
-#ifndef DEFAULT_CONFIG_PATH
-# define DEFAULT_CONFIG_PATH "config.conf"
-#endif
+#include "get_config_data.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -14,8 +12,8 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	std::vector<std::string> server_config;
-	server_config = split_config_file((argc == 2) ? argv[1] : DEFAULT_CONFIG_PATH);
+	std::vector<std::map<std::string, std::string> > server_config;
+	server_config = get_config_data((argc == 2) ? argv[1] : DEFAULT_CONFIG_PATH);
 
 	return EXIT_SUCCESS;
 }
