@@ -5,7 +5,7 @@
 # include <vector>
 # include <map>
 
-# define DEF_PORT "80"
+# define DEF_PORT "8080"
 # define DEF_HOST "localhost"
 
 class Server

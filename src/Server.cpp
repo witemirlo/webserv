@@ -35,6 +35,7 @@ void Server::setServerName(std::string const &server_name)
 
 void Server::setListen(std::string const &listen)
 {
+	// TODO: LOCALHOST:LOCALHOST:ETC
 	if (listen.find(":") != std::string::npos) //CHECK CHECK
 		_listen = listen;
 	else
