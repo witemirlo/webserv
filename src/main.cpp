@@ -10,6 +10,7 @@
 
 #include "Server.hpp"
 #include "Listener.hpp"
+#include "get_config_data.hpp"
 
 std::vector<Listener> setup(void)
 {
