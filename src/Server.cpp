@@ -6,14 +6,24 @@
 const std::string Server::rules[] = {"listen", "server_name", ""};
 void (Server::* const Server::setters [])(std::string const &) = {&Server::setListen, &Server::setServerName};
 
+/**
+ * @param config a std::map of strings where the first indicates a directive and the second, the specification of that directive
+ */
 Server::Server(std::map<std::string, std::string> & config)
 {
 	for (std::map<std::string, std::string>::iterator it = config.begin(); it != config.end(); it++)
 	{
 		procRule(it->first, it->second);
 	}
+	//TODO: reglas fundamentales ej. listen
 }
 
+/**
+ * Iters all the rules of the server to call the right setter
+ * 
+ * @param what the rule
+ * @param to_set the specification of that rule
+ */
 void Server::procRule(std::string const &what, std::string const &to_set)
 {
 
@@ -25,7 +35,7 @@ void Server::procRule(std::string const &what, std::string const &to_set)
 			return ;
 		}
 	}
-	//control de errores
+	//TODO: control de errores
 }
 
 void Server::setServerName(std::string const &server_name)

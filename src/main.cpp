@@ -11,6 +11,7 @@
 #include "Server.hpp"
 #include "Listener.hpp"
 #include "get_config_data.hpp"
+#include "socket_management.hpp"
 
 std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & config)
 {
@@ -20,7 +21,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	{
 		my_servers.push_back(Server(config[i]));
 	}
-	std::map<std::string, int> host_index; //revisar, se puede hacer + limpio
+	std::map<std::string, int> host_index; //TODO: revisar, se puede hacer + limpio
 	std::vector<Listener> listener_socks;
 
 	for (size_t i = 0; i < my_servers.size(); i++)
@@ -37,56 +38,6 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 		}
 	}
 	return (listener_socks);
-}
-
-int get_all_sockets(struct pollfd ** fds, std::vector<Listener> & sockets)
-{
-	size_t total_sz = 0;
-	for (size_t i = 0; i < sockets.size(); i++)
-		total_sz += sockets[i].getNumberofSockets();
-	
-	struct pollfd * skts = new struct pollfd [total_sz];
-	struct pollfd * set_of_fds;
-	int fds_in_set;
-	int total_fds = 0;
-	for (size_t i = 0; i < sockets.size(); i++)
-	{
-		fds_in_set = sockets[i].getSockets(&set_of_fds);
-		for (int j = 0; j < fds_in_set; j++)
-			skts[j + total_fds] = set_of_fds[j];
-		total_fds += fds_in_set;
-		delete [] set_of_fds;
-	}
-	*fds = skts;
-	return (total_sz);
-}
-
-int where_is(int fd, std::vector<Listener> & sockets)
-{
-	for (size_t i = 0; i < sockets.size(); i++)
-	{
-		int ind = sockets[i].is_fd_here(fd);
-		if (ind == FD_NOT_HERE)
-			continue ;
-		if (ind == FD_IS_LISTENER)
-			return ((i + 1) * - 1);
-		else
-			return (i + 1);
-	}
-	return (0);
-}
-
-void accept_new_conn(Listener & listener, int fd)
-{
-	int new_fd = accept(fd, NULL, NULL);
-	
-	if (new_fd == -1)
-	{
-		std::cerr << "Could not accept new connection" << std::endl;
-		exit (EXIT_FAILURE);
-	}
-
-	listener.addSocket(new_fd);
 }
 
 void false_http(Listener & listener, int fd)
@@ -139,9 +90,9 @@ int main(int argc, char* argv[])
 				int loc = where_is(my_fds[i].fd, sockets);
 				// std::cerr << my_fds[i].fd << " is in " << loc << std::endl;
 				if (loc < 0)
-					accept_new_conn(sockets[(loc * -1) - 1], my_fds[i].fd);
+					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
 				else if (loc > 0)
-					false_http(sockets[loc - 1], my_fds[i].fd);
+					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
 				// std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
 			}
 		}

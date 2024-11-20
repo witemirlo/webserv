@@ -11,6 +11,10 @@
 
 static int get_listener(std::string & host, std::string & port);
 
+/**
+ *
+ * @param where_to_listen an alreay formated "host:port" string.
+ */
 Listener::Listener(std::string & where_to_listen)
 {
 	size_t ind = where_to_listen.find(':');
@@ -36,7 +40,13 @@ void Listener::addSocket(int fd)
 	_derived_socks.push_back(skc);
 }
 
-
+/**
+ * Creates a socket, binds it to an specified address and marks it as a passive socket
+ * 
+ * @param host the host to bind to
+ * @param port the port to bind to
+ * @return the fd of the created socket	
+ */
 static int get_listener(std::string & host, std::string & port)
 {
 	struct addrinfo req;
@@ -75,7 +85,7 @@ static int get_listener(std::string & host, std::string & port)
 		exit(EXIT_FAILURE);
 	} //TODO: a lo mejor tendria que ser un return -1 y luego un throw
 
-	if (listen(sfd, 10) == -1)
+	if (listen(sfd, SOMAXCONN) == -1)
 	{
 		std::cerr << RED "Failed to listen fd: " << sfd << std::endl;
 		exit(EXIT_FAILURE);
@@ -84,6 +94,12 @@ static int get_listener(std::string & host, std::string & port)
 	return sfd;
 }
 
+/**
+ * Creates an array of struct pollfd of all the sockets contained in this object, including the listening socket
+ * 
+ * @param sockets the address to where to store the structs pollfd
+ * @return the number of sockets
+ */
 int Listener::getSockets(struct pollfd ** sockets) const
 {
 	int size = _derived_socks.size() + 1;
@@ -96,6 +112,12 @@ int Listener::getSockets(struct pollfd ** sockets) const
 	return (size);
 }
 
+/**
+ * Searchs if a given file descriptor is withing this object
+ * 
+ * @param fd the fd to search
+ * @return FD_IS_LISTENER if fd is the listener socket; FD_NOT_HERE if the fd is not here; a positive value if the fd is a socket derived from the listener
+ */
 int Listener::is_fd_here(int fd) const
 {
 	if (fd == _listener.fd)
