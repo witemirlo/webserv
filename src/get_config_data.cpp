@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstddef>
+#include <cstdlib>
 #include <fstream>
 #include <map>
 #include <stack>
@@ -8,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "colors.hpp"
 #include "delimiter.hpp"
 
 #include <iostream> // DEBUG
@@ -38,24 +40,18 @@ static std::string                                      trim(std::string const&)
 std::vector<std::map<std::string, std::string> >
 get_config_data(std::string const& path)
 {
-	std::vector<std::map<std::string, std::string> > final;
-	std::vector<std::string>                         file;
-
-	file = get_file(path);
-	final    = split_file(file);
-
+	return split_file(get_file(path));
 	// NOTE: debug, print returned container---------------------------------------------------------------------------------------------
-	std::map<std::string, std::string>::iterator i;
-	std::vector<std::map<std::string, std::string> >::iterator it;
-	std::size_t n = 0;
-	for (it = final.begin(); it < final.end(); it++) {
-		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
-		for (i = it->begin(); i != it->end(); i++)
-			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
-		n++;
-	}
+	// std::map<std::string, std::string>::iterator i;
+	// std::vector<std::map<std::string, std::string> >::iterator it;
+	// std::size_t n = 0;
+	// for (it = final.begin(); it < final.end(); it++) {
+	// 	std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
+	// 	for (i = it->begin(); i != it->end(); i++)
+	// 		std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
+	// 	n++;
+	// }
 	//-----------------------------------------------------------------------------------------------------------------------------------
-	return final;
 }
 
 /**
@@ -74,14 +70,18 @@ get_file(std::string const& path)
 	std::string              buffer, line;
 	std::fstream             file(path.c_str());
 
-	if (!file.is_open())
-		throw std::invalid_argument("failed to open config file");
+	if (!file.is_open()) {
+		std::cerr << RED "Error:" NC " cannot open file \"" << path << "\"" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 
 	while (std::getline(file, buffer)) {
 		if (get_file_check(buffer))
 			line = get_instruction(file, buffer);
-		else
-			throw std::invalid_argument("syntax error");
+		else {
+			std::cerr << RED "Error:" NC " syntax error" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
 		if (line.size() != 0)
 			container.push_back(line);
@@ -147,8 +147,10 @@ get_instruction(std::istream& stream, std::string& buffer)
 		if (!buffer[i]) {
 			buffer.clear();
 			std::getline(stream, buffer);
-			if (buffer.empty())
-				throw std::invalid_argument("syntax error: missing operator");
+			if (buffer.empty()) {
+				std::cerr << RED "Error:" NC " syntax error: missing operator" << std::endl;
+				exit(EXIT_FAILURE);
+			}
 			i = 0;
 		}
 
@@ -159,8 +161,10 @@ get_instruction(std::istream& stream, std::string& buffer)
 			line += STX;
 			break;
 		case CLOSE_BRACE:
-			if (container.size() != 0 && container.top() != '[')
-				throw std::invalid_argument("syntax error: missing '['");
+			if (container.size() != 0 && container.top() != '[') {
+				std::cerr << RED "Error:" NC " syntax error: missing '['" << std::endl;
+				exit(EXIT_FAILURE);
+			}
 			container.pop();
 			if (container.size() == 0)
 				open_brace = false;
@@ -243,8 +247,10 @@ split_file(std::vector<std::string> const& raw_file)
 	std::string                                      key, value;
 
 	it = raw_file.begin();
-	if (*it != ("\002server\003"))
-		throw std::invalid_argument("content outside [server] definition");
+	if (*it != ("\002server\003")) {
+		std::cerr << RED "Error:" NC " content outside [server] definition" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	it++;
 	while (it != raw_file.end()) {
 		if (*it == "\002server\003") {
@@ -257,8 +263,10 @@ split_file(std::vector<std::string> const& raw_file)
 		key = it->substr(0, it->find('='));
 		value = it->substr(it->find('=') + 1);
 
-		if (map.find(key) != map.end())
-			throw std::invalid_argument("repeated key");
+		if (map.find(key) != map.end()) {
+			std::cerr << RED "Error:" NC " repeated key \"" << key << "\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
 		map[key] = value;
 		it++;
