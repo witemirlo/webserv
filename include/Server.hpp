@@ -1,7 +1,12 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include <string> 
+# include <string>
+# include <vector>
+# include <map>
+
+# define DEF_PORT "8080"
+# define DEF_HOST "localhost"
 
 class Server
 {
@@ -9,11 +14,19 @@ private:
 	std::string	_listen;
 	std::string _server_name;
 	static const std::string rules[];
+	static void (Server::* const setters [])(std::string const &);
 public:
-	Server(std::string &config);
-	void setServerName(std::string &server_name);
-	void setListen(std::string &listen);
-	void procRule(std::string &rule);
+	Server(std::map<std::string, std::string> & config);
+	void procRule(std::string const &what, std::string const &to_set);
+
+//	SETTER
+	void setServerName(std::string const &server_name);
+	void setListen(std::string const &listen);
+
+//	GETTER
+	std::string &getServerName(void);
+	std::string &getListen(void);
+
 //	OCCF
 	Server();
 	Server(const Server &other);
