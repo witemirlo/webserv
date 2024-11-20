@@ -1,9 +1,9 @@
 #include "Server.hpp"
 #include "delimiter.hpp"
 
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <cstdlib>
 
 const std::string Server::rules[] = {"listen", "server_name", ""};
 void (Server::* const Server::setters [])(std::string const &) = {&Server::setListen, &Server::setServerName};
@@ -37,7 +37,7 @@ void Server::procRule(std::string const &what, std::string const &to_set)
 			return ;
 		}
 	}
-	std::cerr << "Directive \"" + what + "\" is invalid" << std::endl;
+	std::cerr << RED "Error: " NC "key \"" + what + "\" is invalid" << std::endl;
 	exit(EXIT_FAILURE);
 }
 

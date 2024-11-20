@@ -2,9 +2,10 @@
 # define LISTENER_HPP
 
 # include <poll.h>
-# include <vector>
 # include <string>
+# include <vector>
 
+# include "colors.hpp"
 # include "Server.hpp"
 
 # define FD_IS_LISTENER -1
@@ -35,16 +36,5 @@ public:
 	Listener &operator=(const Listener &other);
 	~Listener();
 };
-
-# ifndef COLOR_DEF
-#  define COLOR_DEF
-#  define NC "[0m"
-#  define GREEN "[38;5;40m"
-#  define YELOW "[38;5;220m"
-#  define RED "[38;5;124m"
-#  define BLUE "[38;5;32m"
-#  define ORAN "[38;5;202m"
-#  define PURP "[38;5;91m"
-# endif
 
 #endif

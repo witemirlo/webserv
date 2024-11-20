@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <stack>
 #include <stdexcept>
@@ -12,7 +13,6 @@
 #include "colors.hpp"
 #include "delimiter.hpp"
 
-#include <iostream> // DEBUG
 
 enum token_case {
 	LITERAL,
@@ -41,17 +41,6 @@ std::vector<std::map<std::string, std::string> >
 get_config_data(std::string const& path)
 {
 	return split_file(get_file(path));
-	// NOTE: debug, print returned container---------------------------------------------------------------------------------------------
-	// std::map<std::string, std::string>::iterator i;
-	// std::vector<std::map<std::string, std::string> >::iterator it;
-	// std::size_t n = 0;
-	// for (it = final.begin(); it < final.end(); it++) {
-	// 	std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
-	// 	for (i = it->begin(); i != it->end(); i++)
-	// 		std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
-	// 	n++;
-	// }
-	//-----------------------------------------------------------------------------------------------------------------------------------
 }
 
 /**

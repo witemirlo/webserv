@@ -1,15 +1,15 @@
 #include <cstdlib>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
+#include <map>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <vector>
 
-#include "Server.hpp"
 #include "Listener.hpp"
+#include "Server.hpp"
 #include "get_config_data.hpp"
 #include "socket_management.hpp"
 
@@ -67,6 +67,18 @@ int main(int argc, char* argv[])
 
 	std::vector<std::map<std::string, std::string> > server_config;
 	server_config = get_config_data((argc == 2) ? argv[1] : DEFAULT_CONFIG_PATH);
+
+	// NOTE: debug, print returned container---------------------------------------------------------------------------------------------
+	std::map<std::string, std::string>::iterator i;
+	std::vector<std::map<std::string, std::string> >::iterator it;
+	std::size_t n = 0;
+	for (it = server_config.begin(); it < server_config.end(); it++) {
+		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
+		for (i = it->begin(); i != it->end(); i++)
+			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
+		n++;
+	}
+	//-----------------------------------------------------------------------------------------------------------------------------------
 
 	std::vector<Listener> sockets = setup(server_config);
 	struct pollfd *my_fds;

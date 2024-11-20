@@ -1,9 +1,11 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
+# include <map>
 # include <string>
 # include <vector>
-# include <map>
+
+# include "colors.hpp"
 
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
@@ -33,16 +35,5 @@ public:
 	Server &operator=(const Server &other);
 	~Server();
 };
-
-# ifndef COLOR_DEF
-#  define COLOR_DEF
-#  define NC "[0m"
-#  define GREEN "[38;5;40m"
-#  define YELOW "[38;5;220m"
-#  define RED "[38;5;124m"
-#  define BLUE "[38;5;32m"
-#  define ORAN "[38;5;202m"
-#  define PURP "[38;5;91m"
-# endif
 
 #endif
