@@ -60,7 +60,7 @@ static int get_listener(std::string & host, std::string & port)
 
 	if ((err = getaddrinfo(host.c_str(), port.c_str(), &req, &res)) != 0)
 	{
-		std::cerr << RED "getaddrinfo error: " + std::string(gai_strerror(err)) + NC << std::endl;
+		std::cerr << RED "Error: " NC "getaddrinfo [" + host + ":" + port + "] " + std::string(gai_strerror(err)) << std::endl;
 		exit(1);
 	}
 
@@ -81,13 +81,13 @@ static int get_listener(std::string & host, std::string & port)
 	freeaddrinfo(res);
 	if (test == NULL) 
 	{
-		std::cerr << RED "Failed to bind to host " + host + " at port " + port + NC << std::endl;
+		std::cerr << RED "Error: " NC "Failed to bind to host " + host + " at port " + port << std::endl;
 		exit(EXIT_FAILURE);
-	} //TODO: a lo mejor tendria que ser un return -1 y luego un throw
+	}
 
 	if (listen(sfd, SOMAXCONN) == -1)
 	{
-		std::cerr << RED "Failed to listen fd: " << sfd << std::endl;
+		std::cerr << RED "Error: " NC "Failed to listen to fd: " << sfd << std::endl;
 		exit(EXIT_FAILURE);
 	}
 

@@ -34,7 +34,7 @@ void accept_new_conn(Listener & listener, int fd)
 	
 	if (new_fd == -1)
 	{
-		std::cerr << "Could not accept new connection" << std::endl;
+		std::cerr << RED "Error: " NC "Could not accept new connection" << std::endl;
 		exit (EXIT_FAILURE);
 	}
 
