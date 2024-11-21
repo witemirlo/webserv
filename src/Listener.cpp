@@ -11,6 +11,16 @@
 
 static int get_listener(std::string & host, std::string & port);
 
+int Listener::updateRequest(int index, std::string buffer)
+{
+	return (_requests[index].appendRequest(buffer));
+}
+
+void Listener::printRequest(int index)
+{
+	std::cout << _requests[index];
+}
+
 /**
  *
  * @param where_to_listen an alreay formated "host:port" string.
@@ -38,6 +48,7 @@ void Listener::addSocket(int fd)
 	skc.fd = fd;
 	skc.events = POLLIN;
 	_derived_socks.push_back(skc);
+	_requests[fd] = Request ();
 }
 
 /**
@@ -149,9 +160,11 @@ void Listener::deleteFd(int fd)
 		{
 			close(fd); //TODO: esto falla?
 			_derived_socks.erase(_derived_socks.begin() + i);
+			_requests.erase(fd);
 			return ;
 		}
 	}
+
 }
 
 //	OCCF
@@ -164,7 +177,7 @@ Listener::Listener(void)
 Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Listener copy constructor called" NC << std::endl;
+	std::cout << YELLOW "Listener copy constructor called" NC << std::endl;
 #endif
 	*this = other;
 }
@@ -172,7 +185,7 @@ Listener::Listener(const Listener &other) : _listener(other._listener), _derived
 Listener &Listener::operator=(const Listener &other)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Listener copy assignment operator called" NC << std::endl;
+	std::cout << YELLOW "Listener copy assignment operator called" NC << std::endl;
 #endif
 	(void)other;
 	return (*this);

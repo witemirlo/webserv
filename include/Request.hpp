@@ -1,6 +1,6 @@
 #ifndef REQUEST_HPP
 # define REQUEST_HPP
-# define CRLF "\13\10" //TODO: he leido que algunos clientes solo hacen LF
+# define CRLF "\r\n" //TODO: he leido que algunos clientes solo hacen LF
 
 # include "colors.hpp"
 
@@ -13,7 +13,7 @@ enum request_status {
 	HEADERS,
 	BODY,
 	END,
-	ERROR,
+	ERROR
 };
 
 class Request
@@ -22,14 +22,14 @@ private:
 	std::string _initial_line; //TODO: cambiar a method y url??
 	std::map<std::string, std::string> _headers;
 	std::string _body;
-	enum request_status _status;
+	int _status;
 public:
-	enum request_status appendRequest(std::string & append);
+	int appendRequest(std::string & append);
 	void procHeader(std::string & raw, size_t index);
 
 //	GETTERs TODO: maybe its only for debug
-	std::string &getInitial(void);
-	std::string &getHeaders(void);
+	std::string const&getInitial(void);
+	std::string getHeaders(void);
 	std::string &getBody(void);
 
 //	OCCF

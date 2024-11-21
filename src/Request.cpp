@@ -2,59 +2,55 @@
 
 #include <iostream>
 
-enum request_status Request::appendRequest(std::string & append)
+int Request::appendRequest(std::string & append)
 {
 	static std::string raw;
 
-	if (raw.size()) //TODO: que jacobo lo pase a ternaria
-		raw += append;
-	else
-		raw = append;
+	raw += append;
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (_status == INIT)
+		if (this->_status == INIT)
 		{
-			_initial_line = raw.substr(ind + 2);
-			_status == HEADERS;
+			this->_initial_line = raw.substr(0, ind + 2);
+			this->_status = HEADERS;
 		}
-		else if (_status == HEADERS)
+		else if (this->_status == HEADERS)
 			procHeader(raw, ind);
-		else if (_status == BODY)
-		{
-			_body = raw; //TODO: revisar fuerte, esto depende de headers y demas
-			_status = END;
-		}
-
+		// else if (this->_status == BODY)
+		// {
+		// 	this->_body = raw; //TODO: revisar fuerte, esto depende de headers y demas
+		// 	this->_status = END;
+		// 	return (this->_status);
+		// }
 		raw.erase(0, ind + 2);
 	}
-
-	return (_status);
+	return (this->_status);
 }
 
 void Request::procHeader(std::string & raw, size_t index)
 {
-	std::string header = raw.substr(index);
+	std::string header = raw.substr(0, index);
 	size_t sep = header.find(":"); //TODO: errors y separador a lo peor es ": "
-	std::string key = header.substr(sep); //TODO: toupper o tulower
-	std::string value = header.substr(sep + 1, std::string::npos);
+	std::string key = header.substr(0, sep); //TODO: toupper o tulower
+	std::string value = header.substr(sep + 1);
 
 	_headers[key] = value; //TODO: check for dups
-	if (raw[index + 2] == '\13' &&  raw[index + 3] == '\10') //TODO: podria ser mas limpio
+	if (raw[index + 2] == '\r' &&  raw[index + 3] == '\n') //TODO: podria ser mas limpio
 	{
-		_status = BODY; //TODO: si no hay body
+		_status = END; //TODO: si no hay body
 		raw.erase(2);
 	}
 }
 
 //	GETTERs TODO: maybe its only for debug
 
-std::string &Request::getInitial(void)
+std::string const&Request::getInitial(void)
 {
 	return (_initial_line);
 }
 
-std::string &Request::getHeaders(void)
+std::string Request::getHeaders(void)
 {
 	std::string all_headers;
 
@@ -78,14 +74,14 @@ std::ostream & operator<<(std::ostream & out, Request & req)
 
 //	OCCF
 
-Request::Request(void) : _status(INIT)
+Request::Request(void) : _initial_line(""), _status(INIT)
 {
 #ifdef DEBUG
 	std::cout << GREEN "Request default constructor called" NC << std::endl;
 #endif
 }
 
-Request::Request(const Request &other) : _initial_line(other._initial_line), _headers(other._headers), _body(other._body)
+Request::Request(const Request &other) : _initial_line(other._initial_line), _headers(other._headers), _body(other._body), _status(other._status)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Request copy constructor called" NC << std::endl;

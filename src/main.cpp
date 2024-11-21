@@ -42,7 +42,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 
 void false_http(Listener & listener, int fd)
 {
-	char buffer[128]; //hay que verlo
+	char buffer[128]; //TODO:  hay que verlo
 	std::memset(buffer, 0, sizeof buffer);
 	int bytes = recv(fd, buffer, sizeof buffer - 1, 0);
 
@@ -55,7 +55,10 @@ void false_http(Listener & listener, int fd)
 	if (bytes == 0)
 		listener.deleteFd(fd);
 
-	std::cout << "Hi, im fd: " << fd << " and I proudly say: " << buffer << std::endl;
+	int status = listener.updateRequest(fd, std::string(buffer));
+	if (status == END)
+		listener.printRequest(fd);
+	//TODO: POLLOUT y escribir que tal mi pana
 }
 
 int main(int argc, char* argv[])
