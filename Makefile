@@ -14,7 +14,7 @@ SRC = \
 	src/socket_management.cpp\
 	src/get_config_data.cpp\
 	src/Listener.cpp\
-	src/Request.cpp\
+	src/ARequest.cpp\
 	src/Server.cpp
 
 #-------------------------------------------------------------------------------

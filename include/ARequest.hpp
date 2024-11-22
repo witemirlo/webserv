@@ -1,5 +1,5 @@
-#ifndef REQUEST_HPP
-# define REQUEST_HPP
+#ifndef AREQUEST_HPP
+# define AREQUEST_HPP
 # define CRLF "\r\n" //TODO: he leido que algunos clientes solo hacen LF
 
 # include "colors.hpp"
@@ -16,7 +16,7 @@ enum request_status {
 	ERROR
 };
 
-class Request
+class ARequest
 {
 private:
 	std::string _initial_line; //TODO: cambiar a method y url??
@@ -33,12 +33,12 @@ public:
 	std::string &getBody(void);
 
 //	OCCF
-	Request();
-	Request(const Request &other);
-	Request &operator=(const Request &other);
-	~Request();
+	ARequest();
+	ARequest(const ARequest &other);
+	ARequest &operator=(const ARequest &other);
+	~ARequest();
 };
 
-std::ostream & operator<<(std::ostream & out, Request & req);
+std::ostream & operator<<(std::ostream & out, ARequest & req);
 
 #endif

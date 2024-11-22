@@ -1,8 +1,8 @@
-#include "Request.hpp"
+#include "ARequest.hpp"
 
 #include <iostream>
 
-int Request::appendRequest(std::string & append)
+int ARequest::appendRequest(std::string & append)
 {
 	static std::string raw;
 
@@ -28,15 +28,18 @@ int Request::appendRequest(std::string & append)
 	return (this->_status);
 }
 
-void Request::procHeader(std::string & raw, size_t index)
+void ARequest::procHeader(std::string & raw, size_t index)
 {
 	std::string header = raw.substr(0, index);
 	size_t sep = header.find(":"); //TODO: errors y separador a lo peor es ": "
-	std::string key = header.substr(0, sep); //TODO: toupper o tulower
+	std::string key = header.substr(0, sep);
 	std::string value = header.substr(sep + 1);
 
-	_headers[key] = value; //TODO: check for dups
-	if (raw[index + 2] == '\r' &&  raw[index + 3] == '\n') //TODO: podria ser mas limpio
+	for (size_t i = 0; i < key.size(); i++)
+		key[i] = tolower(key[i]);
+
+	_headers[key] = value; //TODO: check for dups -> error code?
+	if (raw[index + 2] == '\r' &&  raw[index + 3] == '\n') //TODO: podria ser mas limpio y podríamos quedarnos a medias...
 	{
 		_status = END; //TODO: si no hay body
 		raw.erase(2);
@@ -45,12 +48,12 @@ void Request::procHeader(std::string & raw, size_t index)
 
 //	GETTERs TODO: maybe its only for debug
 
-std::string const&Request::getInitial(void)
+std::string const&ARequest::getInitial(void)
 {
 	return (_initial_line);
 }
 
-std::string Request::getHeaders(void)
+std::string ARequest::getHeaders(void)
 {
 	std::string all_headers;
 
@@ -61,12 +64,12 @@ std::string Request::getHeaders(void)
 	return (all_headers);
 }
 
-std::string &Request::getBody(void)
+std::string &ARequest::getBody(void)
 {
 	return (_body);
 }
 
-std::ostream & operator<<(std::ostream & out, Request & req)
+std::ostream & operator<<(std::ostream & out, ARequest & req)
 {
 	out << req.getInitial() << req.getHeaders() << req.getBody();
 	return (out);
@@ -74,33 +77,33 @@ std::ostream & operator<<(std::ostream & out, Request & req)
 
 //	OCCF
 
-Request::Request(void) : _initial_line(""), _status(INIT)
+ARequest::ARequest(void) : _initial_line(""), _status(INIT)
 {
 #ifdef DEBUG
-	std::cout << GREEN "Request default constructor called" NC << std::endl;
+	std::cout << GREEN "ARequest default constructor called" NC << std::endl;
 #endif
 }
 
-Request::Request(const Request &other) : _initial_line(other._initial_line), _headers(other._headers), _body(other._body), _status(other._status)
+ARequest::ARequest(const ARequest &other) : _initial_line(other._initial_line), _headers(other._headers), _body(other._body), _status(other._status)
 {
 #ifdef DEBUG
-	std::cout << YELLOW "Request copy constructor called" NC << std::endl;
+	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;
 #endif
 	*this = other;
 }
 
-Request &Request::operator=(const Request &other)
+ARequest &ARequest::operator=(const ARequest &other)
 {
 #ifdef DEBUG
-	std::cout << YELLOW "Request copy assignment operator called" NC << std::endl;
+	std::cout << YELLOW "ARequest copy assignment operator called" NC << std::endl;
 #endif
 	(void)other;
 	return (*this);
 }
 
-Request::~Request()
+ARequest::~ARequest()
 {
 #ifdef DEBUG
-	std::cout << RED "Request destrucutor called" NC << std::endl;
+	std::cout << RED "ARequest destrucutor called" NC << std::endl;
 #endif
 }

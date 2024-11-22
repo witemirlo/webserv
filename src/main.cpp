@@ -40,7 +40,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	return (listener_socks);
 }
 
-void false_http(Listener & listener, int fd)
+int false_http(Listener & listener, int fd)
 {
 	char buffer[128]; //TODO:  hay que verlo
 	std::memset(buffer, 0, sizeof buffer);
@@ -58,7 +58,7 @@ void false_http(Listener & listener, int fd)
 	int status = listener.updateRequest(fd, std::string(buffer));
 	if (status == END)
 		listener.printRequest(fd);
-	//TODO: POLLOUT y escribir que tal mi pana
+	return (status);
 }
 
 int main(int argc, char* argv[])
@@ -87,14 +87,14 @@ int main(int argc, char* argv[])
 	struct pollfd *my_fds;
 	int fd_num;
 
-	while (42) //TODO: no es non blocking
+	while (42)
 	{
 		fd_num = get_all_sockets(&my_fds, sockets);
 
 		int n_events = poll(my_fds, fd_num, -1);
 		if (n_events == -1)
 		{
-			std::cerr << RED "An error in poll happened" NC << std::endl;
+			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
 			return EXIT_FAILURE;
 		}
 	
@@ -103,12 +103,13 @@ int main(int argc, char* argv[])
 			if (my_fds[i].revents & POLLIN)
 			{
 				int loc = where_is(my_fds[i].fd, sockets);
-				// std::cerr << my_fds[i].fd << " is in " << loc << std::endl;
 				if (loc < 0)
 					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
 				else if (loc > 0)
-					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
-				// std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
+				{
+					if (false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd) == END)
+						my_fds[i].events == POLLOUT; //TODO: a lo peor no se fija
+				}
 			}
 		}
 	}

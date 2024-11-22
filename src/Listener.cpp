@@ -9,11 +9,36 @@
 #include <cstdlib>
 #include <cstring>
 
+const std::string Listener::request_types[] = {"GET", ""};
+void (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet};
+
 static int get_listener(std::string & host, std::string & port);
 
 int Listener::updateRequest(int index, std::string buffer)
 {
-	return (_requests[index].appendRequest(buffer));
+	try {
+		return (_requests[index]->appendRequest(buffer));
+	} catch (std::exception const & e) {
+		_requests[index] = createRequest(buffer);
+	}
+}
+
+ARequest *Listener::createRequest(std::string & buffer)
+{
+	size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+	std::string request_line = buffer.substr(0, ind + 2);
+	size_t sp = request_line.find(" ");
+	std::string method = request_line.substr(0, sp);
+	request_line.erase(sp);
+	sp = request_line.find(" ");
+	std::string uri = request_line.substr(0, sp);
+	buffer.erase(ind + 2);
+
+	for (int i = 0; request_types[i].size(); i++)
+	{
+		if (!method.compare(request_types[i]))
+			return (creators[i](uri));
+	}
 }
 
 void Listener::printRequest(int index)
@@ -48,7 +73,7 @@ void Listener::addSocket(int fd)
 	skc.fd = fd;
 	skc.events = POLLIN;
 	_derived_socks.push_back(skc);
-	_requests[fd] = Request ();
+	// _requests[fd] = Request ();
 }
 
 /**
