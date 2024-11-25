@@ -27,7 +27,7 @@ enum token_case {
 static std::vector<std::string>                         get_file(std::string const&);
 static bool                                             get_file_check(std::string const&);
 static std::string                                      get_instruction(std::istream&, std::string&);
-static enum token_case                                  get_instruction_case(char, bool);
+static enum token_case                                  get_instruction_case(char, bool, std::size_t);
 static std::vector<std::map<std::string, std::string> > split_file(std::vector<std::string> const&);
 std::string                                             trim(std::string const&);
 
@@ -141,9 +141,10 @@ get_instruction(std::istream& stream, std::string& buffer)
 				exit(EXIT_FAILURE);
 			}
 			i = 0;
+			buffer.push_back('\n');
 		}
 
-		switch (get_instruction_case(buffer[i], open_quote)) {
+		switch (get_instruction_case(buffer[i], open_quote, container.size())) {
 		case OPEN_BRACE:
 			open_brace = true;
 			container.push('[');
@@ -195,7 +196,7 @@ get_instruction(std::istream& stream, std::string& buffer)
  * @return a number for the get_line() switch case.
  */
 static enum token_case
-get_instruction_case(char token, bool open_quote)
+get_instruction_case(char token, bool open_quote, std::size_t container_size)
 {
 	if (token == '\"')
 		return QUOTE;
@@ -212,7 +213,7 @@ get_instruction_case(char token, bool open_quote)
 	if (token == '#')
 		return COMMENT;
 
-	if (token == ',')
+	if (token == ',' || (token == '\n' && container_size != 0))
 		return COMMA;
 
 	if (token == '\n')
