@@ -11,4 +11,6 @@
 
 std::vector<std::map<std::string, std::string> > get_config_data(std::string const&);
 
+std::string trim(std::string const&);
+
 #endif

@@ -29,7 +29,7 @@ static bool                                             get_file_check(std::stri
 static std::string                                      get_instruction(std::istream&, std::string&);
 static enum token_case                                  get_instruction_case(char, bool);
 static std::vector<std::map<std::string, std::string> > split_file(std::vector<std::string> const&);
-static std::string                                      trim(std::string const&);
+std::string                                             trim(std::string const&);
 
 /**
  * Reads a config file and returns its data formatted.
@@ -271,7 +271,7 @@ split_file(std::vector<std::string> const& raw_file)
  * @param str line to trim
  * @return line without the whitespace ant start and end
  */
-static std::string
+std::string
 trim(std::string const& str)
 {
 	std::size_t start, end;
