@@ -9,6 +9,11 @@ GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 #endif
 }
 
+std::string GETRequest::generateResponse(void) //TODO: pasarle los servers
+{
+	return ("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>");
+}
+
 //	OCCF
 
 GETRequest::GETRequest(void)

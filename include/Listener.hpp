@@ -40,6 +40,9 @@ public:
 	void printRequest(int index);
 	ARequest *createRequest(std::string & buffer);
 	ARequest *createGet(std::string const & init);
+	void setFdToWrite(int fd);
+	void setFdToRead(int fd);
+	std::string respondTo(int fd);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

@@ -10,7 +10,6 @@ int ARequest::appendRequest(std::string & append)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		std::cout << "Index: " << ind << std::endl;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		// else if (this->_status == BODY)

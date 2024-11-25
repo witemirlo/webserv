@@ -29,6 +29,8 @@ public:
 
 	ARequest(std::string const & uri);
 
+	virtual std::string generateResponse(void) = 0;
+
 //	GETTERs TODO: maybe its only for debug
 	std::string const&getInitial(void);
 	std::string getHeaders(void);

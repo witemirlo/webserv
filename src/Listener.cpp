@@ -206,6 +206,39 @@ void Listener::deleteFd(int fd)
 
 }
 
+void Listener::setFdToWrite(int fd)
+{
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			_derived_socks[i].events = POLLOUT;
+			return ;
+		}
+	}
+}
+
+void Listener::setFdToRead(int fd)
+{
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			_derived_socks[i].events = POLLIN;
+			return ;
+		}
+	}
+}
+
+std::string Listener::respondTo(int fd)
+{
+	std::string response = _requests[fd]->generateResponse();
+
+	_requests.erase(fd);
+	setFdToRead(fd);
+	return (response);
+}
+
 //	OCCF
 
 Listener::Listener(void)

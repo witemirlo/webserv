@@ -7,6 +7,7 @@ class GETRequest : public ARequest
 {
 public:
 	GETRequest(std::string const &uri);
+	std::string generateResponse(void);
 
 //	OCCF
 	GETRequest();

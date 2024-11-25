@@ -40,6 +40,26 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	return (listener_socks);
 }
 
+void respond_http(Listener & listener, int fd)
+{
+	std::string returned = listener.respondTo(fd);
+	const char *response = returned.c_str();
+	int sent = 0;
+	int len = strlen(response);
+	int iter;
+
+	while (sent < len)
+	{
+		iter = send(fd, response + sent, len - sent, 0);
+		if (iter == -1)
+		{
+			std::cerr << RED "Error: " NC "an error ocurred while sending" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		sent += iter;
+	}
+}
+
 int false_http(Listener & listener, int fd)
 {
 	char buffer[128]; //TODO:  hay que verlo
@@ -78,7 +98,7 @@ int false_http(Listener & listener, int fd)
 #endif
 
 	if (status == END)
-		listener.printRequest(fd);
+		listener.setFdToWrite(fd);
 	return (status);
 }
 
@@ -127,14 +147,12 @@ int main(int argc, char* argv[])
 				if (loc < 0)
 					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
 				else if (loc > 0)
-				{
-					if (false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd) == END)
-						my_fds[i].events = POLLOUT; //TODO: a lo peor no se fija
-				}
+					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
 			}
 			else if (my_fds[i].revents & POLLOUT)
 			{
-				std::cout << "fd : " << my_fds[i].fd << "is ready to write" << std::endl;
+				int loc = where_is(my_fds[i].fd, sockets);
+				respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
 			}
 		}
 	}
