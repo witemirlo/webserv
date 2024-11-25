@@ -18,23 +18,28 @@ static int get_listener(std::string & host, std::string & port);
 int Listener::updateRequest(int index, std::string buffer)
 {
 	try {
-		return (_requests[index]->appendRequest(buffer));
+		return (_requests.at(index)->appendRequest(buffer));
 	} catch (std::exception const & e) {
 		_requests[index] = createRequest(buffer);
-		return (_requests[index]->appendRequest(buffer));
+		return (_requests.at(index)->appendRequest(buffer));
 	}
 }
 
 ARequest *Listener::createRequest(std::string & buffer)
 {
 	size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+
 	std::string request_line = buffer.substr(0, ind + 2);
+
 	size_t sp = request_line.find(" ");
 	std::string method = request_line.substr(0, sp);
-	request_line.erase(sp);
+	request_line.erase(0, sp + 1);
+
+
 	sp = request_line.find(" ");
 	std::string uri = request_line.substr(0, sp);
-	buffer.erase(ind + 2);
+	buffer.erase(0, ind + 2);
+
 
 	for (int i = 0; request_types[i].size(); i++)
 	{
@@ -51,7 +56,8 @@ ARequest *Listener::createGet(std::string const & init)
 
 void Listener::printRequest(int index)
 {
-	std::cout << _requests[index];
+	std::cout << "My request: ";
+	std::cout << (ARequest *)(_requests[index]) << std::endl;
 }
 
 /**

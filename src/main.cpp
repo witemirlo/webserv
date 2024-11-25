@@ -56,6 +56,27 @@ int false_http(Listener & listener, int fd)
 		listener.deleteFd(fd);
 
 	int status = listener.updateRequest(fd, std::string(buffer));
+	
+#ifdef DEBUG
+	switch (status)
+	{
+	case INIT:
+		std::cout << GREEN "INIT" NC << std::endl;
+		break;
+	case HEADERS:
+		std::cout << YELLOW "HEADERS" NC << std::endl;
+		break;	
+	case BODY:
+		std::cout << MAGENTA "BODY" NC << std::endl;
+		break;
+	case END:
+		std::cout << CYAN "END" NC << std::endl;
+		break;
+	default:
+		std::cout << "THE FUCK?" << std::endl;
+	}
+#endif
+
 	if (status == END)
 		listener.printRequest(fd);
 	return (status);
@@ -110,6 +131,10 @@ int main(int argc, char* argv[])
 					if (false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd) == END)
 						my_fds[i].events = POLLOUT; //TODO: a lo peor no se fija
 				}
+			}
+			else if (my_fds[i].revents & POLLOUT)
+			{
+				std::cout << "fd : " << my_fds[i].fd << "is ready to write" << std::endl;
 			}
 		}
 	}

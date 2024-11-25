@@ -4,6 +4,9 @@
 
 GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 {
+#ifdef DEBUG
+	std::cout << GREEN "GETRequest constructor for uri " + uri + " called" NC << std::endl;
+#endif
 }
 
 //	OCCF

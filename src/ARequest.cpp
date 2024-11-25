@@ -10,6 +10,7 @@ int ARequest::appendRequest(std::string & append)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
+		std::cout << "Index: " << ind << std::endl;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		// else if (this->_status == BODY)
@@ -25,7 +26,13 @@ int ARequest::appendRequest(std::string & append)
 
 void ARequest::procHeader(std::string & raw, size_t index)
 {
+	if (index == 0) //TODO: podria ser mas limpio y podríamos quedarnos a medias...
+	{
+		this->_status = END; //TODO: si no hay body
+		return ;
+	}
 	std::string header = raw.substr(0, index);
+	// std::cout << "CRLF index: " << index << " for header -> " << header << std::endl;
 	size_t sep = header.find(":"); //TODO: errors y separador a lo peor es ": "
 	std::string key = header.substr(0, sep);
 	std::string value = header.substr(sep + 1);
@@ -34,11 +41,6 @@ void ARequest::procHeader(std::string & raw, size_t index)
 		key[i] = tolower(key[i]);
 
 	_headers[key] = value; //TODO: check for dups -> error code?
-	if (raw[index + 2] == '\r' &&  raw[index + 3] == '\n') //TODO: podria ser mas limpio y podríamos quedarnos a medias...
-	{
-		_status = END; //TODO: si no hay body
-		raw.erase(2);
-	}
 }
 
 ARequest::ARequest(std::string const & uri) : _uri(uri), _status(HEADERS)
@@ -67,9 +69,9 @@ std::string &ARequest::getBody(void)
 	return (_body);
 }
 
-std::ostream & operator<<(std::ostream & out, ARequest & req)
+std::ostream & operator<<(std::ostream & out, ARequest * req)
 {
-	out << req.getInitial() << req.getHeaders() << req.getBody();
+	out << req->getInitial() << req->getHeaders() << req->getBody();
 	return (out);
 }
 

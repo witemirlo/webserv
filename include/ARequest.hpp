@@ -41,6 +41,6 @@ public:
 	virtual ~ARequest();
 };
 
-std::ostream & operator<<(std::ostream & out, ARequest & req);
+std::ostream & operator<<(std::ostream & out, ARequest * req);
 
 #endif
