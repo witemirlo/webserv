@@ -13,10 +13,14 @@
 class Server
 {
 private:
+	std::map<std::string, Location> _locations;
+
+protected:
 	std::string	_listen;
 	std::string _server_name;
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
+
 public:
 	Server(std::map<std::string, std::string> & config);
 	void procRule(std::string const &what, std::string const &to_set);

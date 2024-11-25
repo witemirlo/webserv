@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "delimiter.hpp"
+#include "Location.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -15,8 +16,23 @@ static bool has_delimiter(std::string const & str);
  */
 Server::Server(std::map<std::string, std::string> & config)
 {
+	std::vector<std::string> loc_to_process;
+
 	for (std::map<std::string, std::string>::iterator it = config.begin(); it != config.end(); it++)
+	{
+		if (!it->first.compare(0, 9, "location/") && it->first.size() > 9)
+		{
+			loc_to_process.push_back(it->first);
+			continue ;
+		}
 		procRule(it->first, it->second);
+	}
+
+	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
+	{
+		//TODO: check for duplicated locations
+		_locations[it->substr(8)] = Location(*this, config[*it]); 
+	}
 	//TODO: reglas fundamentales ej. listen
 }
 
