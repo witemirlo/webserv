@@ -234,6 +234,7 @@ std::string Listener::respondTo(int fd)
 {
 	std::string response = _requests[fd]->generateResponse();
 
+	delete _requests[fd];
 	_requests.erase(fd);
 	setFdToRead(fd);
 	return (response);

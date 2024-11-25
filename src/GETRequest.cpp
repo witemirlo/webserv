@@ -1,6 +1,7 @@
 #include "GETRequest.hpp"
 
 #include <iostream>
+#include <cstdlib>
 
 GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 {
@@ -11,7 +12,10 @@ GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 
 std::string GETRequest::generateResponse(void) //TODO: pasarle los servers
 {
-	return ("HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>");
+	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
+	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
+
+	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }
 
 //	OCCF
