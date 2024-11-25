@@ -22,7 +22,7 @@ private:
 	std::map<int, ARequest *> _requests;
 
 	static const std::string request_types[];
-	static void (Listener::* const creators [])(std::string const &);
+	static ARequest* (Listener::* const creators [])(std::string const &);
 public:
 	Listener(std::string & where_to_listen);
 	void addServer(Server & server);
@@ -39,7 +39,7 @@ public:
 	int updateRequest(int index, std::string buffer);
 	void printRequest(int index);
 	ARequest *createRequest(std::string & buffer);
-	ARequest *createGet(std::string & init);
+	ARequest *createGet(std::string const & init);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

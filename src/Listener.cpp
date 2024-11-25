@@ -1,4 +1,5 @@
 #include "Listener.hpp"
+#include "GETRequest.hpp"
 
 #include <iostream>
 #include <sys/types.h>
@@ -10,7 +11,7 @@
 #include <cstring>
 
 const std::string Listener::request_types[] = {"GET", ""};
-void (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet};
+ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet};
 
 static int get_listener(std::string & host, std::string & port);
 
@@ -20,6 +21,7 @@ int Listener::updateRequest(int index, std::string buffer)
 		return (_requests[index]->appendRequest(buffer));
 	} catch (std::exception const & e) {
 		_requests[index] = createRequest(buffer);
+		return (_requests[index]->appendRequest(buffer));
 	}
 }
 
@@ -37,8 +39,14 @@ ARequest *Listener::createRequest(std::string & buffer)
 	for (int i = 0; request_types[i].size(); i++)
 	{
 		if (!method.compare(request_types[i]))
-			return (creators[i](uri));
+			return ((this->*creators[i])(uri));
 	}
+	return (NULL); //TODO: error management
+}
+
+ARequest *Listener::createGet(std::string const & init)
+{
+	return (new GETRequest(init));
 }
 
 void Listener::printRequest(int index)
@@ -185,7 +193,7 @@ void Listener::deleteFd(int fd)
 		{
 			close(fd); //TODO: esto falla?
 			_derived_socks.erase(_derived_socks.begin() + i);
-			_requests.erase(fd);
+			_requests.erase(fd); //TODO: delete?
 			return ;
 		}
 	}

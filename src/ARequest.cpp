@@ -10,12 +10,7 @@ int ARequest::appendRequest(std::string & append)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (this->_status == INIT)
-		{
-			this->_initial_line = raw.substr(0, ind + 2);
-			this->_status = HEADERS;
-		}
-		else if (this->_status == HEADERS)
+		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		// else if (this->_status == BODY)
 		// {
@@ -46,11 +41,14 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	}
 }
 
+ARequest::ARequest(std::string const & uri) : _uri(uri), _status(HEADERS)
+{}
+
 //	GETTERs TODO: maybe its only for debug
 
 std::string const&ARequest::getInitial(void)
 {
-	return (_initial_line);
+	return (_uri);
 }
 
 std::string ARequest::getHeaders(void)
@@ -77,14 +75,14 @@ std::ostream & operator<<(std::ostream & out, ARequest & req)
 
 //	OCCF
 
-ARequest::ARequest(void) : _initial_line(""), _status(INIT)
+ARequest::ARequest(void)
 {
 #ifdef DEBUG
 	std::cout << GREEN "ARequest default constructor called" NC << std::endl;
 #endif
 }
 
-ARequest::ARequest(const ARequest &other) : _initial_line(other._initial_line), _headers(other._headers), _body(other._body), _status(other._status)
+ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _status(other._status)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;

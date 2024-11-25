@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
 				else if (loc > 0)
 				{
 					if (false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd) == END)
-						my_fds[i].events == POLLOUT; //TODO: a lo peor no se fija
+						my_fds[i].events = POLLOUT; //TODO: a lo peor no se fija
 				}
 			}
 		}

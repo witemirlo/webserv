@@ -18,14 +18,16 @@ enum request_status {
 
 class ARequest
 {
-private:
-	std::string _initial_line; //TODO: cambiar a method y url??
+protected:
+	std::string _uri;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 	int _status;
 public:
 	int appendRequest(std::string & append);
 	void procHeader(std::string & raw, size_t index);
+
+	ARequest(std::string const & uri);
 
 //	GETTERs TODO: maybe its only for debug
 	std::string const&getInitial(void);
@@ -36,7 +38,7 @@ public:
 	ARequest();
 	ARequest(const ARequest &other);
 	ARequest &operator=(const ARequest &other);
-	~ARequest();
+	virtual ~ARequest();
 };
 
 std::ostream & operator<<(std::ostream & out, ARequest & req);
