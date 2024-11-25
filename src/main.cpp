@@ -40,9 +40,29 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	return (listener_socks);
 }
 
-void false_http(Listener & listener, int fd)
+void respond_http(Listener & listener, int fd)
 {
-	char buffer[128]; //hay que verlo
+	std::string returned = listener.respondTo(fd);
+	const char *response = returned.c_str();
+	int sent = 0;
+	int len = strlen(response);
+	int iter;
+
+	while (sent < len)
+	{
+		iter = send(fd, response + sent, len - sent, 0);
+		if (iter == -1)
+		{
+			std::cerr << RED "Error: " NC "an error ocurred while sending" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		sent += iter;
+	}
+}
+
+int false_http(Listener & listener, int fd)
+{
+	char buffer[128]; //TODO:  hay que verlo
 	std::memset(buffer, 0, sizeof buffer);
 	int bytes = recv(fd, buffer, sizeof buffer - 1, 0);
 
@@ -55,7 +75,31 @@ void false_http(Listener & listener, int fd)
 	if (bytes == 0)
 		listener.deleteFd(fd);
 
-	std::cout << "Hi, im fd: " << fd << " and I proudly say: " << buffer << std::endl;
+	int status = listener.updateRequest(fd, std::string(buffer));
+	
+#ifdef DEBUG
+	switch (status)
+	{
+	case INIT:
+		std::cout << GREEN "INIT" NC << std::endl;
+		break;
+	case HEADERS:
+		std::cout << YELLOW "HEADERS" NC << std::endl;
+		break;	
+	case BODY:
+		std::cout << MAGENTA "BODY" NC << std::endl;
+		break;
+	case END:
+		std::cout << CYAN "END" NC << std::endl;
+		break;
+	default:
+		std::cout << "THE FUCK?" << std::endl;
+	}
+#endif
+
+	if (status == END)
+		listener.setFdToWrite(fd);
+	return (status);
 }
 
 int main(int argc, char* argv[])
@@ -84,14 +128,14 @@ int main(int argc, char* argv[])
 	struct pollfd *my_fds;
 	int fd_num;
 
-	while (42) //TODO: no es non blocking
+	while (42)
 	{
 		fd_num = get_all_sockets(&my_fds, sockets);
 
 		int n_events = poll(my_fds, fd_num, -1);
 		if (n_events == -1)
 		{
-			std::cerr << RED "An error in poll happened" NC << std::endl;
+			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
 			return EXIT_FAILURE;
 		}
 	
@@ -100,12 +144,15 @@ int main(int argc, char* argv[])
 			if (my_fds[i].revents & POLLIN)
 			{
 				int loc = where_is(my_fds[i].fd, sockets);
-				// std::cerr << my_fds[i].fd << " is in " << loc << std::endl;
 				if (loc < 0)
 					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
 				else if (loc > 0)
 					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
-				// std::cerr << my_fds[i].fd << " is ready to read" << std::endl;
+			}
+			else if (my_fds[i].revents & POLLOUT)
+			{
+				int loc = where_is(my_fds[i].fd, sockets);
+				respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
 			}
 		}
 	}

@@ -112,7 +112,7 @@ Server::Server(void)
 Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Server copy constructor called" NC << std::endl;
+	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
 #endif
 	*this = other;
 }
@@ -120,7 +120,7 @@ Server::Server(const Server &other) : _listen(other._listen), _server_name(other
 Server &Server::operator=(const Server &other)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Server copy assignment operator called" NC << std::endl;
+	std::cout << YELLOW "Server copy assignment operator called" NC << std::endl;
 #endif
 	(void)other;
 	return (*this);

@@ -7,6 +7,7 @@
 
 # include "colors.hpp"
 # include "Server.hpp"
+# include "ARequest.hpp"
 
 # define FD_IS_LISTENER -1
 # define FD_NOT_HERE 0
@@ -18,6 +19,10 @@ private:
 	struct pollfd _listener;
 	std::vector<struct pollfd> _derived_socks;
 	std::vector<Server> _assoc_servers;
+	std::map<int, ARequest *> _requests;
+
+	static const std::string request_types[];
+	static ARequest* (Listener::* const creators [])(std::string const &);
 public:
 	Listener(std::string & where_to_listen);
 	void addServer(Server & server);
@@ -29,6 +34,15 @@ public:
 	void closeFds(void);
 	int is_fd_here(int fd) const;
 	void deleteFd(int fd);
+
+//	TODO: update
+	int updateRequest(int index, std::string buffer);
+	void printRequest(int index);
+	ARequest *createRequest(std::string & buffer);
+	ARequest *createGet(std::string const & init);
+	void setFdToWrite(int fd);
+	void setFdToRead(int fd);
+	std::string respondTo(int fd);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

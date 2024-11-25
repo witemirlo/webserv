@@ -1,4 +1,5 @@
 #include "Listener.hpp"
+#include "GETRequest.hpp"
 
 #include <iostream>
 #include <sys/types.h>
@@ -9,7 +10,55 @@
 #include <cstdlib>
 #include <cstring>
 
+const std::string Listener::request_types[] = {"GET", ""};
+ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet};
+
 static int get_listener(std::string & host, std::string & port);
+
+int Listener::updateRequest(int index, std::string buffer)
+{
+	try {
+		return (_requests.at(index)->appendRequest(buffer));
+	} catch (std::exception const & e) {
+		_requests[index] = createRequest(buffer);
+		return (_requests.at(index)->appendRequest(buffer));
+	}
+}
+
+ARequest *Listener::createRequest(std::string & buffer)
+{
+	size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+
+	std::string request_line = buffer.substr(0, ind + 2);
+
+	size_t sp = request_line.find(" ");
+	std::string method = request_line.substr(0, sp);
+	request_line.erase(0, sp + 1);
+
+
+	sp = request_line.find(" ");
+	std::string uri = request_line.substr(0, sp);
+	buffer.erase(0, ind + 2);
+
+
+	for (int i = 0; request_types[i].size(); i++)
+	{
+		if (!method.compare(request_types[i]))
+			return ((this->*creators[i])(uri));
+	}
+	return (NULL); //TODO: error management
+}
+
+ARequest *Listener::createGet(std::string const & init)
+{
+	return (new GETRequest(init));
+}
+
+void Listener::printRequest(int index)
+{
+	std::cout << "My request: ";
+	std::cout << (ARequest *)(_requests[index]) << std::endl;
+}
 
 /**
  *
@@ -38,6 +87,7 @@ void Listener::addSocket(int fd)
 	skc.fd = fd;
 	skc.events = POLLIN;
 	_derived_socks.push_back(skc);
+	// _requests[fd] = Request ();
 }
 
 /**
@@ -149,9 +199,44 @@ void Listener::deleteFd(int fd)
 		{
 			close(fd); //TODO: esto falla?
 			_derived_socks.erase(_derived_socks.begin() + i);
+			_requests.erase(fd); //TODO: delete?
 			return ;
 		}
 	}
+
+}
+
+void Listener::setFdToWrite(int fd)
+{
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			_derived_socks[i].events = POLLOUT;
+			return ;
+		}
+	}
+}
+
+void Listener::setFdToRead(int fd)
+{
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			_derived_socks[i].events = POLLIN;
+			return ;
+		}
+	}
+}
+
+std::string Listener::respondTo(int fd)
+{
+	std::string response = _requests[fd]->generateResponse();
+
+	_requests.erase(fd);
+	setFdToRead(fd);
+	return (response);
 }
 
 //	OCCF
@@ -164,7 +249,7 @@ Listener::Listener(void)
 Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Listener copy constructor called" NC << std::endl;
+	std::cout << YELLOW "Listener copy constructor called" NC << std::endl;
 #endif
 	*this = other;
 }
@@ -172,7 +257,7 @@ Listener::Listener(const Listener &other) : _listener(other._listener), _derived
 Listener &Listener::operator=(const Listener &other)
 {
 #ifdef DEBUG
-	std::cout << YELOW "Listener copy assignment operator called" NC << std::endl;
+	std::cout << YELLOW "Listener copy assignment operator called" NC << std::endl;
 #endif
 	(void)other;
 	return (*this);
