@@ -20,7 +20,7 @@ Server::Server(std::map<std::string, std::string> & config)
 
 	for (std::map<std::string, std::string>::iterator it = config.begin(); it != config.end(); it++)
 	{
-		if (!it->first.compare(0, 9, "location/") && it->first.size() > 9)
+		if (!it->first.compare(0, 9, "location/"))
 		{
 			loc_to_process.push_back(it->first);
 			continue ;
@@ -122,7 +122,9 @@ static bool has_delimiter(std::string const & str)
 
 Server::Server(void)
 {
+#ifdef DEBUF
 	std::cout << GREEN "Server default constructor called" NC << std::endl;
+#endif
 }
 
 Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name)
