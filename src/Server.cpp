@@ -128,14 +128,16 @@ void Server::setListen(std::string const &listen)
 	}
 }
 
-void Server::setAutoIndex(std::string &autoindex)
+void Server::setAutoIndex(std::string const &autoindex)
 {
-	for (size_t i = 0; i < autoindex.size(); i++)
-		autoindex[i] = tolower(autoindex[i]);
+	std::string format = autoindex.substr();
 
-	if (!autoindex.compare("true"))
+	for (size_t i = 0; i < autoindex.size(); i++)
+		format[i] = tolower(autoindex[i]);
+
+	if (!format.compare("true"))
 		_autoindex = true;
-	else if (!autoindex.compare("false"))
+	else if (!format.compare("false"))
 		_autoindex = false;
 	else
 	{

@@ -35,7 +35,7 @@ public:
 	void setListen(std::string const &listen);
 	void setRoot(std::string const &root);
 	void setIndex(std::string const &index);
-	void setAutoIndex(std::string &autoindex);
+	void setAutoIndex(std::string const&autoindex);
 
 //	GETTER
 	std::string &getServerName(void);
