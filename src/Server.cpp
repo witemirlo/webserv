@@ -6,15 +6,17 @@
 #include <iostream>
 #include <sstream>
 
-const std::string Server::rules[] = {"listen", "server_name", "root", "index", ""};
-void (Server::* const Server::setters [])(std::string const &) = {&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex};
+const std::string Server::rules[] = 
+	{"listen", "server_name", "root", "index", "autoindex", ""};
+void (Server::* const Server::setters [])(std::string const &) = 
+	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex};
 
 static bool has_delimiter(std::string const & str);
 
 /**
  * @param config a std::map of strings where the first indicates a directive and the second, the specification of that directive
  */
-Server::Server(std::map<std::string, std::string> & config)
+Server::Server(std::map<std::string, std::string> & config) //TODO: set default setting 
 {
 	std::vector<std::string> loc_to_process;
 
@@ -68,7 +70,7 @@ void Server::setIndex(std::string const &index)
 	if (index[0] != STX || index[index.size() - 1] != ETX)
 	{
 		std::cerr << RED "Error: " NC "wrong use of array syntax in \"index\" directive. If you want to declare an array it must start with [ and end with ]" << std::endl;
-		exit (EXIT_FAILURE); //TODO: esto está ya contemplado
+		exit (EXIT_FAILURE); //TODO: esto está ya contemplado?
 	}
 
 	int index_str = 1;
@@ -126,6 +128,22 @@ void Server::setListen(std::string const &listen)
 	}
 }
 
+void Server::setAutoIndex(std::string &autoindex)
+{
+	for (size_t i = 0; i < autoindex.size(); i++)
+		autoindex[i] = tolower(autoindex[i]);
+
+	if (!autoindex.compare("true"))
+		_autoindex = true;
+	else if (!autoindex.compare("false"))
+		_autoindex = false;
+	else
+	{
+		std::cerr << RED "Error: " NC "\"autoindex\" directive must be only \"true\" or \"false\"";
+		exit(EXIT_FAILURE);
+	}
+}
+
 //	GETTERs
 
 std::string &Server::getServerName(void)
@@ -148,6 +166,11 @@ std::vector<std::string> &Server::getIndex(void)
 	return _index;
 }
 
+bool Server::getAutoIndex(void)
+{
+	return _autoindex;
+}
+
 // OTHERS
 
 static bool has_delimiter(std::string const & str)
@@ -168,7 +191,7 @@ Server::Server(void)
 	std::cout << GREEN "Server default constructor called" NC << std::endl;
 }
 
-Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name)
+Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name), _root(other._root), _index(other._index), _autoindex(other._autoindex)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
@@ -181,7 +204,11 @@ Server &Server::operator=(const Server &other)
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy assignment operator called" NC << std::endl;
 #endif
-	(void)other;
+	_listen = other._listen;
+	_server_name = other._server_name;
+	_root = other._root;
+	_index = other._index;
+	_autoindex = other._autoindex;
 	return (*this);
 }
 
