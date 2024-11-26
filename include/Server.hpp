@@ -20,6 +20,9 @@ private:
 protected:
 	std::string	_listen;
 	std::string _server_name;
+	std::string _root;
+	std::vector<std::string > _index;
+	bool _autoindex;
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
 
@@ -30,10 +33,16 @@ public:
 //	SETTER
 	void setServerName(std::string const &server_name);
 	void setListen(std::string const &listen);
+	void setRoot(std::string const &root);
+	void setIndex(std::string const &index);
+	void setAutoIndex(std::string &autoindex);
 
 //	GETTER
 	std::string &getServerName(void);
 	std::string &getListen(void);
+	std::string &getRoot(void);
+	std::vector<std::string> &getIndex(void);
+	bool getAutoIndex(void);
 
 //	OCCF
 	Server();
