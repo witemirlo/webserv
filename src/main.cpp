@@ -10,6 +10,7 @@
 
 #include "Listener.hpp"
 #include "Server.hpp"
+#include "delimiter.hpp"
 #include "get_config_data.hpp"
 #include "socket_management.hpp"
 
@@ -121,8 +122,26 @@ int main(int argc, char* argv[])
 	std::size_t n = 0;
 	for (it = server_config.begin(); it < server_config.end(); it++) {
 		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
-		for (i = it->begin(); i != it->end(); i++)
-			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: " << i->second << "]" << std::endl;
+		for (i = it->begin(); i != it->end(); i++) {
+			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: ";
+			for (std::size_t j = 0; i->second[j]; j++) {
+				switch (i->second[j]) {
+				case STX:
+					std::cout << GREEN "[STX]" NC;
+					break;
+				case ETX:
+					std::cout << GREEN "[ETX]" NC;
+					break;
+				case US:
+					std::cout << YELLOW "[US]" NC;
+					break;
+				default:
+					std::cout << i->second[j];
+					break;
+				}
+			}
+			std::cerr << "]" << std::endl;
+		}
 		n++;
 	}
 	//-----------------------------------------------------------------------------------------------------------------------------------

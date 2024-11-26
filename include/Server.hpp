@@ -10,6 +10,8 @@
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
 
+class Location;
+
 class Server
 {
 private:

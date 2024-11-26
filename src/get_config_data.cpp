@@ -158,7 +158,10 @@ get_instruction(std::istream& stream, std::string& buffer)
 			container.pop();
 			if (container.size() == 0)
 				open_brace = false;
-			line += ETX;
+			if (*line.rbegin() == US)
+				*line.rbegin() = ETX;
+			else
+				line += ETX;
 			break;
 		case QUOTE:
 			if (container.size() != 0 && container.top() == '\"') {
