@@ -34,7 +34,7 @@ Location::Location(Server const& o, std::string const & config)
 #ifdef DEBUG
 	std::cout << GREEN "Location constructor called" NC << std::endl;
 #endif
-	(void)config;
+	// TODO: ProcRule con cada instruccion separada en [key, value]
 }
 
 Location &Location::operator=(const Location &other)
