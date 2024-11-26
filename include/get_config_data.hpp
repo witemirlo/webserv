@@ -2,7 +2,7 @@
 # define _GET_CONFIG_DATA_HPP
 
 # ifndef DEFAULT_CONFIG_PATH
-#  define DEFAULT_CONFIG_PATH "config.conf"
+#  define DEFAULT_CONFIG_PATH "server.conf"
 # endif
 
 # include <map>
