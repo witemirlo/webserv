@@ -1,6 +1,7 @@
 #include "Location.hpp"
+#include "delimiter.hpp"
 
-#include <algorithm>
+#include <cstddef>
 #include <iostream>
 
 Location::Location(void)
@@ -35,6 +36,35 @@ Location::Location(Server const& o, std::string const & config)
 	std::cout << GREEN "Location constructor called" NC << std::endl;
 #endif
 	// TODO: ProcRule con cada instruccion separada en [key, value]
+	std::vector<std::string> tmp;
+	std::string buffer, key, value;
+	std::size_t it;
+
+	if (config[0] != STX)
+    		buffer = config;
+	else
+    		buffer = config.substr(1, config.size() - 2);
+
+	while (true) {
+		it = buffer.find(US);
+		if (it == std::string::npos) {
+			tmp.push_back(buffer);
+			break;
+		}
+		tmp.push_back(buffer.substr(0, it));
+		buffer = buffer.substr(it + 1);
+	}
+
+	// for (std::vector<std::string>::iterator i = tmp.begin(); i != tmp.end(); i++) {
+	// 	std::cerr << __FILE__ << ": " << __LINE__ << " | vector: " << *i << std::endl;
+	// }
+
+	for (it = 0; it != tmp.size(); it++) {
+		key = tmp[it].substr(0, tmp[it].find('='));
+		value = tmp[it].substr(tmp[it].find('=') + 1, tmp[it].size());
+		std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << key << ", value: " << value << "]" << std::endl;
+		procRule(key, value);
+	}
 }
 
 Location &Location::operator=(const Location &other)
