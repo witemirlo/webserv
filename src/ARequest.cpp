@@ -1,6 +1,8 @@
 #include "ARequest.hpp"
+#include "get_config_data.hpp"
 
 #include <iostream>
+#include <cstdlib>
 
 int ARequest::appendRequest(std::string & append)
 {
@@ -12,29 +14,37 @@ int ARequest::appendRequest(std::string & append)
 	{
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
-		// else if (this->_status == BODY)
-		// {
-		// 	this->_body = raw; //TODO: revisar fuerte, esto depende de headers y demas
-		// 	this->_status = END;
-		// 	return (this->_status);
-		// }
 		raw.erase(0, ind + 2);
+	}
+	if (_status == BODY)
+	{
+		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size())
+		{
+			_body = raw.substr();
+			_status = END;
+		}
 	}
 	return (this->_status);
 }
 
 void ARequest::procHeader(std::string & raw, size_t index)
 {
-	if (index == 0) //TODO: podria ser mas limpio y podríamos quedarnos a medias...
+	if (index == 0)
 	{
-		this->_status = END; //TODO: si no hay body
-		return ;
+		try {
+			_headers.at("content-length"); //TODO: transfer encoding
+			this->_status = BODY;
+			return;
+		} catch(const std::exception& e) {
+			this->_status = END;
+			return ;
+		}
 	}
 	std::string header = raw.substr(0, index);
 	// std::cout << "CRLF index: " << index << " for header -> " << header << std::endl;
-	size_t sep = header.find(":"); //TODO: errors y separador a lo peor es ": "
+	size_t sep = header.find(":"); //TODO: errors
 	std::string key = header.substr(0, sep);
-	std::string value = header.substr(sep + 1);
+	std::string value = trim(header.substr(sep + 1));
 
 	for (size_t i = 0; i < key.size(); i++)
 		key[i] = tolower(key[i]);
