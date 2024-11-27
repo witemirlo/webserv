@@ -46,36 +46,27 @@ Location::Location(Server const& o, std::string const & config)
 
 	while (true) {
 		it = buffer.find(US);
-		if (it == std::string::npos) {
+		if (it == std::string::npos)
 			line = buffer;
-	
-			key = line.substr(0, line.find('='));
-			value = line.substr(line.find('=') + 1, line.size());
-			if (value.size() > 1 && *value.rbegin() == '/')
-				value = value.substr(0, (value.size() - 1));
-
-			procRule(key, value);
-			
-			break;
-		} else {
+		else
 			line = buffer.substr(0, it);
 
-			key = line.substr(0, line.find('='));
-			value = line.substr(line.find('=') + 1, line.size());
-			if (value.size() > 1 && *value.rbegin() == '/')
-				value = value.substr(0, (value.size() - 1));
+		key = line.substr(0, line.find('='));
+		value = line.substr(line.find('=') + 1, line.size());
+		if (value.size() > 1 && *value.rbegin() == '/')
+			value = value.substr(0, (value.size() - 1));
+		procRule(key, value);
 
-			procRule(key, value);
-
+		if (it == std::string::npos)
+			break;
+		else
 			buffer = buffer.substr(it + 1);
-		}
 	}
 
 	if (this->_root == "/")
 		this->_deepness = 0;
 	else
 		this->_deepness = std::count(this->_root.begin(), this->_root.end(), '/');
-	// std::cerr << __FILE__ << ": " << __LINE__ << " | _deepness: " << this->_deepness << std::endl;
 }
 
 Location &Location::operator=(const Location &other)
