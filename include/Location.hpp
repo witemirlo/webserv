@@ -7,6 +7,7 @@ class Location : public Server
 {
 private:
 	unsigned int _deepness;
+	static const std::string prohibited_rules[];
 
 public:
 	Location();

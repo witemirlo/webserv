@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <iostream>
 
+const std::string Location::prohibited_rules[] =  {"listen", "server_name", ""};
+
 Location::Location(void)
 	: Server()
 {
@@ -55,6 +57,11 @@ Location::Location(Server const& o, std::string const & config)
 		value = line.substr(line.find('=') + 1, line.size());
 		if (value.size() > 1 && *value.rbegin() == '/')
 			value = value.substr(0, (value.size() - 1));
+		/*
+		if key en prohibidas
+			std::cerr key solo se permite en server
+		*/
+
 		procRule(key, value);
 
 		if (it == std::string::npos)
@@ -63,10 +70,11 @@ Location::Location(Server const& o, std::string const & config)
 			buffer = buffer.substr(it + 1);
 	}
 
-	if (this->_root == "/")
+	if (this->_root == "/")// jeje xd TODO: es del pobre nombre de location
 		this->_deepness = 0;
 	else
 		this->_deepness = std::count(this->_root.begin(), this->_root.end(), '/');
+	std::cerr << this->_deepness << std::endl;
 }
 
 Location &Location::operator=(const Location &other)
@@ -103,5 +111,8 @@ bool Location::operator<=(const Location & other) const
 
 std::string Location::getPathTo(std::string const & uri) const
 {
-	return (this->_root + "/" + uri);
+	// TODO: autoindex true y te pasan directorio
+	// TODO: index seteado y te pasan directorio
+	// TODO: 404
+	return (this->_root + uri);
 }
