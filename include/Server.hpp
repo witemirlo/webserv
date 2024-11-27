@@ -18,10 +18,10 @@ private:
 	std::map<std::string, Location> _locations;
 
 protected:
-	std::string	_listen;
+	std::string _listen;
 	std::string _server_name;
 	std::string _root;
-	std::vector<std::string > _index;
+	std::vector<std::string> _index;
 	bool _autoindex;
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
@@ -38,10 +38,10 @@ public:
 	void setAutoIndex(std::string const&autoindex);
 
 //	GETTER
-	std::string &getServerName(void);
-	std::string &getListen(void);
-	std::string &getRoot(void);
-	std::vector<std::string> &getIndex(void);
+	std::string const& getServerName(void);
+	std::string const& getListen(void);
+	std::string const& getRoot(void);
+	std::vector<std::string> const& getIndex(void);
 	bool getAutoIndex(void);
 
 //	OCCF

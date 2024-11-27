@@ -148,22 +148,22 @@ void Server::setAutoIndex(std::string const &autoindex)
 
 //	GETTERs
 
-std::string &Server::getServerName(void)
+std::string const& Server::getServerName(void)
 {
 	return _server_name;
 }
 
-std::string &Server::getListen(void)
+std::string const& Server::getListen(void)
 {
 	return _listen;
 }
 
-std::string &Server::getRoot(void)
+std::string const& Server::getRoot(void)
 {
 	return _root;
 }
 
-std::vector<std::string> &Server::getIndex(void)
+std::vector<std::string> const& Server::getIndex(void)
 {
 	return _index;
 }
@@ -208,11 +208,15 @@ Server &Server::operator=(const Server &other)
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy assignment operator called" NC << std::endl;
 #endif
+	if (this == &other)
+		return (*this);
+		
 	_listen = other._listen;
 	_server_name = other._server_name;
 	_root = other._root;
 	_index = other._index;
 	_autoindex = other._autoindex;
+
 	return (*this);
 }
 
