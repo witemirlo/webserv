@@ -1,6 +1,7 @@
 #include "Location.hpp"
 #include "delimiter.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 
@@ -55,16 +56,20 @@ Location::Location(Server const& o, std::string const & config)
 		buffer = buffer.substr(it + 1);
 	}
 
-	// for (std::vector<std::string>::iterator i = tmp.begin(); i != tmp.end(); i++) {
-	// 	std::cerr << __FILE__ << ": " << __LINE__ << " | vector: " << *i << std::endl;
-	// }
-
 	for (it = 0; it != tmp.size(); it++) {
 		key = tmp[it].substr(0, tmp[it].find('='));
 		value = tmp[it].substr(tmp[it].find('=') + 1, tmp[it].size());
+		if (value.size() > 1 && *value.rbegin() == '/')
+			value = value.substr(0, (value.size() - 1));
 		std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << key << ", value: " << value << "]" << std::endl;
 		procRule(key, value);
 	}
+
+	if (this->_root == "/")
+		this->_deepness = 0;
+	else
+		this->_deepness = std::count(this->_root.begin(), this->_root.end(), '/');
+	std::cerr << __FILE__ << ": " << __LINE__ << " | _deepness: " << this->_deepness << std::endl;
 }
 
 Location &Location::operator=(const Location &other)
