@@ -100,3 +100,8 @@ bool Location::operator<=(const Location & other) const
 {
 	return (this->_deepness <= other._deepness);
 }
+
+std::string Location::getPathTo(std::string const & uri) const
+{
+	return (this->_root + "/" + uri);
+}
