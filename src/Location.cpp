@@ -36,9 +36,7 @@ Location::Location(Server const& o, std::string const & config)
 #ifdef DEBUG
 	std::cout << GREEN "Location constructor called" NC << std::endl;
 #endif
-	// TODO: ProcRule con cada instruccion separada en [key, value]
-	std::vector<std::string> tmp;
-	std::string buffer, key, value;
+	std::string buffer, line, key, value;
 	std::size_t it;
 
 	if (config[0] != STX)
@@ -49,27 +47,35 @@ Location::Location(Server const& o, std::string const & config)
 	while (true) {
 		it = buffer.find(US);
 		if (it == std::string::npos) {
-			tmp.push_back(buffer);
-			break;
-		}
-		tmp.push_back(buffer.substr(0, it));
-		buffer = buffer.substr(it + 1);
-	}
+			line = buffer;
+	
+			key = line.substr(0, line.find('='));
+			value = line.substr(line.find('=') + 1, line.size());
+			if (value.size() > 1 && *value.rbegin() == '/')
+				value = value.substr(0, (value.size() - 1));
 
-	for (it = 0; it != tmp.size(); it++) {
-		key = tmp[it].substr(0, tmp[it].find('='));
-		value = tmp[it].substr(tmp[it].find('=') + 1, tmp[it].size());
-		if (value.size() > 1 && *value.rbegin() == '/')
-			value = value.substr(0, (value.size() - 1));
-		std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << key << ", value: " << value << "]" << std::endl;
-		procRule(key, value);
+			procRule(key, value);
+			
+			break;
+		} else {
+			line = buffer.substr(0, it);
+
+			key = line.substr(0, line.find('='));
+			value = line.substr(line.find('=') + 1, line.size());
+			if (value.size() > 1 && *value.rbegin() == '/')
+				value = value.substr(0, (value.size() - 1));
+
+			procRule(key, value);
+
+			buffer = buffer.substr(it + 1);
+		}
 	}
 
 	if (this->_root == "/")
 		this->_deepness = 0;
 	else
 		this->_deepness = std::count(this->_root.begin(), this->_root.end(), '/');
-	std::cerr << __FILE__ << ": " << __LINE__ << " | _deepness: " << this->_deepness << std::endl;
+	// std::cerr << __FILE__ << ": " << __LINE__ << " | _deepness: " << this->_deepness << std::endl;
 }
 
 Location &Location::operator=(const Location &other)
