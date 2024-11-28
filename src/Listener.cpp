@@ -64,7 +64,7 @@ void Listener::printRequest(int index)
  *
  * @param where_to_listen an alreay formated "host:port" string.
  */
-Listener::Listener(std::string & where_to_listen)
+Listener::Listener(std::string const & where_to_listen)
 {
 	size_t ind = where_to_listen.find(':');
 	std::string host = where_to_listen.substr(0, ind);
