@@ -32,7 +32,7 @@ Location::~Location()
 }
 
 
-Location::Location(Server const& o, std::string const & config)
+Location::Location(Server const& o, std::string const & config, std::string const & my_path)
 	: Server(o)
 {
 #ifdef DEBUG
@@ -70,10 +70,10 @@ Location::Location(Server const& o, std::string const & config)
 			buffer = buffer.substr(it + 1);
 	}
 
-	if (this->_root == "/")// jeje xd TODO: es del pobre nombre de location
+	if (my_path == "/")// jeje xd TODO: es del pobre nombre de location
 		this->_deepness = 0;
 	else
-		this->_deepness = std::count(this->_root.begin(), this->_root.end(), '/');
+		this->_deepness = std::count(my_path.begin(),  my_path.end(), '/');
 	std::cerr << this->_deepness << std::endl;
 }
 

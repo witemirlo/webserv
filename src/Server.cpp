@@ -33,7 +33,7 @@ Server::Server(std::map<std::string, std::string> & config) //TODO: set default 
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
 	{
 		//TODO: check for duplicated locations
-		_locations[it->substr(8)] = Location(*this, config[*it]); //TODO: a lo peor no se asigna bien
+		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8)); //TODO: a lo peor no se asigna bien
 	}
 	//TODO: reglas fundamentales ej. listen
 }
