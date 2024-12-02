@@ -254,6 +254,8 @@ split_file(std::vector<std::string> const& raw_file)
 
 		key = it->substr(0, it->find('='));
 		value = it->substr(it->find('=') + 1);
+		if (*value.begin() == STX)
+			value = value.substr(1, value.size() - 2);
 
 		if (map.find(key) != map.end()) {
 			std::cerr << RED "Error:" NC " repeated key \"" << key << "\"" << std::endl;
