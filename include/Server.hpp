@@ -30,6 +30,7 @@ public:
 	Server(std::map<std::string, std::string> & config);
 	void procRule(std::string const &what, std::string const &to_set);
 	bool isNamed(std::string & name);
+	std::vector<std::string> setVector(std::string const & str);
 
 //	SETTER
 	void setServerName(std::string const &server_name);

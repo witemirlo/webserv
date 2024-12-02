@@ -71,26 +71,28 @@ bool Server::isNamed(std::string & name)
 
 void Server::setIndex(std::string const &index)
 {
-	if (!has_delimiter(index))
+	_index = setVector(index);
+}
+
+std::vector<std::string> Server::setVector(std::string const & str)
+{
+	std::vector<std::string> result;
+	
+	if (!has_delimiter(str))
 	{
-		_index.push_back(index);
-		return ;
+		result.push_back(str);
+		return result;
 	}
 
-	if (index[0] != STX || index[index.size() - 1] != ETX)
+	int ind = 0;
+	for (size_t i = str.find(US); i != std::string::npos; i = str.find(US, ind + 1))
 	{
-		std::cerr << RED "Error: " NC "wrong use of array syntax in \"index\" directive. If you want to declare an array it must start with [ and end with ]" << std::endl;
-		exit (EXIT_FAILURE); //TODO: esto está ya contemplado? 
-		//TODO: hacer un array setter generico
+		result.push_back(str.substr(ind, i - ind));
+		ind = i;
 	}
+	result.push_back(str.substr(ind, str.size() - ind));
 
-	int index_str = 1;
-	for (size_t i = index.find(US); i != std::string::npos; i = index.find(US, index_str + 1))
-	{
-		_index.push_back(index.substr(index_str, i - index_str));
-		index_str = i;
-	}
-	_index.push_back(index.substr(index_str, index.size() - index_str - 1));
+	return (result);
 }
 
 void Server::setRoot(std::string const &root)
@@ -105,30 +107,11 @@ void Server::setRoot(std::string const &root)
 
 void Server::setServerName(std::string const &server_name)
 {
-	if (!has_delimiter(server_name))
-	{
-		_server_name.push_back(server_name);
-		return ;
-	}
-
-	if (server_name[0] != STX || server_name[server_name.size() - 1] != ETX)
-	{
-		std::cerr << RED "Error: " NC "wrong use of array syntax in \"server_name\" directive. If you want to declare an array it must start with [ and end with ]" << std::endl;
-		exit (EXIT_FAILURE); //TODO: esto está ya contemplado?
-	}
-
-	int server_name_str = 1;
-	for (size_t i = server_name.find(US); i != std::string::npos; i = server_name.find(US, server_name_str + 1))
-	{
-		_server_name.push_back(server_name.substr(server_name_str, i - server_name_str));
-		server_name_str = i;
-	}
-	_server_name.push_back(server_name.substr(server_name_str, server_name.size() - server_name_str - 1));
+	_server_name = setVector(server_name);
 }
 
 void Server::setListen(std::string const &listen)
 {
-	// TODO: LOCALHOST:LOCALHOST:ETC
 	if (has_delimiter(listen)) {
 		std::cerr << RED "Error: " NC "\"listen\" directive cannot have delimiters \", [ ]\"" << std::endl;
 		exit (EXIT_FAILURE);
