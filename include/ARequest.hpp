@@ -3,10 +3,12 @@
 # define CRLF "\r\n" //TODO: he leido que algunos clientes solo hacen LF
 
 # include "colors.hpp"
+# include "Server.hpp"
 
 # include <string>
 # include <map>
 # include <iostream>
+# include <vector>
 
 enum request_status {
 	INIT,
@@ -29,7 +31,8 @@ public:
 
 	ARequest(std::string const & uri);
 
-	virtual std::string generateResponse(void) = 0;
+	virtual std::string generateResponse(std::vector<Server> & servers) = 0;
+	std::string const getHeaderValue(std::string const & key);
 
 //	GETTERs TODO: maybe its only for debug
 	std::string const&getInitial(void);

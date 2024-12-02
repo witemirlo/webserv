@@ -52,6 +52,15 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	_headers[key] = value; //TODO: check for dups -> error code?
 }
 
+std::string const ARequest::getHeaderValue(std::string const & key)
+{
+	try {
+		return (_headers.at(key));
+	} catch (std::exception & e) {
+		return ("");
+	}
+}
+
 ARequest::ARequest(std::string const & uri) : _uri(uri), _status(HEADERS)
 {}
 

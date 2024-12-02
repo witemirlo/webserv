@@ -75,7 +75,7 @@ Listener::Listener(std::string const & where_to_listen)
 	_listener.events = POLLIN;
 }
 
-void Listener::addServer(Server & server)
+void Listener::addServer(Server server)
 {
 	_assoc_servers.push_back(server);
 }
@@ -232,7 +232,7 @@ void Listener::setFdToRead(int fd)
 
 std::string Listener::respondTo(int fd)
 {
-	std::string response = _requests[fd]->generateResponse();
+	std::string response = _requests[fd]->generateResponse(_assoc_servers);
 
 	delete _requests[fd];
 	_requests.erase(fd);

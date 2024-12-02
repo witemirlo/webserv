@@ -1,7 +1,9 @@
 #include "GETRequest.hpp"
+#include "Server.hpp"
 
 #include <iostream>
 #include <cstdlib>
+#include <vector>
 
 GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 {
@@ -10,7 +12,7 @@ GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 #endif
 }
 
-std::string GETRequest::generateResponse(void) //TODO: pasarle los servers
+std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: pasarle los servers
 {
 	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
 	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
@@ -21,6 +23,21 @@ std::string GETRequest::generateResponse(void) //TODO: pasarle los servers
 		encontrar la localizacion acertada -> L (Location obj)
 		L.search_file
 	*/
+	std::cout << servers[0].getListen() << std::endl;
+	Server selected_server = servers[0];
+	std::string name = getHeaderValue(std::string("host"));
+
+	if (name.size() != 0)
+	{
+		for (size_t ind = 0; ind < servers.size(); ind++)
+		{
+			if (servers[ind].isNamed(name))
+			{
+				selected_server = servers[ind];
+				break ;
+			}
+		}
+	}
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }

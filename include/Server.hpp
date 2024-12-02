@@ -19,7 +19,7 @@ private:
 
 protected:
 	std::string _listen;
-	std::string _server_name;
+	std::vector<std::string> _server_name;
 	std::string _root;
 	std::vector<std::string> _index;
 	bool _autoindex;
@@ -29,6 +29,7 @@ protected:
 public:
 	Server(std::map<std::string, std::string> & config);
 	void procRule(std::string const &what, std::string const &to_set);
+	bool isNamed(std::string & name);
 
 //	SETTER
 	void setServerName(std::string const &server_name);
@@ -38,7 +39,7 @@ public:
 	void setAutoIndex(std::string const&autoindex);
 
 //	GETTER
-	std::string const& getServerName(void);
+	std::vector<std::string> const& getServerName(void);
 	std::string const& getListen(void);
 	std::string const& getRoot(void);
 	std::vector<std::string> const& getIndex(void);

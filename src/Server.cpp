@@ -59,6 +59,16 @@ void Server::procRule(std::string const &what, std::string const &to_set)
 	exit(EXIT_FAILURE);
 }
 
+bool Server::isNamed(std::string & name)
+{
+	for (std::vector<std::string>::iterator it = _server_name.begin(); it != _server_name.end(); it++)
+	{
+		if (!name.compare(*it))
+			return true;
+	}
+	return false;
+}
+
 void Server::setIndex(std::string const &index)
 {
 	if (!has_delimiter(index))
@@ -70,11 +80,12 @@ void Server::setIndex(std::string const &index)
 	if (index[0] != STX || index[index.size() - 1] != ETX)
 	{
 		std::cerr << RED "Error: " NC "wrong use of array syntax in \"index\" directive. If you want to declare an array it must start with [ and end with ]" << std::endl;
-		exit (EXIT_FAILURE); //TODO: esto está ya contemplado?
+		exit (EXIT_FAILURE); //TODO: esto está ya contemplado? 
+		//TODO: hacer un array setter generico
 	}
 
 	int index_str = 1;
-	for (size_t i = index.find(US); i != std::string::npos; i = index.find(US, index_str))
+	for (size_t i = index.find(US); i != std::string::npos; i = index.find(US, index_str + 1))
 	{
 		_index.push_back(index.substr(index_str, i - index_str));
 		index_str = i;
@@ -94,12 +105,25 @@ void Server::setRoot(std::string const &root)
 
 void Server::setServerName(std::string const &server_name)
 {
-	if (has_delimiter(server_name))
+	if (!has_delimiter(server_name))
 	{
-		std::cerr << RED "Error: " NC "\"sever_name\" directive cannot have delimiters \", [ ]\"" << std::endl;
-		exit (EXIT_FAILURE);
+		_server_name.push_back(server_name);
+		return ;
 	}
-	_server_name = server_name; //TODO: Y SI HAY VARIOS
+
+	if (server_name[0] != STX || server_name[server_name.size() - 1] != ETX)
+	{
+		std::cerr << RED "Error: " NC "wrong use of array syntax in \"server_name\" directive. If you want to declare an array it must start with [ and end with ]" << std::endl;
+		exit (EXIT_FAILURE); //TODO: esto está ya contemplado?
+	}
+
+	int server_name_str = 1;
+	for (size_t i = server_name.find(US); i != std::string::npos; i = server_name.find(US, server_name_str + 1))
+	{
+		_server_name.push_back(server_name.substr(server_name_str, i - server_name_str));
+		server_name_str = i;
+	}
+	_server_name.push_back(server_name.substr(server_name_str, server_name.size() - server_name_str - 1));
 }
 
 void Server::setListen(std::string const &listen)
@@ -148,7 +172,7 @@ void Server::setAutoIndex(std::string const &autoindex)
 
 //	GETTERs
 
-std::string const& Server::getServerName(void)
+std::vector<std::string> const& Server::getServerName(void)
 {
 	return _server_name;
 }

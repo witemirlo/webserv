@@ -36,6 +36,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 		{
 			listener_socks.push_back(Listener(my_servers[i].getListen()));
 			host_index[my_servers[i].getListen()] = host_index.size();
+			(*listener_socks.rbegin()).addServer(my_servers[i]);
 		}
 	}
 	return (listener_socks);

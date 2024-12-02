@@ -25,7 +25,7 @@ private:
 	static ARequest* (Listener::* const creators [])(std::string const &);
 public:
 	Listener(std::string const& where_to_listen);
-	void addServer(Server & server);
+	void addServer(Server server);
 	void addSocket(int fd);
 	int getSockets(struct pollfd ** sockets) const;
 	size_t getNumberofSockets(void) const;
