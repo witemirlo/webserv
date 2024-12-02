@@ -13,7 +13,7 @@ public:
 	Location();
 	~Location();
 	Location(const Location &other);
-	Location(Server const& o, std::string const & config);
+	Location(Server const& o, std::string const & config, std::string const & my_path);
 
 	Location &operator=(const Location &other);
 	bool operator>(const Location & other) const;
