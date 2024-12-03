@@ -59,8 +59,8 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 
 		key = line.substr(0, line.find('='));
 		value = line.substr(line.find('=') + 1, line.size());
-		if (value.size() > 1 && *value.rbegin() == '/')
-			value = value.substr(0, (value.size() - 1));
+		if (value.size() > 1 && *value.rbegin() != '/')
+			value.push_back('/');
 		/*
 		if key en prohibidas
 			std::cerr key solo se permite en server

@@ -72,6 +72,29 @@ bool Server::isNamed(std::string & name)
 	return false;
 }
 
+Location const& Server::getLocation(std::string const& uri) const
+{
+	std::map<std::string, Location>::const_iterator it;
+	std::string                                     route, tmp;
+
+	route = uri;
+	
+	if (*uri.begin() != '/')
+		return this->_locations.at("/");
+	
+	while (route.size() > 0) {
+		for (it = this->_locations.begin(); it != this->_locations.end(); it++) {
+			tmp = it->first.substr(0, (it->first.find_last_of('/') + 1));
+			if (tmp == route)
+				return this->_locations.at(tmp);
+		}
+		route = route.substr(0, route.size() - 2);
+		route = route.substr(0, route.find_last_of('/') + 1);
+	}
+
+	return this->_locations.at("/");
+}
+
 void Server::setIndex(std::string const &index)
 {
 	_index = setVector(index);
