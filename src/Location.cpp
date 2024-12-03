@@ -3,7 +3,17 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstring>
+#include <ctime>
+#include <dirent.h>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 const std::string Location::prohibited_rules[] =  {"listen", "server_name", ""};
 
@@ -109,10 +119,7 @@ bool Location::operator<=(const Location & other) const
 	return (this->_deepness <= other._deepness);
 }
 
-std::string Location::getPathTo(std::string const & uri) const
+std::string Location::getPathTo(std::string const& uri) const
 {
-	// TODO: autoindex true y te pasan directorio
-	// TODO: index seteado y te pasan directorio
-	// TODO: 404
 	return (this->_root + uri);
 }
