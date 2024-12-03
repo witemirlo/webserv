@@ -26,23 +26,27 @@ private:
 public:
 	Listener(std::string const& where_to_listen);
 	void addServer(Server server);
+
+//	fd and socket management
+
 	void addSocket(int fd);
 	int getSockets(struct pollfd ** sockets) const;
 	size_t getNumberofSockets(void) const;
 	int getListenFd(void) const;
-
 	void closeFds(void);
 	int is_fd_here(int fd) const;
 	void deleteFd(int fd);
-
-//	TODO: update
-	int updateRequest(int index, std::string buffer);
-	void printRequest(int index);
-	ARequest *createRequest(std::string & buffer);
-	ARequest *createGet(std::string const & init);
 	void setFdToWrite(int fd);
 	void setFdToRead(int fd);
+
+//	Requests and reponses
+
 	std::string respondTo(int fd);
+	void printRequest(int index);
+	int updateRequest(int index, std::string buffer);
+	
+	ARequest *createRequest(std::string & buffer);
+	ARequest *createGet(std::string const & init);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF
