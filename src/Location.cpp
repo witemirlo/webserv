@@ -41,7 +41,11 @@ Location::~Location()
 #endif
 }
 
-
+/**
+ * @param o the Server object used as the default configuration of this new location
+ * @param config a std::string with the specifics of the configuration of the location
+ * @param my_path the uri path of the locations, used to calculate its deepness
+ */
 Location::Location(Server const& o, std::string const & config, std::string const & my_path)
 	: Server(o)
 {
@@ -80,7 +84,7 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 			buffer = buffer.substr(it + 1);
 	}
 
-	if (my_path == "/")// jeje xd TODO: es del pobre nombre de location
+	if (my_path == "/")
 		this->_deepness = 0;
 	else
 		this->_deepness = std::count(my_path.begin(),  my_path.end(), '/');
@@ -95,6 +99,7 @@ Location &Location::operator=(const Location &other)
 	if (this == &other)
 		return (*this);
 
+	Server::operator=(other);
 	this->_deepness = other._deepness;
 	return (*this);
 }

@@ -15,15 +15,21 @@ ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Lis
 
 static int get_listener(std::string & host, std::string & port);
 
-int Listener::updateRequest(int index, std::string buffer)
+/**
+ * Updates the request of the socket fd with new information. If it doesnt exists, it creates it.
+ * 
+ * @return the status of the request
+ */
+int Listener::updateRequest(int fd, std::string buffer)
 {
 	try {
-		return (_requests.at(index)->appendRequest(buffer));
+		return (_requests.at(fd)->appendRequest(buffer));
 	} catch (std::exception const & e) {
-		_requests[index] = createRequest(buffer);
-		return (_requests.at(index)->appendRequest(buffer));
+		_requests[fd] = createRequest(buffer);
+		return (_requests.at(fd)->appendRequest(buffer));
 	}
 }
+
 
 ARequest *Listener::createRequest(std::string & buffer)
 {
@@ -230,6 +236,9 @@ void Listener::setFdToRead(int fd)
 	}
 }
 
+/**
+ * Creates a reponse to the request of fd and sets it to wait to read
+ */
 std::string Listener::respondTo(int fd)
 {
 	std::string response = _requests[fd]->generateResponse(_assoc_servers);

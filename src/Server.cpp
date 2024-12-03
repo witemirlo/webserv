@@ -59,6 +59,9 @@ void Server::procRule(std::string const &what, std::string const &to_set)
 	exit(EXIT_FAILURE);
 }
 
+/**
+ * Checks if the name is present on this Server server_name
+ */
 bool Server::isNamed(std::string & name)
 {
 	for (std::vector<std::string>::iterator it = _server_name.begin(); it != _server_name.end(); it++)
@@ -97,6 +100,11 @@ void Server::setIndex(std::string const &index)
 	_index = setVector(index);
 }
 
+/**
+ * Creates a vector of strings using str
+ * 
+ * @param str a std::string with the elements separed using US (ASCII number 2)
+ */
 std::vector<std::string> Server::setVector(std::string const & str)
 {
 	std::vector<std::string> result;

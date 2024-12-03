@@ -4,6 +4,11 @@
 #include <iostream>
 #include <cstdlib>
 
+/**
+ * Parses a string to update the request, changing the status to reflect were the message was left
+ * 
+ * @return the actual status of the request
+ */
 int ARequest::appendRequest(std::string & append)
 {
 	static std::string raw;
@@ -27,6 +32,11 @@ int ARequest::appendRequest(std::string & append)
 	return (this->_status);
 }
 
+/**
+ * Proccess a string with a header declaration, splitting the key and value
+ * 
+ * @param index the index where it founded the last CRLF, so it knows if there are no more headers
+ */
 void ARequest::procHeader(std::string & raw, size_t index)
 {
 	if (index == 0)
