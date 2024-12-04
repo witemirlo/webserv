@@ -144,7 +144,7 @@ std::string Location::getBody(std::string const& uri) const
 	switch (sb.st_mode) {
 	case S_IFDIR: // directory file
 		for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++) {
-			if (access(path.c_str(), F_OK | R_OK) == 0) {
+			if (access(path.c_str(), R_OK) == 0) {
 				// TODO: el archivo existe
 				// TODO: deberia retornar (?)
 				return readFile(path);
