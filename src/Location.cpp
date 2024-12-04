@@ -177,8 +177,10 @@ std::string Location::readFile(std::string const& path) const
 	if (!file.is_open()) // TODO: error?
 		return std::string("");
 	
-	while (getline(file, buffer))
+	while (getline(file, buffer)) {
 		final += buffer;
+		final.push_back('\n');
+	}
 
 	return final;
 }
@@ -186,10 +188,10 @@ std::string Location::readFile(std::string const& path) const
 std::string Location::autoIndex(std::string const& path) const
 {
 	// TODO: y si termina en '/'?
-	struct dirent*       file;
-	DIR*                 directory;
-	struct stat          sb;
 	std::stringstream    buffer;
+	DIR*                 directory;
+	struct dirent*       file;
+	struct stat          file_status;
 	char                 date[512];
 
 	directory = opendir(path.c_str());
@@ -197,13 +199,13 @@ std::string Location::autoIndex(std::string const& path) const
 		// TODO
 	}
 
-	buffer <<  "<html>\n"
+	buffer << "<html>\n"
 	       << "<head><title>Index of " << path << "</title></head>\n"
 	       << "<body>\n"
 	       << "<h1>Index of " << path << "</h1><hr><pre><a href=\"../\">../</a>\n";
 
 	while (true) {
-		std::memset(&sb, 0, sizeof(struct stat));
+		std::memset(&file_status, 0, sizeof(struct stat));
 		std::memset(&date, 0, 512);
 		
 		file = readdir(directory);
@@ -216,21 +218,15 @@ std::string Location::autoIndex(std::string const& path) const
 		if (file->d_name[0] == '.')
 			continue;
 
-		stat(file->d_name, &sb);
+		stat(file->d_name, &file_status);
 		if (file == NULL)
 			break;
 
-		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&sb.st_mtim.tv_sec));
+		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&file_status.st_mtim.tv_sec));
 
-		buffer << "<a href=\""
-		       << file->d_name // NOTE: cambiar, name
-		       << "\">"
-		       << std::left << std::setw(80) << file->d_name // NOTE: cambiar, name
-		       << "</a>"
-		       << std::setw(1) << date // NOTE: cambiar, ultima modificacion
-		       << "\t"
-		       << sb.st_size // NOTE: cambiar, size
-		       << "\n";
+		buffer << "<a href=\"" << file->d_name << "\">"                        // NOTE: link to the file
+		       << std::left << std::setw(80) << file->d_name << "</a>"         // NOTE: text of the link
+		       << std::setw(1) << date << "\t" << file_status.st_size << "\n"; // NOTE: file info
 	}
 
 	buffer << "</pre><hr></body>\n"
