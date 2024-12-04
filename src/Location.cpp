@@ -266,3 +266,41 @@ std::string Location::autoIndex(std::string const& path) const
 
 	return buffer.str();
 }
+
+std::string Location::getHeaders(std::string const& body) const
+{
+	std::stringstream buffer;
+	std::time_t       rawtime;
+	struct tm*        gmt;
+	char              date[512];
+
+	time(&rawtime);
+	gmt = gmtime(&rawtime);
+
+	std::memset(&date, 0, 512);
+	strftime(date, 512, "%a, %d %b %Y %H:%M:%S GMT", gmt);
+
+	buffer << "date: " << date << "\r\n"
+	       << "server: webserv\r\n"
+	       << "content-type: text/html\r\n"
+	       << "content-lenght: " << body.size() << "\r\n"
+	       << "\r\n";
+
+	return buffer.str();
+}
+
+/**
+ * 
+ *
+ * @param 
+ * @return 
+ */
+std::string Location::responseGET(std::string const& uri) const
+{
+	std::string status_line, headers, body;
+
+	body = getBody(uri);
+	headers = getHeaders(body);
+
+	return (status_line + headers + body);
+}

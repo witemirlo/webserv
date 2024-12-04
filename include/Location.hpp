@@ -9,10 +9,12 @@ private:
 	unsigned int _deepness;
 	static const std::string prohibited_rules[];
 
-	std::string getPathTo(std::string const& uri) const;
 	std::string getBody(std::string const& uri) const;
+	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& path) const;
+
+	std::string getHeaders(std::string const& body) const;
 
 public:
 	Location();
