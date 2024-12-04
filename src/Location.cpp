@@ -182,6 +182,7 @@ std::string Location::readFile(std::string const& path) const
 		final.push_back('\n');
 	}
 
+	file.close();
 	return final;
 }
 
