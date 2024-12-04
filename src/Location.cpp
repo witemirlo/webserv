@@ -6,6 +6,7 @@
 #include <cstring>
 #include <ctime>
 #include <dirent.h>
+#include <errno.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -139,23 +140,45 @@ std::string Location::getPathTo(std::string const& uri) const
  * Generates the body of the response to a GET method
  *
  * @param uri uri to the file
- * @return string with the body of the response
+ * @param status_code referencte to a int to set the status code
+ * @return string with the body of the response and sets the status_code
  */
-std::string Location::getBody(std::string const& uri) const
+std::string Location::getBody(std::string const& uri, int& status_code)
 {
 	std::string path;
 	struct stat file_info;
 
-	// TODO: comprobar permisos de acceso
-	// TODO: comprobar si es un directorio -> comprobar autoindex
-	// TODO: comprobar si es un directorio -> comprobar index
+	status_code = 0;
 	path = getPathTo(uri);
+
 	if (access(path.c_str(), R_OK) < 0) {
-		// TODO: que retorna?
+		switch (errno) {
+		case ENAMETOOLONG: // pathname too long
+			status_code = 400;// bad request
+			break;
+		
+		case ENOTDIR: // pathname contains a nondirectory as directory
+			status_code = 400;// badrequest
+			break;
+		
+		case EACCES: // the file exist but not have permissions
+			status_code = 403;
+			break;
+		
+		case ENOENT: // file not found
+			status_code = 404; // not found
+			break;
+		
+		default:
+			status_code = 500;// inernal server error
+			break;
+		}
+		return "";
 	}
 
 	if (stat(path.c_str(), &file_info) < 0) {
-		// TODO: que retorna?
+		status_code = 500;// inernal server error
+		return "";
 	}
 
 	switch (file_info.st_mode) {
@@ -168,8 +191,9 @@ std::string Location::getBody(std::string const& uri) const
 				// funcion para poner todo el archivo y retornarlo
 			}
 		}
-		if (this->_autoindex)
+		if (this->_autoindex) {
 			return autoIndex(path);
+		}
 		// TODO: not found
 		break;
 	
@@ -295,11 +319,12 @@ std::string Location::getHeaders(std::string const& body) const
  * @param 
  * @return 
  */
-std::string Location::responseGET(std::string const& uri) const
+std::string Location::responseGET(std::string const& uri)
 {
 	std::string status_line, headers, body;
+	int         status_code;
 
-	body = getBody(uri);
+	body = getBody(uri, status_code);
 	headers = getHeaders(body);
 
 	return (status_line + headers + body);
