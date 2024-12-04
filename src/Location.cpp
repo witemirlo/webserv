@@ -145,8 +145,9 @@ std::string Location::getPathTo(std::string const& uri) const
  */
 std::string Location::getBody(std::string const& uri, int& status_code)
 {
-	std::string path;
-	struct stat file_info;
+	std::vector<std::string>::const_iterator index_it;
+	std::string                              path;
+	struct stat                              file_info;
 
 	status_code = 0;
 	path = getPathTo(uri);
@@ -183,30 +184,25 @@ std::string Location::getBody(std::string const& uri, int& status_code)
 
 	switch (file_info.st_mode) {
 	case S_IFDIR: // directory file
-		for (std::vector<std::string>::const_iterator it = this->_index.begin(); it != this->_index.end(); it++) {
-			if (access(path.c_str(), R_OK) == 0) {
-				// TODO: el archivo existe
-				// TODO: deberia retornar (?)
+		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
+			if (access((path + *index_it).c_str(), R_OK) == 0)
 				return readFile(path);
-				// funcion para poner todo el archivo y retornarlo
-			}
 		}
 		if (this->_autoindex) {
 			return autoIndex(path);
 		}
-		// TODO: not found
+		status_code = 404;
 		break;
 	
 	case S_IFREG: // regular file
-		// funcion para poner todo el archivo y retornarlo
 		return readFile(path);
 		break;
 	
 	default:
-		// TODO: error
-		// Error en funcion de errno
 		break;
 	}
+	status_code = 404;
+	return "";
 }
 
 /**
