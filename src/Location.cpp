@@ -149,36 +149,16 @@ std::string Location::getBody(std::string const& uri, int& status_code)
 	std::string                              path;
 	struct stat                              file_info;
 
-	status_code = 0;
+	errno = 0;
 	path = getPathTo(uri);
 
 	if (access(path.c_str(), R_OK) < 0) {
-		switch (errno) {
-		case ENAMETOOLONG: // pathname too long
-			status_code = 400;// bad request
-			break;
-		
-		case ENOTDIR: // pathname contains a nondirectory as directory
-			status_code = 400;// badrequest
-			break;
-		
-		case EACCES: // the file exist but not have permissions
-			status_code = 403;
-			break;
-		
-		case ENOENT: // file not found
-			status_code = 404; // not found
-			break;
-		
-		default:
-			status_code = 500;// inernal server error
-			break;
-		}
+		status_code = getStatusCode();
 		return "";
 	}
 
 	if (stat(path.c_str(), &file_info) < 0) {
-		status_code = 500;// inernal server error
+		status_code = getStatusCode();
 		return "";
 	}
 
@@ -186,6 +166,7 @@ std::string Location::getBody(std::string const& uri, int& status_code)
 	case S_IFDIR: // directory file
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			if (access((path + *index_it).c_str(), R_OK) == 0)
+				status_code = 200;
 				return readFile(path);
 		}
 		if (this->_autoindex) {
@@ -195,6 +176,7 @@ std::string Location::getBody(std::string const& uri, int& status_code)
 		break;
 	
 	case S_IFREG: // regular file
+		status_code = 200;
 		return readFile(path);
 		break;
 	
@@ -307,6 +289,31 @@ std::string Location::getHeaders(std::string const& body) const
 	       << "\r\n";
 
 	return buffer.str();
+}
+
+
+int Location::getStatusCode(void) const
+{
+	switch (errno) {
+	case 0:
+		return 200;
+
+	case ENAMETOOLONG: // pathname too long
+		return 400;// bad request
+	
+	case ENOTDIR: // pathname contains a nondirectory as directory
+		return 400;// badrequest
+	
+	case EACCES: // the file exist but not have permissions
+		return 403;
+	
+	case ENOENT: // file not found
+		return 404; // not found
+		break;
+	
+	default:
+		return 500;// inernal server error
+	}
 }
 
 /**

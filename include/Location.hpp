@@ -14,6 +14,8 @@ private:
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& path) const;
 
+	int getStatusCode(void) const;
+
 	std::string getHeaders(std::string const& body) const;
 
 public:
