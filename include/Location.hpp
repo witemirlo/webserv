@@ -9,7 +9,7 @@ private:
 	unsigned int _deepness;
 	static const std::string prohibited_rules[];
 
-	std::string getBody(std::string const& uri, int& status_code);
+	std::string getBody(std::string const& uri) const;
 	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& path) const;
@@ -30,7 +30,7 @@ public:
 	bool operator>=(const Location & other) const;
 	bool operator<=(const Location & other) const;
 
-	std::string responseGET(std::string const& uri);
+	std::string responseGET(std::string const& uri) const;
 
 	/*: Server(o) {
 	Parsear el config

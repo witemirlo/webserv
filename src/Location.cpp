@@ -143,7 +143,7 @@ std::string Location::getPathTo(std::string const& uri) const
  * @param status_code referencte to a int to set the status code
  * @return string with the body of the response and sets the status_code
  */
-std::string Location::getBody(std::string const& uri, int& status_code)
+std::string Location::getBody(std::string const& uri) const
 {
 	std::vector<std::string>::const_iterator index_it;
 	std::string                              path;
@@ -152,38 +152,31 @@ std::string Location::getBody(std::string const& uri, int& status_code)
 	errno = 0;
 	path = getPathTo(uri);
 
-	if (access(path.c_str(), R_OK) < 0) {
-		status_code = getStatusCode();
+	if (access(path.c_str(), R_OK) < 0)
 		return "";
-	}
 
-	if (stat(path.c_str(), &file_info) < 0) {
-		status_code = getStatusCode();
+	if (stat(path.c_str(), &file_info) < 0)
 		return "";
-	}
 
 	switch (file_info.st_mode) {
 	case S_IFDIR: // directory file
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			if (access((path + *index_it).c_str(), R_OK) == 0)
-				status_code = 200;
 				return readFile(path);
 		}
 		if (this->_autoindex) {
 			return autoIndex(path);
 		}
-		status_code = 404;
 		break;
 	
 	case S_IFREG: // regular file
-		status_code = 200;
 		return readFile(path);
 		break;
 	
 	default:
 		break;
 	}
-	status_code = 404;
+	errno = ENOENT;
 	return "";
 }
 
@@ -195,12 +188,13 @@ std::string Location::getBody(std::string const& uri, int& status_code)
  */
 std::string Location::readFile(std::string const& path) const
 {
-	std::fstream file;
+	std::fstream file(path);
 	std::string  buffer, final;
 
-	file.open(path);
-	if (!file.is_open()) // TODO: error?
+	if (!file.is_open()) {
 		return std::string("");
+		errno = ENOENT;
+	}
 	
 	while (getline(file, buffer)) {
 		final += buffer;
@@ -228,7 +222,7 @@ std::string Location::autoIndex(std::string const& path) const
 
 	directory = opendir(path.c_str());
 	if (directory == NULL) {
-		// TODO
+		return "";
 	}
 
 	buffer << "<html>\n"
@@ -243,16 +237,16 @@ std::string Location::autoIndex(std::string const& path) const
 		file = readdir(directory);
 
 		if (file == NULL) {
-			// TODO: control de errores
 			break;
 		}
 
 		if (file->d_name[0] == '.')
 			continue;
 
-		stat(file->d_name, &file_info);
-		if (file == NULL)
-			break;
+		if (stat(file->d_name, &file_info) < 0) {
+			closedir(directory);
+			return "";
+		}
 
 		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&file_info.st_mtim.tv_sec));
 
@@ -326,12 +320,14 @@ int Location::getStatusCode(void) const
  * @param 
  * @return 
  */
-std::string Location::responseGET(std::string const& uri)
+std::string Location::responseGET(std::string const& uri) const
 {
 	std::string status_line, headers, body;
 	int         status_code;
 
-	body = getBody(uri, status_code);
+	body = getBody(uri);
+	status_code = getStatusCode();
+	// TODO: comprobar el status code y trabajar en consecuencia
 	headers = getHeaders(body);
 
 	return (status_line + headers + body);
