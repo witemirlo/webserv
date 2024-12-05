@@ -192,8 +192,8 @@ std::string Location::readFile(std::string const& path) const
 	std::string  buffer, final;
 
 	if (!file.is_open()) {
-		return std::string("");
 		errno = ENOENT;
+		return std::string("");
 	}
 	
 	while (getline(file, buffer)) {
