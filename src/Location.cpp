@@ -291,7 +291,11 @@ std::string Location::getHeaders(std::string const& body) const
 	return buffer.str();
 }
 
-
+/**
+ * Returns the status code corresponding to errno
+ *
+ * @return status code
+ */
 int Location::getStatusCode(void) const
 {
 	switch (errno) {
