@@ -159,7 +159,7 @@ std::string Location::getBody(std::string const& uri) const
 		return "";
 
 	switch (file_info.st_mode) {
-	case S_IFDIR: // directory file
+	case S_IFDIR: // NOTE: directory file
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			if (access((path + *index_it).c_str(), R_OK) == 0)
 				return readFile(path);
@@ -169,7 +169,7 @@ std::string Location::getBody(std::string const& uri) const
 		}
 		break;
 	
-	case S_IFREG: // regular file
+	case S_IFREG: // NOTE: regular file
 		return readFile(path);
 		break;
 	
@@ -250,8 +250,8 @@ std::string Location::autoIndex(std::string const& path) const
 
 		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&file_info.st_mtim.tv_sec));
 
-		buffer << "<a href=\"" << file->d_name << "\">"                        // NOTE: link to the file
-		       << std::left << std::setw(80) << file->d_name << "</a>"         // NOTE: text of the link
+		buffer << "<a href=\"" << file->d_name << "\">"                      // NOTE: link to the file
+		       << std::left << std::setw(80) << file->d_name << "</a>"       // NOTE: text of the link
 		       << std::setw(1) << date << "\t" << file_info.st_size << "\n"; // NOTE: file info
 	}
 
@@ -294,23 +294,22 @@ int Location::getStatusCode(void) const
 {
 	switch (errno) {
 	case 0:
-		return 200;
+		return 200; // HINT: ok
 
-	case ENAMETOOLONG: // pathname too long
-		return 400;// bad request
+	case ENAMETOOLONG:  // NOTE: pathname too long
+		return 400; // HINT: bad request
 	
-	case ENOTDIR: // pathname contains a nondirectory as directory
-		return 400;// badrequest
+	case ENOTDIR:       // NOTE: pathname contains a nondirectory as directory
+		return 400; // HINT: bad request
 	
-	case EACCES: // the file exist but not have permissions
-		return 403;
+	case EACCES:        // NOTE: the file exist but not have permissions
+		return 403; // HINT: forbidden
 	
-	case ENOENT: // file not found
-		return 404; // not found
-		break;
+	case ENOENT:        // NOTE: file not found
+		return 404; // HINT: file not found
 	
 	default:
-		return 500;// inernal server error
+		return 500; // HINT: inernal server error
 	}
 }
 
