@@ -278,7 +278,7 @@ std::string Location::getHeaders(std::string const& body) const
 
 	buffer << "date: " << date << "\r\n"
 	       << "server: webserv\r\n"
-	       << "content-type: text/html\r\n"
+	       << "content-type: text/html\r\n" // TODO: poner el que toca
 	       << "content-lenght: " << body.size() << "\r\n"
 	       << "\r\n";
 
@@ -303,7 +303,7 @@ int Location::getStatusCode(void) const
 		return 400; // HINT: bad request
 	
 	case EACCES:        // NOTE: the file exist but not have permissions
-		return 403; // HINT: forbidden
+		return 403; // HINT: forbidden TODO: quizas un 404
 	
 	case ENOENT:        // NOTE: file not found
 		return 404; // HINT: file not found
@@ -324,6 +324,7 @@ std::string Location::responseGET(std::string const& uri) const
 	std::string status_line, headers, body;
 	int         status_code;
 
+	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 	body = getBody(uri);
 	status_code = getStatusCode();
 	// TODO: comprobar el status code y trabajar en consecuencia
