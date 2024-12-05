@@ -84,7 +84,7 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 		else
 			buffer = buffer.substr(it + 1);
 	}
-
+	setErrorPages("");
 	if (my_path == "/")
 		this->_deepness = 0;
 	else

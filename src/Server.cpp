@@ -7,16 +7,31 @@
 #include <sstream>
 
 const std::string Server::rules[] = 
-	{"listen", "server_name", "root", "index", "autoindex", ""};
+	{"listen", "server_name", "root", "index", "autoindex", "error_pages", ""};
 void (Server::* const Server::setters [])(std::string const &) = 
-	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex};
+	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex, &Server::setErrorPages};
 
 static bool has_delimiter(std::string const & str);
+
+static std::map<int, std::string> default_error_pages(void)
+{
+	std::map<int, std::string> err_pags;
+
+	err_pags[404] = DEF_404;
+
+	return (err_pags);
+}
 
 /**
  * @param config a std::map of strings where the first indicates a directive and the second, the specification of that directive
  */
-Server::Server(std::map<std::string, std::string> & config) //TODO: set default setting 
+Server::Server(std::map<std::string, std::string> & config)
+	: _listen(DEF_HOST ":" DEF_PORT),
+	_server_name(std::vector<std::string> ()),
+	_root (DEF_ROOT),
+	_index(std::vector<std::string> ()),
+	_autoindex(false),
+	_error_pages(default_error_pages())
 {
 	std::vector<std::string> loc_to_process;
 
@@ -29,7 +44,7 @@ Server::Server(std::map<std::string, std::string> & config) //TODO: set default 
 		}
 		procRule(it->first, it->second);
 	}
-
+	setErrorPages("");
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
 	{
 		//TODO: check for duplicated locations
@@ -98,6 +113,28 @@ Location const& Server::getLocation(std::string const& uri) const
 void Server::setIndex(std::string const &index)
 {
 	_index = setVector(index);
+}
+
+void Server::setErrorPages(std::string const &errors)
+{
+	if (_err_tmp.size() == 0)
+	{
+		_err_tmp = errors;
+		std::cout << "Hold...." << std::endl;
+		return;
+	}
+
+	std::vector<std::string> error_pages = setVector(_err_tmp);
+	for (size_t ind = 0; ind < error_pages.size(); ind++)
+	{
+		size_t eq = error_pages[ind].find("=");
+
+		int num = atoi(error_pages[ind].substr(0, eq).c_str()); //TODO: lista de errores permitidos ERROR DE SYNTAX
+		std::string	pages = error_pages[ind].substr(eq + 1); //TODO: check pages before
+
+		_error_pages[num] = _root + pages;
+		std::cout << pages << std::endl;
+	}
 }
 
 /**

@@ -9,6 +9,8 @@
 
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
+# define DEF_ROOT "/var"
+# define DEF_404 "/var/404.html"
 
 class Location;
 
@@ -27,6 +29,7 @@ protected:
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
 
+	std::string _err_tmp;
 public:
 	Server(std::map<std::string, std::string> & config);
 	void procRule(std::string const &what, std::string const &to_set);
@@ -40,6 +43,7 @@ public:
 	void setRoot(std::string const &root);
 	void setIndex(std::string const &index);
 	void setAutoIndex(std::string const&autoindex);
+	void setErrorPages(std::string const &errors);
 
 //	GETTER
 	std::vector<std::string> const& getServerName(void);
