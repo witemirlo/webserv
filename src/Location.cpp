@@ -188,7 +188,7 @@ std::string Location::getBody(std::string const& uri) const
  */
 std::string Location::readFile(std::string const& path) const
 {
-	std::fstream file(path);
+	std::fstream file(path.c_str());
 	std::string  buffer, final;
 
 	if (!file.is_open()) {
