@@ -23,6 +23,7 @@ protected:
 	std::string _root;
 	std::vector<std::string> _index;
 	bool _autoindex;
+	std::map<int, std::string> _error_pages;
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
 

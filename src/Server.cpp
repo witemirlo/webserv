@@ -233,7 +233,7 @@ Server::Server(void)
 #endif
 }
 
-Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name), _root(other._root), _index(other._index), _autoindex(other._autoindex)
+Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name), _root(other._root), _index(other._index), _autoindex(other._autoindex), _error_pages(other._error_pages)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
@@ -254,6 +254,7 @@ Server &Server::operator=(const Server &other)
 	_root = other._root;
 	_index = other._index;
 	_autoindex = other._autoindex;
+	_error_pages = other._error_pages;
 
 	return (*this);
 }
