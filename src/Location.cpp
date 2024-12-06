@@ -335,6 +335,9 @@ std::string Location::responseGET(std::string const& uri) const
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 	body = getBody(uri);
 	status_code = getStatusCode();
+	if (status_code != 200) {
+    		// TODO: mirar las error pages
+	}
 	// TODO: comprobar el status code y trabajar en consecuencia
 	headers = getHeaders(body);
 

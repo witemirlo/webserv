@@ -172,7 +172,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			}
 			break;
 		case COMMENT:
-			i = buffer.length() - 1;
+			i = buffer.length() - 2;
 			break;
 		case COMMA:
 			line += US;
