@@ -26,7 +26,7 @@ enum token_case {
 static std::vector<std::string>                         get_file(std::string const&);
 static bool                                             get_file_check(std::string const&);
 static std::string                                      get_instruction(std::istream&, std::string&);
-static enum token_case                                  get_instruction_case(char, bool, std::size_t);
+static enum token_case                                  get_instruction_case(char, bool, bool, std::size_t);
 static std::vector<std::map<std::string, std::string> > split_file(std::vector<std::string> const&);
 std::string                                             trim(std::string const&);
 
@@ -126,10 +126,11 @@ get_instruction(std::istream& stream, std::string& buffer)
 	std::stack<char> container;
 	std::string      line;
 	std::size_t      i;
-	bool             open_brace, open_quote;
+	bool             open_brace, open_quote, blank_line;
 
 	open_brace = false;
 	open_quote = false;
+	blank_line = true;
 	i          = 0;
  	while (container.size() != 0 || open_brace || open_quote || buffer[i]) {
 		if (!buffer[i]) {
@@ -141,14 +142,16 @@ get_instruction(std::istream& stream, std::string& buffer)
 			}
 			i = 0;
 			buffer.push_back('\n');
+			blank_line = true;
 		}
 
-		switch (get_instruction_case(buffer[i], open_quote, container.size())) {
+		switch (get_instruction_case(buffer[i], open_quote, blank_line, container.size())) {
 		case OPEN_BRACE:
 			open_brace = true;
 			container.push('[');
 			line += STX;
 			break;
+
 		case CLOSE_BRACE:
 			if (container.size() != 0 && container.top() != '[') {
 				std::cerr << RED "Error:" NC " syntax error: missing '['" << std::endl;
@@ -162,6 +165,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			else
 				line += ETX;
 			break;
+
 		case QUOTE:
 			if (container.size() != 0 && container.top() == '\"') {
 				container.pop();
@@ -171,19 +175,26 @@ get_instruction(std::istream& stream, std::string& buffer)
 				open_quote = true;
 			}
 			break;
+
 		case COMMENT:
 			i = buffer.length() - 2;
 			break;
+
 		case COMMA:
 			line += US;
 			break;
+
 		case NEW_LINE:
 			break;
+
 		default:
-			if (open_quote || !std::isspace(buffer[i]))
+			if (open_quote || !std::isspace(buffer[i])) {
 				line += buffer[i];
+				blank_line = false;
+			}
 			break;
 		}
+
 		i++;
 	}
 
@@ -193,12 +204,13 @@ get_instruction(std::istream& stream, std::string& buffer)
 
 /**
  * Cheks the token type for the get_line() function.
+ *
  * @param token the token to analyce.
  * @param open_quote bool know if the token is inside quotes.
  * @return a number for the get_line() switch case.
  */
 static enum token_case
-get_instruction_case(char token, bool open_quote, std::size_t container_size)
+get_instruction_case(char token, bool open_quote, bool blank_line, std::size_t container_size)
 {
 	if (token == '\"')
 		return QUOTE;
@@ -215,7 +227,7 @@ get_instruction_case(char token, bool open_quote, std::size_t container_size)
 	if (token == '#')
 		return COMMENT;
 
-	if (token == ',' || (token == '\n' && container_size != 0))
+	if (!blank_line && (token == ',' || (token == '\n' && container_size != 0)))
 		return COMMA;
 
 	if (token == '\n')
