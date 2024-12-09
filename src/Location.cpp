@@ -17,6 +17,13 @@
 #include <unistd.h>
 
 const std::string Location::prohibited_rules[] =  {"listen", "server_name", ""};
+const std::pair<std::string, std::string> _file_types[] = {
+	std::pair<std::string, std::string>("mp4",  "video"),
+	std::pair<std::string, std::string>("",     "text/plain"),
+	std::pair<std::string, std::string>("csv",  "text/csv"),
+	std::pair<std::string, std::string>("html", "text/html"),
+	std::pair<std::string, std::string>("", "")
+};
 
 Location::Location(void)
 	: Server()
@@ -188,6 +195,7 @@ std::string Location::getBody(std::string const& uri) const
  */
 std::string Location::readFile(std::string const& path) const
 {
+	// TODO: esta funcion es la que tiene que que mirar si es un php
 	std::fstream file(path.c_str());
 	std::string  buffer, final;
 
@@ -327,6 +335,9 @@ std::string Location::responseGET(std::string const& uri) const
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 	body = getBody(uri);
 	status_code = getStatusCode();
+	if (status_code != 200) {
+    		// TODO: mirar las error pages
+	}
 	// TODO: comprobar el status code y trabajar en consecuencia
 	headers = getHeaders(body);
 

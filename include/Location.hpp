@@ -8,6 +8,7 @@ class Location : public Server
 private:
 	unsigned int _deepness;
 	static const std::string prohibited_rules[];
+	static const std::map<std::string, std::string> _file_types[];
 
 	std::string getBody(std::string const& uri) const;
 	std::string getPathTo(std::string const& uri) const;
