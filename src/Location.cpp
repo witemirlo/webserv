@@ -18,11 +18,25 @@
 
 const std::string Location::prohibited_rules[] =  {"listen", "server_name", ""};
 const std::pair<std::string, std::string> _file_types[] = {
-	std::pair<std::string, std::string>("mp4",  "video"),
-	std::pair<std::string, std::string>("",     "text/plain"),
-	std::pair<std::string, std::string>("csv",  "text/csv"),
+	// TODO: revisar las extensiones
 	std::pair<std::string, std::string>("html", "text/html"),
-	std::pair<std::string, std::string>("", "")
+	std::pair<std::string, std::string>("css",  "text/css"),
+	std::pair<std::string, std::string>("js",   "text/javascript"),
+	std::pair<std::string, std::string>("gif",  "image/gif"),
+	std::pair<std::string, std::string>("png",  "image/png"),
+	std::pair<std::string, std::string>("jpeg", "image/jpeg"),
+	std::pair<std::string, std::string>("bmp",  "image/bmp"),
+	std::pair<std::string, std::string>("webp", "image/webp"),
+	std::pair<std::string, std::string>("midi", "audio/midi"),
+	std::pair<std::string, std::string>("mpeg", "audio/mpeg"),
+	std::pair<std::string, std::string>("webm", "audio/webm"),
+	std::pair<std::string, std::string>("ogg",  "audio/ogg"),
+	std::pair<std::string, std::string>("wab",  "audio/wab"),
+	std::pair<std::string, std::string>("webm", "video/webm"),
+	std::pair<std::string, std::string>("ogg",  "video/ogg"),
+	std::pair<std::string, std::string>("",     "application/octet-stream"),
+	std::pair<std::string, std::string>("pdf",  "application/pdf"),
+	std::pair<std::string, std::string>("",     "text/plain")
 };
 
 Location::Location(void)
