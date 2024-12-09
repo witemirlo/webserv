@@ -7,12 +7,21 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <signal.h>
 
 #include "Listener.hpp"
 #include "Server.hpp"
 #include "delimiter.hpp"
 #include "get_config_data.hpp"
 #include "socket_management.hpp"
+
+static int signal_num = 0;
+
+void signal_handler(int sig, siginfo_t * info, void * args)
+{
+	if (info && args)
+		signal_num = sig;
+}
 
 std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & config)
 {
@@ -107,12 +116,63 @@ int false_http(Listener & listener, int fd)
 	return (status);
 }
 
+void close_all(std::vector<Listener> sockets)
+{
+	for (size_t i = 0; i < sockets.size(); i++)
+		sockets[i].closeFds();
+
+	std::cerr << "webservr was closed..." << std::endl;
+	exit(EXIT_FAILURE);
+}
+
+void pollloop(std::vector<Listener> sockets)
+{
+	struct pollfd *my_fds;
+	int fd_num;
+
+	while (42)
+	{
+		fd_num = get_all_sockets(&my_fds, sockets);
+
+		int n_events = poll(my_fds, fd_num, -1);
+		if (signal_num == SIGINT)
+			close_all(sockets);
+		if (n_events == -1)
+		{
+			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
+			exit (EXIT_FAILURE);
+		}
+	
+		for (int i = 0; i < fd_num; i++)
+		{
+			if (my_fds[i].revents & POLLIN)
+			{
+				int loc = where_is(my_fds[i].fd, sockets);
+				if (loc < 0)
+					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
+				else if (loc > 0)
+					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
+			}
+			else if (my_fds[i].revents & POLLOUT)
+			{
+				int loc = where_is(my_fds[i].fd, sockets);
+				respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
+			}
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc > 2) {
 		std::cerr << "Error: bad input" << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	struct sigaction sa;
+	memset(&sa, 0, sizeof (sa));
+	sa.sa_sigaction = &signal_handler;
+	sigaction(SIGINT, &sa, NULL);
 
 	std::vector<std::map<std::string, std::string> > server_config;
 	server_config = get_config_data((argc == 2) ? argv[1] : DEFAULT_CONFIG_PATH);
@@ -148,39 +208,8 @@ int main(int argc, char* argv[])
 	//-----------------------------------------------------------------------------------------------------------------------------------
 
 	std::vector<Listener> sockets = setup(server_config);
-	struct pollfd *my_fds;
-	int fd_num;
+	pollloop(sockets);
 
-	while (42)
-	{
-		fd_num = get_all_sockets(&my_fds, sockets);
-
-		int n_events = poll(my_fds, fd_num, -1);
-		if (n_events == -1)
-		{
-			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
-			return EXIT_FAILURE;
-		}
-	
-		for (int i = 0; i < fd_num; i++)
-		{
-			if (my_fds[i].revents & POLLIN)
-			{
-				int loc = where_is(my_fds[i].fd, sockets);
-				if (loc < 0)
-					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
-				else if (loc > 0)
-					false_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
-			}
-			else if (my_fds[i].revents & POLLOUT)
-			{
-				int loc = where_is(my_fds[i].fd, sockets);
-				respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
-			}
-		}
-	}
-
-	delete [] my_fds;
 	return EXIT_SUCCESS;
 	if (!argc && !argv[0])
 		return 1;

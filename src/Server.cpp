@@ -120,7 +120,6 @@ void Server::setErrorPages(std::string const &errors)
 	if (_err_tmp.size() == 0)
 	{
 		_err_tmp = errors;
-		std::cout << "Hold...." << std::endl;
 		return;
 	}
 
@@ -133,7 +132,6 @@ void Server::setErrorPages(std::string const &errors)
 		std::string	pages = error_pages[ind].substr(eq + 1); //TODO: check pages before
 
 		_error_pages[num] = _root + pages;
-		std::cout << pages << std::endl;
 	}
 }
 
