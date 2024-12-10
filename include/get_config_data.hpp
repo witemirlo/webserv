@@ -10,7 +10,6 @@
 # include <vector>
 
 std::vector<std::map<std::string, std::string> > get_config_data(std::string const&);
-// TODO: caso doble coma y falta de coma cuando comentario
 std::string trim(std::string const&);
 
 #endif
