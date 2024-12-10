@@ -22,6 +22,7 @@ class ARequest
 {
 protected:
 	std::string _uri;
+	std::string _query;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 	int _status;
