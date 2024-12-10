@@ -306,31 +306,42 @@ std::map<std::string, std::string> Location::getCgiHeaders(std::string const& bo
 
 std::string Location::getGmtTime(void) const
 {
-
-}
-
-std::string Location::getHeaders(std::string const& body) const
-{
-	std::stringstream buffer;
 	std::time_t       rawtime;
 	struct tm*        gmt;
 	char              date[512];
 
-	std::map<std::string, std::string> headers;
-	headers = getCgiHeaders(body);
-	// TODO: mover todo lo del tiempo a metodo aparte
 	time(&rawtime);
 	gmt = gmtime(&rawtime);
 
 	std::memset(&date, 0, 512);
 	strftime(date, 512, "%a, %d %b %Y %H:%M:%S GMT", gmt);
 
-	// TODO: esto sera un bucle iterando el headers
+	return std::string(date);
+}
+
+std::string Location::getHeaders(std::string const& body) const
+{
+	std::stringstream buffer;
+	std::string date;
+	std::map<std::string, std::string> headers;
+
+	headers = getCgiHeaders(body);
+	date = getGmtTime();
+
 	buffer << "date: " << date << "\r\n"
-	       << "server: webserv\r\n" // TODO: con el cgi a partir de aqui te lo  da el cgi
-	       << "content-type: text/html\r\n" // TODO: poner el que toca
-	       << "content-lenght: " << body.size() << "\r\n"
-	       << "\r\n";
+	       << "server: webserv\r\n";
+	
+	if (headers.find("content-type") != headers.end())
+		buffer << "content-type: " << headers["content-type"] << "\r\n";
+	else
+		buffer << "content-type: text/html\r\n"; // TODO: poner bien el tipo
+
+	if (headers.find("content-lenght") != headers.end())
+		buffer << "content-lenght: " << headers["content-lenght"] << "\r\n";
+	else
+		buffer << "content-lenght: " << body.size() << "\r\n";
+
+	buffer << "\r\n";
 
 	return buffer.str();
 }
@@ -375,10 +386,10 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	int         status_code;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
+
 	// TODO: comprobar la extension del archivo
-	if (getFileType(uri) == "php")// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = cgiGET(uri);// content lenght y content type
-		// TODO: cositas
+	// if (getFileType(uri) == "php")// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
+	// 	body = cgiGET(uri);// content lenght y content type
 	body = getBody(uri);// TODO: que body plante un salto de linea
 	status_code = getStatusCode();
 	if (status_code != 200) {
