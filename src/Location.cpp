@@ -217,6 +217,7 @@ std::string Location::readFile(std::string const& path) const
 		return std::string("");
 	}
 	
+	final = "\r\n";
 	while (getline(file, buffer)) {
 		final += buffer;
 		final.push_back('\n');
@@ -246,7 +247,7 @@ std::string Location::autoIndex(std::string const& path) const
 		return "";
 	}
 
-	buffer << "<html>\n"
+	buffer << "\r\n<html>\n"
 	       << "<head><title>Index of " << path << "</title></head>\n"
 	       << "<body>\n"
 	       << "<h1>Index of " << path << "</h1><hr><pre><a href=\"../\">../</a>\n";
@@ -284,6 +285,30 @@ std::string Location::autoIndex(std::string const& path) const
 	return buffer.str();
 }
 
+std::map<std::string, std::string> Location::getCgiHeaders(std::string const& body) const
+{
+	std::map<std::string, std::string> headers;
+	std::stringstream                  buffer(body);
+	std::string                        line, key, value;
+	
+	while (getline(buffer, line)) {
+		if (line == "\r\n")
+			break;
+		
+		key = line.substr(0, line.find(':'));
+		value = line.substr(line.find(':') + 1);
+		headers[key] = value;
+		line.clear();
+	}
+
+	return headers;
+}
+
+std::string Location::getGmtTime(void) const
+{
+
+}
+
 std::string Location::getHeaders(std::string const& body) const
 {
 	std::stringstream buffer;
@@ -291,14 +316,18 @@ std::string Location::getHeaders(std::string const& body) const
 	struct tm*        gmt;
 	char              date[512];
 
+	std::map<std::string, std::string> headers;
+	headers = getCgiHeaders(body);
+	// TODO: mover todo lo del tiempo a metodo aparte
 	time(&rawtime);
 	gmt = gmtime(&rawtime);
 
 	std::memset(&date, 0, 512);
 	strftime(date, 512, "%a, %d %b %Y %H:%M:%S GMT", gmt);
 
+	// TODO: esto sera un bucle iterando el headers
 	buffer << "date: " << date << "\r\n"
-	       << "server: webserv\r\n"
+	       << "server: webserv\r\n" // TODO: con el cgi a partir de aqui te lo  da el cgi
 	       << "content-type: text/html\r\n" // TODO: poner el que toca
 	       << "content-lenght: " << body.size() << "\r\n"
 	       << "\r\n";
@@ -340,14 +369,17 @@ int Location::getStatusCode(void) const
  * @param 
  * @return 
  */
-std::string Location::responseGET(std::string const& uri) const
+std::string Location::responseGET(std::string const& uri, std::string const& query) const
 {
 	std::string status_line, headers, body;
 	int         status_code;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 	// TODO: comprobar la extension del archivo
-	body = getBody(uri);
+	if (getFileType(uri) == "php")// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
+		body = cgiGET(uri);// content lenght y content type
+		// TODO: cositas
+	body = getBody(uri);// TODO: que body plante un salto de linea
 	status_code = getStatusCode();
 	if (status_code != 200) {
     		// TODO: mirar las error pages
