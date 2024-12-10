@@ -7,9 +7,9 @@
 #include <sstream>
 
 const std::string Server::rules[] = 
-	{"listen", "server_name", "root", "index", "autoindex", "error_pages", ""};
+	{"listen", "server_name", "root", "index", "autoindex", "error_pages", "cgi_extension", ""};
 void (Server::* const Server::setters [])(std::string const &) = 
-	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex, &Server::setErrorPages};
+	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex, &Server::setErrorPages, &Server::setCGIExtension};
 
 static bool has_delimiter(std::string const & str);
 
@@ -31,7 +31,8 @@ Server::Server(std::map<std::string, std::string> & config)
 	_root (DEF_ROOT),
 	_index(std::vector<std::string> ()),
 	_autoindex(false),
-	_error_pages(default_error_pages())
+	_error_pages(default_error_pages()),
+	_cgi_extension("*")
 {
 	std::vector<std::string> loc_to_process;
 
@@ -161,6 +162,24 @@ std::vector<std::string> Server::setVector(std::string const & str)
 	return (result);
 }
 
+void Server::setCGIExtension(std::string const &cgi_extension)
+{
+	if (has_delimiter(cgi_extension))
+	{
+		std::cerr << RED "Error: " NC "\"cgi_extension\" directive cannot have delimiters \", [ ]\"" << std::endl;
+		exit (EXIT_FAILURE);
+	}
+	for (size_t i = 0; i < cgi_extension.size(); i++)
+	{
+		if (!isalnum(cgi_extension[i]))
+		{
+			std::cerr << RED "Error: " NC "\"" + cgi_extension + "\" is not a valid extension. Only alphanumeric characters accepted" << std::endl;
+			exit (EXIT_FAILURE);
+		}
+	}
+	_cgi_extension = cgi_extension;
+}
+
 void Server::setRoot(std::string const &root)
 {
 	if (has_delimiter(root))
@@ -221,27 +240,27 @@ void Server::setAutoIndex(std::string const &autoindex)
 
 //	GETTERs
 
-std::vector<std::string> const& Server::getServerName(void)
+std::vector<std::string> const& Server::getServerName(void) const
 {
 	return _server_name;
 }
 
-std::string const& Server::getListen(void)
+std::string const& Server::getListen(void) const
 {
 	return _listen;
 }
 
-std::string const& Server::getRoot(void)
+std::string const& Server::getRoot(void) const
 {
 	return _root;
 }
 
-std::vector<std::string> const& Server::getIndex(void)
+std::vector<std::string> const& Server::getIndex(void) const
 {
 	return _index;
 }
 
-bool Server::getAutoIndex(void)
+bool Server::getAutoIndex(void) const
 {
 	return _autoindex;
 }
@@ -268,7 +287,14 @@ Server::Server(void)
 #endif
 }
 
-Server::Server(const Server &other) : _listen(other._listen), _server_name(other._server_name), _root(other._root), _index(other._index), _autoindex(other._autoindex), _error_pages(other._error_pages)
+Server::Server(const Server &other) : 
+	_listen(other._listen),
+	_server_name(other._server_name),
+	_root(other._root),
+	_index(other._index),
+	_autoindex(other._autoindex),
+	_error_pages(other._error_pages),
+	_cgi_extension(other._cgi_extension)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
@@ -290,6 +316,7 @@ Server &Server::operator=(const Server &other)
 	_index = other._index;
 	_autoindex = other._autoindex;
 	_error_pages = other._error_pages;
+	_cgi_extension = other._cgi_extension;
 
 	return (*this);
 }

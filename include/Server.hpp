@@ -26,6 +26,7 @@ protected:
 	std::vector<std::string> _index;
 	bool _autoindex;
 	std::map<int, std::string> _error_pages;
+	std::string _cgi_extension;
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
 
@@ -44,13 +45,15 @@ public:
 	void setIndex(std::string const &index);
 	void setAutoIndex(std::string const&autoindex);
 	void setErrorPages(std::string const &errors);
+	void setCGIExtension(std::string const &cgi_extension);
 
 //	GETTER
-	std::vector<std::string> const& getServerName(void);
-	std::string const& getListen(void);
-	std::string const& getRoot(void);
-	std::vector<std::string> const& getIndex(void);
-	bool getAutoIndex(void);
+	std::vector<std::string> const& getServerName(void) const;
+	std::string const& getListen(void) const;
+	std::string const& getRoot(void) const;
+	std::vector<std::string> const& getIndex(void) const;
+	bool getAutoIndex(void) const;
+	std::string const& getCGIExtension(void) const;
 
 //	OCCF
 	Server();
