@@ -109,7 +109,6 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 		this->_deepness = 0;
 	else
 		this->_deepness = std::count(my_path.begin(),  my_path.end(), '/');
-	std::cerr << this->_deepness << std::endl;
 }
 
 Location &Location::operator=(const Location &other)
@@ -374,6 +373,31 @@ int Location::getStatusCode(void) const
 	}
 }
 
+std::string Location::getBodyError(int status_code) const
+{
+	std::map<int, std::string>::const_iterator it;
+	std::fstream                               file;
+	std::string                                line;
+	std::stringstream                          buffer;
+
+	it = this->_error_pages.find(status_code);
+	file.open(it->second.c_str());
+	if (!file.is_open()) {
+		buffer << "An error ocurred at opening "
+		       << it->second
+		       << "\n";
+		return buffer.str();
+	}
+
+	while (getline(file, line)) {
+		buffer << line << '\n';
+		line.clear();
+	}
+
+	file.close();
+	return buffer.str();
+}
+
 /**
  * 
  *
@@ -384,6 +408,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 {
 	std::string status_line, headers, body;
 	int         status_code;
+	(void)query;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
@@ -394,10 +419,13 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	status_code = getStatusCode();
 	if (status_code != 200) {
     		// TODO: mirar las error pages
+		body = getBodyError(status_code);
 	}
 	// TODO: comprobar el status code y trabajar en consecuencia
-	headers = getHeaders(body);
 
+	headers = getHeaders(body);
+	// status_line = getStatusLine(status_code);
+	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 	return (status_line + headers + body);
 }
 

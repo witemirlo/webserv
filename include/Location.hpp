@@ -13,6 +13,7 @@ private:
 	std::map<std::string, std::string> getCgiHeaders(std::string const& body) const;
 	std::string getFileType(std::string const& file) const;
 	std::string getBody(std::string const& uri) const;
+	std::string getBodyError(int status_code) const;
 	std::string getGmtTime(void) const;
 	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
