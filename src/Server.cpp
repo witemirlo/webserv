@@ -98,7 +98,7 @@ Location const& Server::getLocation(std::string const& uri) const
 	if (*uri.begin() != '/')
 		return this->_locations.at("/");
 	
-	while (route.size() > 0) {
+	while (route.size() > 1) {
 		for (it = this->_locations.begin(); it != this->_locations.end(); it++) {
 			tmp = it->first.substr(0, (it->first.find_last_of('/') + 1));
 			if (tmp == route)
@@ -288,6 +288,7 @@ Server::Server(void)
 }
 
 Server::Server(const Server &other) : 
+	_locations(other._locations),
 	_listen(other._listen),
 	_server_name(other._server_name),
 	_root(other._root),
@@ -317,6 +318,7 @@ Server &Server::operator=(const Server &other)
 	_autoindex = other._autoindex;
 	_error_pages = other._error_pages;
 	_cgi_extension = other._cgi_extension;
+	_locations = other._locations;
 
 	return (*this);
 }

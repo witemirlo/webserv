@@ -34,7 +34,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 			}
 		}
 	}
-	// Location selected_loc = selected_server.getLocation(_uri); //TODO: bucle infinito
+	Location selected_loc = selected_server.getLocation(_uri); //TODO: bucle infinito
 	// selected_loc.responseGET(_uri); //TODO: meter query
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);
