@@ -10,6 +10,7 @@ private:
 	static const std::string prohibited_rules[];
 	static const std::map<std::string, std::string> _file_types[];
 
+	std::string getFileType(std::string const& file) const;
 	std::string getBody(std::string const& uri) const;
 	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;

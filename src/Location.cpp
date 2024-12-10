@@ -346,6 +346,7 @@ std::string Location::responseGET(std::string const& uri) const
 	int         status_code;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
+	// TODO: comprobar la extension del archivo
 	body = getBody(uri);
 	status_code = getStatusCode();
 	if (status_code != 200) {
@@ -355,4 +356,13 @@ std::string Location::responseGET(std::string const& uri) const
 	headers = getHeaders(body);
 
 	return (status_line + headers + body);
+}
+
+
+std::string Location::getFileType(std::string const& file) const
+{
+	if (file.find('.') ==  std::string::npos)
+		return "";
+
+	return (file.substr(file.find_last_of('.') + 1));
 }
