@@ -1,5 +1,6 @@
 #include "GETRequest.hpp"
 #include "Server.hpp"
+#include "Location.hpp"
 
 #include <iostream>
 #include <cstdlib>
@@ -17,12 +18,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
 	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
 
-	/*
-	host header -> S (servidor imp)
-	S.resolve_path(uri)
-		encontrar la localizacion acertada -> L (Location obj)
-		L.search_file
-	*/
+	//TODO: mover select server a ARequest
 	std::cout << servers[0].getListen() << std::endl;
 	Server selected_server = servers[0];
 	std::string name = getHeaderValue(std::string("host"));
@@ -38,6 +34,8 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 			}
 		}
 	}
+	// Location selected_loc = selected_server.getLocation(_uri); //TODO: bucle infinito
+	// selected_loc.responseGET(_uri); //TODO: meter query
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }

@@ -71,8 +71,18 @@ std::string const ARequest::getHeaderValue(std::string const & key)
 	}
 }
 
-ARequest::ARequest(std::string const & uri) : _uri(uri), _status(HEADERS)
-{}
+ARequest::ARequest(std::string const & uri) : _status(HEADERS)
+{
+	size_t ind = uri.find('?');
+
+	if (ind == std::string::npos)
+		_uri = uri;
+	else
+	{
+		_uri = uri.substr(0, ind);
+		_query = uri.substr(ind + 1);
+	}
+}
 
 //	GETTERs TODO: maybe its only for debug
 
