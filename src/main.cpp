@@ -121,7 +121,7 @@ void close_all(std::vector<Listener> sockets)
 	for (size_t i = 0; i < sockets.size(); i++)
 		sockets[i].closeFds();
 
-	std::cerr << "webservr was closed..." << std::endl;
+	std::cerr << "webserv was closed..." << std::endl;
 	exit(EXIT_FAILURE);
 }
 
@@ -136,7 +136,10 @@ void pollloop(std::vector<Listener> sockets)
 
 		int n_events = poll(my_fds, fd_num, -1);
 		if (signal_num == SIGINT)
+		{
+			delete [] my_fds;
 			close_all(sockets);
+		}
 		if (n_events == -1)
 		{
 			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
@@ -159,6 +162,7 @@ void pollloop(std::vector<Listener> sockets)
 				respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
 			}
 		}
+		delete [] my_fds;
 	}
 }
 
