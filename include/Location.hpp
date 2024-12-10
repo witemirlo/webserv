@@ -20,6 +20,8 @@ private:
 
 	std::string getHeaders(std::string const& body) const;
 
+	std::string CGIget(std::string const& file, std::string const& query); //TODO: path_info
+
 public:
 	Location();
 	~Location();
@@ -33,12 +35,6 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri) const;
-
-	/*: Server(o) {
-	Parsear el config
-	Llamar a procRule con cada paso
-	OJO a futuro con rules asociadas solo a los servidores
-	};*/
 };
 
 #endif

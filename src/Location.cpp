@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include "delimiter.hpp"
+#include "ARequest.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -356,6 +357,48 @@ std::string Location::responseGET(std::string const& uri) const
 	headers = getHeaders(body);
 
 	return (status_line + headers + body);
+}
+
+std::string read_cgi_response(int fd)
+{
+	char buffer[1024];
+	std::string str;
+	std::stringstream length;
+
+	while (42) {
+		memset(buffer, 0, 1024);
+		if (read(fd, buffer, 1024 - 1) == 0)
+			break ;
+		str = str + std::string(buffer);
+	}
+
+	size_t crlf = str.find_last_of(CRLF);
+	length << "Content-Length: " << str.size() - crlf - 2 << crlf;
+	std::string response;
+	length >> response;
+	response = response + str;
+
+	return (response);
+}
+
+std::string Location::CGIget(std::string const& file, std::string const& query) //TODO: path_info
+{
+	int pipefds[2];
+	pipe(pipefds);
+
+	pid_t pid = fork(); //TODO: fallo?
+	if (pid == 0)
+	{
+		dup2(pipefds[1], STDOUT_FILENO);
+		close(pipefds[0]);
+		close(pipefds[1]);
+		//TODO: callcgi
+	}
+	else
+	{
+		close(pipefds[0]);
+		return read_cgi_response(pipefds[1]);
+	}
 }
 
 
