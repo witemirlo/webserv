@@ -21,7 +21,7 @@ private:
 
 	int getStatusCode(void) const;
 
-	std::string getHeaders(std::string const& body, std::string const& uri) const;
+	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
 public:
 	Location();

@@ -146,11 +146,30 @@ bool Location::operator<=(const Location & other) const
 /**
  * @brief Generates the full path to a file
  * @param uri uri to the file
- * @return string with the full path to the file
+ * @return string with the full path to the file, if the file is a directory and there is an index, it returns the path to the file
  */
 std::string Location::getPathTo(std::string const& uri) const
 {
-	return (this->_root + uri);
+	// TODO: los directorios deben terminar en  / o con otro caracter?
+	std::vector<std::string>::const_iterator index_it;
+	std::string path;
+
+	if (*(this->_root.rbegin()) == '/')
+		path = this->_root.substr(0, this->_root.size() - 1) + uri;
+	else
+		path = this->_root + uri;
+
+	// TODO: comprobar si es un directorio
+	for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
+		errno = 0;
+		if (access((path + *index_it).c_str(), R_OK) == 0) {
+			path += *index_it;
+			break;
+			// return readFile(path + *index_it);
+		}
+	}
+
+	return path;
 }
 
 /**
@@ -161,12 +180,11 @@ std::string Location::getPathTo(std::string const& uri) const
  */
 std::string Location::getBody(std::string const& uri) const
 {
-	std::vector<std::string>::const_iterator index_it;
-	std::string                              path;
-	struct stat                              file_info;
+	std::string const path = getPathTo(uri);
+	struct stat file_info;
 
 	errno = 0;
-	path = getPathTo(uri);
+	std::memset(&file_info, 0, sizeof(struct stat));
 
 	if (access(path.c_str(), R_OK) < 0)
 		return "";
@@ -174,24 +192,14 @@ std::string Location::getBody(std::string const& uri) const
 	if (stat(path.c_str(), &file_info) < 0)
 		return "";
 
-	switch (file_info.st_mode) {
-	case S_IFDIR: // NOTE: directory file
-		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
-			if (access((path + *index_it).c_str(), R_OK) == 0)
-				return readFile(path);
-		}
-		if (this->_autoindex) {
-			return autoIndex(path);
-		}
-		break;
-	
-	case S_IFREG: // NOTE: regular file
+	if (S_ISREG(file_info.st_mode))
 		return readFile(path);
-		break;
-	
-	default:
-		break;
+
+	if (S_ISDIR(file_info.st_mode)) {
+		if (this->_autoindex)
+			return autoIndex(path);
 	}
+
 	errno = ENOENT;
 	return "";
 }
@@ -212,7 +220,7 @@ std::string Location::readFile(std::string const& path) const
 		return std::string("");
 	}
 	
-	final = "\r\n";
+	// final = "\r\n";
 	while (getline(file, buffer)) {
 		final += buffer;
 		final.push_back('\n');
@@ -329,8 +337,10 @@ std::string Location::getGmtTime(void) const
  */
 std::string Location::getContentType(std::string const& uri) const
 {
-	std::string const extension = getFileType(uri);
+	std::string const extension = getFileType(getPathTo(uri));
 
+			std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << "'" << uri << "'" << std::endl;
+			std::cerr << __FILE__ << ": " << __LINE__ << " | content type: " << "'" << extension << "'" << std::endl;
 	if (extension == "")
 		return "text/plain";
 
@@ -347,7 +357,7 @@ std::string Location::getContentType(std::string const& uri) const
  * @param body body of the response
  * @param uri uri of the request
  */
-std::string Location::getHeaders(std::string const& body, std::string const& uri) const
+std::string Location::getHeaders(std::string const& body, std::string const& uri, int status_code) const
 {
 	std::map<std::string, std::string> headers;
 	std::stringstream                  buffer;
@@ -361,6 +371,8 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	
 	if (headers.find("content-type") != headers.end())
 		buffer << "content-type: " << headers["content-type"] << "\r\n";
+	else if (status_code != 200)
+		buffer << "content-type: " << "text/html" << "\r\n";
 	else
 		buffer << "content-type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
 
@@ -449,16 +461,21 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// if (getFileType(uri) == "php")// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
 	// 	body = cgiGET(uri);// content lenght y content type
 	body = getBody(uri);// TODO: que body plante un salto de linea
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
 	status_code = getStatusCode();
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
 	if (status_code != 200) {
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
 	}
 	// TODO: comprobar el status code y trabajar en consecuencia
 
-	headers = getHeaders(body, uri);
+	headers = getHeaders(body, uri, status_code);
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | headers: " << headers << std::endl;
 	// status_line = getStatusLine(status_code);
 	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
+			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
+			std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
 }
 
