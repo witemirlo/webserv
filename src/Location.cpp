@@ -302,10 +302,12 @@ std::map<std::string, std::string> Location::getCgiHeaders(std::string const& bo
 	std::string                        line, key, value;
 	
 	while (getline(buffer, line)) {
-		if (line == "\r\n")
+		if (line == "\r")
 			break;
-		
 		key = line.substr(0, line.find(':'));
+		for (size_t i = 0; i < key.size(); i++)
+			key[i] = tolower(key[i]);
+		std::cerr << __FILE__ << ": " << __LINE__  << " |  KEY: " << key << std::endl;
 		value = line.substr(line.find(':') + 1);
 		headers[key] = value;
 		line.clear();
@@ -373,19 +375,18 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	       << "server: webserv\r\n";
 	
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
-	if (headers.find("Content-Type") != headers.end())
-		buffer << "Content-Type: " << headers["content-type"] << "\r\n";
-	else if (status_code != 200)
-		buffer << "Content-Type: " << "text/html" << "\r\n";
-	else
-		buffer << "Content-Type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
+	if (headers.find("content-type") == headers.end())
+	{
+		if (status_code != 200)
+			buffer << "Content-Type: " << "text/html" << "\r\n";
+		else
+			buffer << "Content-Type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
+	}
 
-	if (headers.find("Content-Length") != headers.end())
-		buffer << "Content-Length: " << headers["Content-Length"] << "\r\n";
-	else
-		buffer << "Content-Length: " << (body.size()) << "\r\n";
+	if (headers.find("content-length") == headers.end())
+		buffer << "Content-Length: " << (body.size() - 2) << "\r\n";
 
-	buffer << "\r\n";
+	// buffer << "\r\n";
 
 	return buffer.str();
 }
@@ -466,9 +467,12 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
 		body = CGIget(getPathTo(uri), query);// content lenght y content type
 	else
-		body = getBody(uri);// TODO: que body plante un salto de linea
+	{
+		body = getBody(uri);
+		body = CRLF + body;// TODO: que body plante un salto de linea
+	}
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
-	std::cerr << __FILE__ << ": " << __LINE__  << " |  This is erno: " << errno << std::endl;
+	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
 	if (status_code != 200) {
@@ -500,12 +504,14 @@ std::string read_cgi_response(int fd)
 			break ;
 		str = str + std::string(buffer);
 	}
+	std::cerr << __FILE__ << ": " << __LINE__  << " |  CGI returns: " << str << std::endl;
 
-	size_t crlf = str.find_last_of(CRLF);
-	length << "Content-Length: " << str.size() - crlf - 2 << crlf;
+	size_t crlf = str.find(CRLF CRLF);
+	length << (str.size() - crlf - 4);
 	std::string response;
 	length >> response;
-	response = response + str;
+	std::cout << __FILE__ << ": " << __LINE__  << " |  My guarrada: " << response << std::endl;
+	response = "Content-Length: " + response + CRLF + str;
 	close(fd);
 	return (response);
 }
@@ -548,6 +554,7 @@ void Server::callcgi(std::string const& file, std::string const& query) const //
 
 std::string Location::CGIget(std::string const& file, std::string const& query) const //TODO: path_info, a ver si podemos dar una vuelta al envp
 {
+	errno = 0;
 	int pipefds[2];
 	pipe(pipefds);
 
