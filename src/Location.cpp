@@ -38,6 +38,8 @@ const std::pair<std::string, std::string> Location::_file_types[] = {
 	std::pair<std::string, std::string>("",     "application/octet-stream") // por defecto si tiene extension no conocida
 };
 
+extern char **environ;
+
 Location::Location(void)
 	: Server()
 {
@@ -460,9 +462,10 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	// TODO: comprobar la extension del archivo
-	// if (getFileType(uri) == "php")// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-	// 	body = cgiGET(uri);// content lenght y content type
-	body = getBody(uri);// TODO: que body plante un salto de linea
+	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
+		body = CGIget(getPathTo(uri), query);// content lenght y content type
+	else
+		body = getBody(uri);// TODO: que body plante un salto de linea
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
@@ -491,7 +494,7 @@ std::string read_cgi_response(int fd)
 
 	while (42) {
 		memset(buffer, 0, 1024);
-		if (read(fd, buffer, 1024 - 1) == 0)
+		if (read(fd, buffer, 1024 - 1) <= 0)
 			break ;
 		str = str + std::string(buffer);
 	}
@@ -505,7 +508,7 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
-void Server::callcgi(std::string const& file, std::string const& query, char ** envp) //TODO: ordenar funciones
+void Server::callcgi(std::string const& file, std::string const& query) const //TODO: ordenar funciones
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + file;
@@ -513,13 +516,13 @@ void Server::callcgi(std::string const& file, std::string const& query, char ** 
 	std::string redirect = "REDIRECT_STATUS=0";
 
 	int count;
-	for (count = 0; envp[count]; count++) {}
+	for (count = 0; environ[count]; count++) {}
 	
 	char const ** new_envp = new char const *[count + 5];
 	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
 
-	for (count = 0; envp[count]; count++) {
-		new_envp[count] = envp[count];
+	for (count = 0; environ[count]; count++) {
+		new_envp[count] = environ[count];
 	}
 	new_envp[count] = query_var.c_str(); 
 	new_envp[count + 1] = file_var.c_str(); 
@@ -532,7 +535,7 @@ void Server::callcgi(std::string const& file, std::string const& query, char ** 
 	exit(errno);
 }
 
-std::string Location::CGIget(std::string const& file, std::string const& query, char ** envp) //TODO: path_info, a ver si podemos dar una vuelta al envp
+std::string Location::CGIget(std::string const& file, std::string const& query) const //TODO: path_info, a ver si podemos dar una vuelta al envp
 {
 	int pipefds[2];
 	pipe(pipefds);
@@ -543,7 +546,7 @@ std::string Location::CGIget(std::string const& file, std::string const& query, 
 		dup2(pipefds[1], STDOUT_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		callcgi(file, query, envp);
+		callcgi(file, query);
 	}
 	close(pipefds[0]);
 	return read_cgi_response(pipefds[1]); //TODO: y si algo del otro lado ha ido mal??

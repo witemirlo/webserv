@@ -24,7 +24,7 @@ private:
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
-	std::string CGIget(std::string const& file, std::string const& query, char ** envp); //TODO: path_info
+	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
 
 public:
 	Location();
