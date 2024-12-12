@@ -515,7 +515,7 @@ void callcgi(std::string const& file, std::string const& query, char ** envp)
 	int count;
 	for (count = 0; envp[count]; count++) {}
 	
-	char const ** new_envp = new char *[count + 5];
+	char const ** new_envp = new char const *[count + 5];
 	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
 
 	for (count = 0; envp[count]; count++) {
@@ -543,78 +543,8 @@ std::string Location::CGIget(std::string const& file, std::string const& query, 
 		close(pipefds[1]);
 		callcgi(file, query, envp);
 	}
-	else
-	{
-		close(pipefds[0]);
-		return read_cgi_response(pipefds[1]);
-	}
-}
-
-std::string read_cgi_response(int fd)
-{
-	char buffer[1024];
-	std::string str;
-	std::stringstream length;
-
-	while (42) {
-		memset(buffer, 0, 1024);
-		if (read(fd, buffer, 1024 - 1) == 0)
-			break ;
-		str = str + std::string(buffer);
-	}
-
-	size_t crlf = str.find_last_of(CRLF);
-	length << "Content-Length: " << str.size() - crlf - 2 << crlf;
-	std::string response;
-	length >> response;
-	response = response + str;
-	close(fd);
-	return (response);
-}
-
-void callcgi(std::string const& file, std::string const& query, char ** envp)
-{
-	std::string query_var = "QUERY_STRING=" + query;
-	std::string file_var = "SCRIPT_FILENAME=" + file;
-	std::string method = "REQUEST_METHOD=GET";
-	std::string redirect = "REDIRECT_STATUS=0";
-
-	int count;
-	for (count = 0; envp[count]; count++) {}
-	
-	char const ** new_envp = new char *[count + 5];
-	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
-
-	for (count = 0; envp[count]; count++) {
-		new_envp[count] = envp[count];
-	}
-	new_envp[count] = query_var.c_str(); 
-	new_envp[count + 1] = file_var.c_str(); 
-	new_envp[count + 2] = method.c_str(); 
-	new_envp[count + 3] = redirect.c_str(); 
-	new_envp[count + 4] = NULL; 
-
-	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
-}
-
-std::string Location::CGIget(std::string const& file, std::string const& query, char ** envp) //TODO: path_info, a ver si podemos dar una vuelta al envp
-{
-	int pipefds[2];
-	pipe(pipefds);
-
-	pid_t pid = fork(); //TODO: fallo?
-	if (pid == 0)
-	{
-		dup2(pipefds[1], STDOUT_FILENO);
-		close(pipefds[0]);
-		close(pipefds[1]);
-		callcgi(file, query, envp);
-	}
-	else
-	{
-		close(pipefds[0]);
-		return read_cgi_response(pipefds[1]);
-	}
+	close(pipefds[0]);
+	return read_cgi_response(pipefds[1]);
 }
 
 /**
