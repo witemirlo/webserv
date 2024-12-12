@@ -505,7 +505,7 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
-void callcgi(std::string const& file, std::string const& query, char ** envp)
+void Server::callcgi(std::string const& file, std::string const& query, char ** envp) //TODO: ordenar funciones
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + file;
@@ -528,6 +528,8 @@ void callcgi(std::string const& file, std::string const& query, char ** envp)
 	new_envp[count + 4] = NULL; 
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
+	delete [] new_envp;
+	exit(errno);
 }
 
 std::string Location::CGIget(std::string const& file, std::string const& query, char ** envp) //TODO: path_info, a ver si podemos dar una vuelta al envp
@@ -544,7 +546,8 @@ std::string Location::CGIget(std::string const& file, std::string const& query, 
 		callcgi(file, query, envp);
 	}
 	close(pipefds[0]);
-	return read_cgi_response(pipefds[1]);
+	return read_cgi_response(pipefds[1]); //TODO: y si algo del otro lado ha ido mal??
+	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 
 /**
