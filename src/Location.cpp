@@ -429,6 +429,7 @@ std::string Location::getBodyError(int status_code) const
 	std::string                                line;
 	std::stringstream                          buffer;
 
+	// std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	it = this->_error_pages.find(status_code);
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
@@ -467,6 +468,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	else
 		body = getBody(uri);// TODO: que body plante un salto de linea
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
+	std::cerr << __FILE__ << ": " << __LINE__  << " |  This is erno: " << errno << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
 	if (status_code != 200) {
@@ -515,6 +517,14 @@ void Server::callcgi(std::string const& file, std::string const& query) const //
 	std::string method = "REQUEST_METHOD=GET";
 	std::string redirect = "REDIRECT_STATUS=0";
 
+	chdir(_root.c_str());
+
+	// std::cerr << "My variables" << std::endl;
+	// std::cerr << query_var << std::endl;
+	// std::cerr << file_var << std::endl;
+	// std::cerr << method << std::endl;
+	// std::cerr << redirect << std::endl;
+
 	int count;
 	for (count = 0; environ[count]; count++) {}
 	
@@ -529,6 +539,7 @@ void Server::callcgi(std::string const& file, std::string const& query) const //
 	new_envp[count + 2] = method.c_str(); 
 	new_envp[count + 3] = redirect.c_str(); 
 	new_envp[count + 4] = NULL; 
+
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
@@ -548,8 +559,8 @@ std::string Location::CGIget(std::string const& file, std::string const& query) 
 		close(pipefds[1]);
 		callcgi(file, query);
 	}
-	close(pipefds[0]);
-	return read_cgi_response(pipefds[1]); //TODO: y si algo del otro lado ha ido mal??
+	close(pipefds[1]);
+	return read_cgi_response(pipefds[0]); //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 
