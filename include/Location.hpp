@@ -1,5 +1,6 @@
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
+# define CGI "/usr/bin/php-cgi"
 
 # include "Server.hpp"
 
@@ -23,6 +24,8 @@ private:
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
+	std::string CGIget(std::string const& file, std::string const& query, char ** envp); //TODO: path_info
+
 public:
 	Location();
 	~Location();
@@ -36,12 +39,6 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
-
-	/*: Server(o) {
-	Parsear el config
-	Llamar a procRule con cada paso
-	OJO a futuro con rules asociadas solo a los servidores
-	};*/
 };
 
 #endif
