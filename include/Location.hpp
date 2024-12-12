@@ -1,5 +1,6 @@
 #ifndef LOCATION_HPP
 # define LOCATION_HPP
+# define CGI "/usr/bin/php-cgi"
 
 # include "Server.hpp"
 
@@ -20,7 +21,7 @@ private:
 
 	std::string getHeaders(std::string const& body) const;
 
-	std::string CGIget(std::string const& file, std::string const& query); //TODO: path_info
+	std::string CGIget(std::string const& file, std::string const& query, char ** envp); //TODO: path_info
 
 public:
 	Location();

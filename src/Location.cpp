@@ -377,11 +377,36 @@ std::string read_cgi_response(int fd)
 	std::string response;
 	length >> response;
 	response = response + str;
-
+	close(fd);
 	return (response);
 }
 
-std::string Location::CGIget(std::string const& file, std::string const& query) //TODO: path_info
+void callcgi(std::string const& file, std::string const& query, char ** envp)
+{
+	std::string query_var = "QUERY_STRING=" + query;
+	std::string file_var = "SCRIPT_FILENAME=" + file;
+	std::string method = "REQUEST_METHOD=GET";
+	std::string redirect = "REDIRECT_STATUS=0";
+
+	int count;
+	for (count = 0; envp[count]; count++) {}
+	
+	char const ** new_envp = new char *[count + 5];
+	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
+
+	for (count = 0; envp[count]; count++) {
+		new_envp[count] = envp[count];
+	}
+	new_envp[count] = query_var.c_str(); 
+	new_envp[count + 1] = file_var.c_str(); 
+	new_envp[count + 2] = method.c_str(); 
+	new_envp[count + 3] = redirect.c_str(); 
+	new_envp[count + 4] = NULL; 
+
+	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
+}
+
+std::string Location::CGIget(std::string const& file, std::string const& query, char ** envp) //TODO: path_info, a ver si podemos dar una vuelta al envp
 {
 	int pipefds[2];
 	pipe(pipefds);
@@ -392,7 +417,7 @@ std::string Location::CGIget(std::string const& file, std::string const& query) 
 		dup2(pipefds[1], STDOUT_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		//TODO: callcgi
+		callcgi(file, query, envp);
 	}
 	else
 	{
