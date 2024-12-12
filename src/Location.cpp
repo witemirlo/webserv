@@ -339,8 +339,8 @@ std::string Location::getContentType(std::string const& uri) const
 {
 	std::string const extension = getFileType(getPathTo(uri));
 
-			std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << "'" << uri << "'" << std::endl;
-			std::cerr << __FILE__ << ": " << __LINE__ << " | content type: " << "'" << extension << "'" << std::endl;
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << "'" << uri << "'" << std::endl;
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | content type: " << "'" << extension << "'" << std::endl;
 	if (extension == "")
 		return "text/plain";
 
@@ -369,17 +369,18 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "date: " << date << "\r\n"
 	       << "server: webserv\r\n";
 	
-	if (headers.find("content-type") != headers.end())
-		buffer << "content-type: " << headers["content-type"] << "\r\n";
+	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
+	if (headers.find("Content-Type") != headers.end())
+		buffer << "Content-Type: " << headers["content-type"] << "\r\n";
 	else if (status_code != 200)
-		buffer << "content-type: " << "text/html" << "\r\n";
+		buffer << "Content-Type: " << "text/html" << "\r\n";
 	else
-		buffer << "content-type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
+		buffer << "Content-Type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
 
-	if (headers.find("content-lenght") != headers.end())
-		buffer << "content-lenght: " << headers["content-lenght"] << "\r\n";
+	if (headers.find("Content-Length") != headers.end())
+		buffer << "Content-Length: " << headers["Content-Length"] << "\r\n";
 	else
-		buffer << "content-lenght: " << body.size() << "\r\n";
+		buffer << "Content-Length: " << (body.size()) << "\r\n";
 
 	buffer << "\r\n";
 
@@ -475,7 +476,9 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// status_line = getStatusLine(status_code);
 	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
-			std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
+			std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
+			std::cout << (status_line + headers + body);
+			std::cout << std::flush;
 	return (status_line + headers + body);
 }
 

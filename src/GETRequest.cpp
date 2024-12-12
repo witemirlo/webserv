@@ -19,7 +19,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
 
 	//TODO: mover select server a ARequest
-	std::cout << servers[0].getListen() << std::endl;
+	std::cerr << servers[0].getListen() << std::endl;
 	Server selected_server = servers[0];
 	std::string name = getHeaderValue(std::string("host"));
 
@@ -34,7 +34,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 			}
 		}
 	}
-	Location selected_loc = selected_server.getLocation(_uri); //TODO: bucle infinito
+	Location selected_loc = selected_server.getLocation(_uri);
 	return selected_loc.responseGET(_uri, ""); //TODO: meter query
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);

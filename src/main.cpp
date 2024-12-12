@@ -192,16 +192,16 @@ int main(int argc, char* argv[])
 			for (std::size_t j = 0; i->second[j]; j++) {
 				switch (i->second[j]) {
 				case STX:
-					std::cout << GREEN "[STX]" NC;
+					std::cerr << GREEN "[STX]" NC;
 					break;
 				case ETX:
-					std::cout << GREEN "[ETX]" NC;
+					std::cerr << GREEN "[ETX]" NC;
 					break;
 				case US:
-					std::cout << YELLOW "[US]" NC;
+					std::cerr << YELLOW "[US]" NC;
 					break;
 				default:
-					std::cout << i->second[j];
+					std::cerr << i->second[j];
 					break;
 				}
 			}
