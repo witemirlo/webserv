@@ -223,7 +223,7 @@ std::string Location::readFile(std::string const& path) const
 		return std::string("");
 	}
 	
-	// final = "\r\n";
+	final = "\r\n";
 	while (getline(file, buffer)) {
 		final += buffer;
 		final.push_back('\n');
@@ -252,7 +252,8 @@ std::string Location::autoIndex(std::string const& path) const
 		return "";
 	}
 
-	buffer << "\r\n<html>\n"
+	buffer << "\r\n\r\n"
+	       << "<html>\n"
 	       << "<head><title>Index of " << path << "</title></head>\n"
 	       << "<body>\n"
 	       << "<h1>Index of " << path << "</h1><hr><pre><a href=\"../\">../</a>\n";
@@ -440,6 +441,7 @@ std::string Location::getBodyError(int status_code) const
 		return buffer.str();
 	}
 
+	buffer << "\r\n";
 	while (getline(file, line)) {
 		buffer << line << '\n';
 		line.clear();
