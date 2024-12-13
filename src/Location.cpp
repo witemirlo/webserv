@@ -271,7 +271,7 @@ std::string Location::autoIndex(std::string const& path) const
 		if (file->d_name[0] == '.')
 			continue;
 
-		if (stat(file->d_name, &file_info) < 0) {
+		if (stat((path + file->d_name).c_str(), &file_info) < 0) {
 			closedir(directory);
 			return "";
 		}
