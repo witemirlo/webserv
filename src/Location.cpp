@@ -168,7 +168,6 @@ std::string Location::getPathTo(std::string const& uri) const
 		if (access((path + *index_it).c_str(), R_OK) == 0) {
 			path += *index_it;
 			break;
-			// return readFile(path + *index_it);
 		}
 	}
 
@@ -241,18 +240,19 @@ std::string Location::readFile(std::string const& path) const
 std::string Location::autoIndex(std::string const& path) const
 {
 	// TODO: y si termina en '/'?
-	std::stringstream    buffer;
+	// TODO: da el path completo en local, no parece muy seguro
+	// TODO: si hay un subdirectorio luego no se mete en el
+	std::stringstream    body, headers;
 	DIR*                 directory;
 	struct dirent*       file;
 	struct stat          file_info;
 	char                 date[512];
 
 	directory = opendir(path.c_str());
-	if (directory == NULL) {
+	if (directory == NULL)
 		return "";
-	}
 
-	buffer << CRLF
+	body 
 	       << "<html>\n"
 	       << "<head><title>Index of " << path << "</title></head>\n"
 	       << "<body>\n"
@@ -278,17 +278,21 @@ std::string Location::autoIndex(std::string const& path) const
 
 		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&file_info.st_mtim.tv_sec));
 
-		buffer << "<a href=\"" << file->d_name << "\">"                      // NOTE: link to the file
+		body << "<a href=\"" << file->d_name << "\">"                      // NOTE: link to the file
 		       << std::left << std::setw(80) << file->d_name << "</a>"       // NOTE: text of the link
 		       << std::setw(1) << date << "\t" << file_info.st_size << "\n"; // NOTE: file info
 	}
 
-	buffer << "</pre><hr></body>\n"
-	       << "</html>\n";
+	body << "</pre><hr></body>\n"
+	     << "</html>\n";
 
 	closedir(directory);
 
-	return buffer.str();
+
+	headers << "Content-Length: "  << body.str().size() << CRLF
+	        << "Content-Type: text/html" CRLF
+	        << CRLF;
+	return (headers.str() + body.str());
 }
 
 /**
