@@ -223,7 +223,7 @@ std::string Location::readFile(std::string const& path) const
 		return std::string("");
 	}
 	
-	final = "\r\n";
+	final = CRLF;
 	while (getline(file, buffer)) {
 		final += buffer;
 		final.push_back('\n');
@@ -252,7 +252,7 @@ std::string Location::autoIndex(std::string const& path) const
 		return "";
 	}
 
-	buffer << "\r\n\r\n"
+	buffer << CRLF
 	       << "<html>\n"
 	       << "<head><title>Index of " << path << "</title></head>\n"
 	       << "<body>\n"
@@ -372,20 +372,20 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	headers = getCgiHeaders(body);
 	date = getGmtTime();
 
-	buffer << "date: " << date << "\r\n"
-	       << "server: webserv\r\n";
+	buffer << "date: " << date << CRLF
+	       << "server: webserv" CRLF;
 	
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
 		if (status_code != 200)
-			buffer << "Content-Type: " << "text/html" << "\r\n";
+			buffer << "Content-Type: " << "text/html" CRLF;
 		else
-			buffer << "Content-Type: " << getContentType(uri) << "\r\n"; // TODO: poner bien el tipo
+			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
 	}
 
 	if (headers.find("content-length") == headers.end())
-		buffer << "Content-Length: " << (body.size() - 2) << "\r\n";
+		buffer << "Content-Length: " << (body.size() - 2) << CRLF;
 
 	// buffer << "\r\n";
 
@@ -441,7 +441,7 @@ std::string Location::getBodyError(int status_code) const
 		return buffer.str();
 	}
 
-	buffer << "\r\n";
+	buffer << CRLF;
 	while (getline(file, line)) {
 		buffer << line << '\n';
 		line.clear();
@@ -471,7 +471,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	else
 	{
 		body = getBody(uri);
-		body = CRLF + body;// TODO: que body plante un salto de linea
+		// body = CRLF + body;// TODO: que body plante un salto de linea
 	}
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
 	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
