@@ -199,7 +199,7 @@ std::string Location::getBody(std::string const& uri) const
 
 	if (S_ISDIR(file_info.st_mode)) {
 		if (this->_autoindex)
-			return autoIndex(path);
+			return autoIndex(uri); // NOTE: uri instead path because it needs the original uri to make the correct relative links
 	}
 
 	errno = ENOENT;
@@ -234,31 +234,32 @@ std::string Location::readFile(std::string const& path) const
 
 /**
  * @brief Generates html with the files in a given directory
- * @param path path to the directory
+ * @param uri uri to the directory
  * @return string with a list of files in the directory in html
  */
-std::string Location::autoIndex(std::string const& path) const
+std::string Location::autoIndex(std::string const& uri) const
 {
-	// TODO: da el path completo en local, no parece muy seguro
-	// TODO: si hay un archivo en un subdirectorio no lo muestra bien
-	std::stringstream    body, headers;
-	DIR*                 directory;
-	struct dirent*       file;
-	struct stat          file_info;
-	char                 date[512];
-	std::string          corrected_path; // TODO: esto es una guarreria
+	std::stringstream body, headers;
+	DIR*              directory;
+	struct dirent*    file;
+	struct stat       file_info;
+	char              date[512];
+	std::string       uri_path, host_path;
 	
-	corrected_path = (*path.rbegin() == '/') ? path : (path + "/");
-	directory = opendir(corrected_path.c_str());
+	host_path = getPathTo(uri);
+	host_path = (*host_path.rbegin() == '/') ? host_path : (host_path + "/");
+	uri_path  = (*uri.rbegin() == '/') ? uri : (uri + '/');
+
+	directory = opendir(host_path.c_str());
 
 	if (directory == NULL)
 		return "";
 
-	body 
-	       << "<html>\n"
-	       << "<head><title>Index of " << corrected_path << "</title></head>\n"
-	       << "<body>\n"
-	       << "<h1>Index of " << corrected_path << "</h1><hr><pre><a href=\"../\">../</a>\n";
+	body << "<!DOCTYPE html>"
+	     << "<html>\n"
+	     << "<head><title>Index of " << uri_path << "</title></head>\n"
+	     << "<body>\n"
+	     << "<h1>Index of " << uri_path << "</h1><hr><pre><a href=\"" << (uri_path + "..") << "\">..</a>\n";
 
 	while (true) {
 		std::memset(&file_info, 0, sizeof(struct stat));
@@ -272,14 +273,14 @@ std::string Location::autoIndex(std::string const& path) const
 		if (file->d_name[0] == '.')
 			continue;
 
-		if (stat((corrected_path + file->d_name).c_str(), &file_info) < 0) {
+		if (stat((host_path + file->d_name).c_str(), &file_info) < 0) {
 			closedir(directory);
 			return "";
 		}
 
 		std::strftime(date, 512, "%d-%B-%Y %H:%M", std::gmtime(&file_info.st_mtim.tv_sec));
 
-		body << "<a href=\"" << file->d_name << "\">"                        // NOTE: link to the file
+		body << "<a href=\"" << (uri_path + file->d_name) << "\">"           // NOTE: link to the file
 		       << std::left << std::setw(80) << file->d_name << "</a>"       // NOTE: text of the link
 		       << std::setw(1) << date << "\t" << file_info.st_size << "\n"; // NOTE: file info
 	}
@@ -313,7 +314,7 @@ std::map<std::string, std::string> Location::getCgiHeaders(std::string const& bo
 		key = line.substr(0, line.find(':'));
 		for (size_t i = 0; i < key.size(); i++)
 			key[i] = tolower(key[i]);
-		std::cerr << __FILE__ << ": " << __LINE__  << " |  KEY: " << key << std::endl;
+		// std::cerr << __FILE__ << ": " << __LINE__  << " |  KEY: " << key << std::endl;
 		value = line.substr(line.find(':') + 1);
 		headers[key] = value;
 		line.clear();
@@ -467,6 +468,8 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	std::string status_line, headers, body;
 	int         status_code;
 	(void)query;
+	// std::cerr << __FILE__ << ": " << __LINE__  << " |  uri: " << uri << std::endl;
+	// std::cerr << __FILE__ << ": " << __LINE__  << " |  query: " << query << std::endl;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
@@ -493,9 +496,9 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// status_line = getStatusLine(status_code);
 	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
-			std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
-			std::cout << (status_line + headers + body);
-			std::cout << std::flush;
+			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
+			// std::cout << (status_line + headers + body);
+			// std::cout << std::flush;
 	return (status_line + headers + body);
 }
 

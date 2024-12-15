@@ -18,7 +18,7 @@ private:
 	std::string getContentType(std::string const& uri) const;
 	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
-	std::string autoIndex(std::string const& path) const;
+	std::string autoIndex(std::string const& uri) const;
 
 	int getStatusCode(void) const;
 
