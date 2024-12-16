@@ -14,7 +14,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 const std::string Location::prohibited_rules[] =  {"listen", "server_name", ""};
@@ -214,22 +213,18 @@ std::string Location::getBody(std::string const& uri) const
 std::string Location::readFile(std::string const& path) const
 {
 	// TODO: esta funcion es la que tiene que que mirar si es un php
-	std::fstream file(path.c_str());
-	std::string  buffer, final;
+	std::stringstream buffer;
+	std::ifstream     file(path.c_str(), std::ios::binary);
 
 	if (!file.is_open()) {
 		errno = ENOENT;
-		return std::string("");
-	}
-	
-	final = CRLF;
-	while (getline(file, buffer)) {
-		final += buffer;
-		final.push_back('\n');
+		return "";
 	}
 
+	buffer << file.rdbuf();
+
 	file.close();
-	return final;
+	return (CRLF + buffer.str());
 }
 
 /**
@@ -499,6 +494,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
 			// std::cout << std::flush;
+		std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
 }
 
