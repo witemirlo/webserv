@@ -49,6 +49,7 @@ Server::Server(std::map<std::string, std::string> & config)
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
 	{
 		//TODO: check for duplicated locations
+		// TODO: en general los index dentro de un location funcionan raro, cuando hay varios directamente lo pone mal
 		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8)); //TODO: a lo peor no se asigna bien
 	}
 	//TODO: reglas fundamentales ej. listen
@@ -113,6 +114,7 @@ Location const& Server::getLocation(std::string const& uri) const
 
 void Server::setIndex(std::string const &index)
 {
+	// TODO: el index de las location aparece con un / al final
 	_index = setVector(index);
 }
 

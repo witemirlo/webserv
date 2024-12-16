@@ -154,23 +154,31 @@ std::string Location::getPathTo(std::string const& uri) const
 {
 	// TODO: los directorios deben terminar en  / o con otro caracter?
 	std::vector<std::string>::const_iterator index_it;
-	std::string path;
+	std::string                              path;
+	struct stat                              file_info;
 
+			std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << uri << std::endl;
 	if (*(this->_root.rbegin()) == '/')
 		path = this->_root.substr(0, this->_root.size() - 1) + uri;
 	else
 		path = this->_root + uri;
 
 	// TODO: comprobar si es un directorio
-	for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
-		errno = 0;
-	std::cerr << __FILE__ << ": " << __LINE__  << " |  path + index: " << (path + *index_it) << std::endl;
-		if (access((path + *index_it).c_str(), R_OK) == 0) {
-			path += *index_it;
-			break;
+	if (stat(path.c_str(), &file_info) < 0)
+		return "";
+	
+	if (S_ISDIR(file_info.st_mode)) {
+		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
+				std::cerr << __FILE__ << ": " << __LINE__ << " | searching: " << path << " + " << *index_it << std::endl;
+			errno = 0;
+			if (access((path + *index_it).c_str(), R_OK) == 0) {
+				path += *index_it;
+				break;
+			}
 		}
 	}
 
+		std::cerr << __FILE__ << ": " << __LINE__ << " | return: " << path << std::endl;
 	return path;
 }
 
@@ -317,11 +325,9 @@ std::map<std::string, std::string> Location::getCgiHeaders(std::string const& bo
 			key[i] = tolower(key[i]);
 		value = line.substr(line.find(':') + 1);
 		value.erase(std::remove_if(value.begin(), value.end(), isspace), value.end());
-		std::cerr << __FILE__ << ": " << __LINE__  << " | " << key << ": " << value << std::endl;
 		headers[key] = value;
 		line.clear();
 	}
-		std::cerr << __FILE__ << ": " << __LINE__  << std::endl;
 
 	return headers;
 }
