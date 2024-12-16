@@ -136,7 +136,8 @@ get_instruction(std::istream& stream, std::string& buffer)
 		if (!buffer[i]) {
 			buffer.clear();
 			std::getline(stream, buffer);
-			if (buffer.empty()) {
+			// if (buffer.empty()) {// TODO: antiguo, revisar si todo funciona correctamente
+			if (stream.eof()) {
 				std::cerr << RED "Error:" NC " syntax error: missing operator" << std::endl;
 				exit(EXIT_FAILURE);
 			}
