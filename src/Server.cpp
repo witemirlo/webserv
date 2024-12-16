@@ -146,6 +146,7 @@ void Server::setErrorPages(std::string const &errors)
  */
 std::vector<std::string> Server::setVector(std::string const & str)
 {
+	// TODO: a veces pone el index como index.html/
 	std::vector<std::string> result;
 	
 	if (!has_delimiter(str))
