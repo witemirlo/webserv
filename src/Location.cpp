@@ -212,8 +212,8 @@ std::string Location::getBody(std::string const& uri) const
  */
 std::string Location::readFile(std::string const& path) const
 {
-	// TODO: esta funcion es la que tiene que que mirar si es un php
-	std::stringstream buffer;
+	std::stringstream body, headers;
+	std::string const file_extension = getFileType(path);
 	std::ifstream     file(path.c_str(), std::ios::binary);
 
 	if (!file.is_open()) {
@@ -221,10 +221,15 @@ std::string Location::readFile(std::string const& path) const
 		return "";
 	}
 
-	buffer << file.rdbuf();
-
+	body << file.rdbuf();
+	// body << CRLF;
 	file.close();
-	return (CRLF + buffer.str());
+
+	headers << "Content-Length: " << body.str().size() << CRLF
+	        << "Content-Type: " << Location::getContentType(path) << CRLF
+	        << CRLF;
+
+	return (headers.str() + body.str());
 }
 
 /**
@@ -309,11 +314,13 @@ std::map<std::string, std::string> Location::getCgiHeaders(std::string const& bo
 		key = line.substr(0, line.find(':'));
 		for (size_t i = 0; i < key.size(); i++)
 			key[i] = tolower(key[i]);
-		// std::cerr << __FILE__ << ": " << __LINE__  << " |  KEY: " << key << std::endl;
 		value = line.substr(line.find(':') + 1);
+		value.erase(std::remove_if(value.begin(), value.end(), isspace), value.end());
+		std::cerr << __FILE__ << ": " << __LINE__  << " | " << key << ": " << value << std::endl;
 		headers[key] = value;
 		line.clear();
 	}
+		std::cerr << __FILE__ << ": " << __LINE__  << std::endl;
 
 	return headers;
 }
@@ -355,7 +362,7 @@ std::string Location::getContentType(std::string const& uri) const
 		if (Location::_file_types[i].first == extension)
 			return Location::_file_types[i].second;
 	}
-	
+
 	return "application/octet-stream";
 }
 
@@ -494,7 +501,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
 			// std::cout << std::flush;
-		std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
+		// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
 }
 

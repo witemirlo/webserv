@@ -55,8 +55,8 @@ void respond_http(Listener & listener, int fd)
 {
 	std::string returned = listener.respondTo(fd);
 	const char *response = returned.c_str();
-	int sent = 0;
-	int len = strlen(response);
+	std::size_t sent = 0;
+	std::size_t len = returned.size();
 	int iter;
 
 	while (sent < len)
