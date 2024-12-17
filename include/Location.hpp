@@ -15,7 +15,7 @@ private:
 	std::string getBody(std::string const& uri) const;
 	std::string getBodyError(int status_code) const;
 	std::string getGmtTime(void) const;
-	std::string getContentType(std::string const& uri) const;
+	std::string getContentType(std::string const& path) const;
 	std::string getPathTo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& uri) const;

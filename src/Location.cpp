@@ -24,6 +24,7 @@ const std::pair<std::string, std::string> Location::_file_types[] = {
 	std::pair<std::string, std::string>("gif",  "image/gif"),
 	std::pair<std::string, std::string>("png",  "image/png"),
 	std::pair<std::string, std::string>("jpeg", "image/jpeg"),
+	std::pair<std::string, std::string>("jpg", "image/jpeg"),
 	std::pair<std::string, std::string>("bmp",  "image/bmp"),
 	std::pair<std::string, std::string>("webp", "image/webp"),
 	std::pair<std::string, std::string>("mpeg", "audio/mpeg"),
@@ -157,19 +158,17 @@ std::string Location::getPathTo(std::string const& uri) const
 	std::string                              path;
 	struct stat                              file_info;
 
-			std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << uri << std::endl;
 	if (*(this->_root.rbegin()) == '/')
 		path = this->_root.substr(0, this->_root.size() - 1) + uri;
 	else
 		path = this->_root + uri;
 
-	// TODO: comprobar si es un directorio
-	if (stat(path.c_str(), &file_info) < 0)
+	if (stat(path.c_str(), &file_info) < 0) {
 		return "";
+	}
 	
 	if (S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
-				std::cerr << __FILE__ << ": " << __LINE__ << " | searching: " << path << " + " << *index_it << std::endl;
 			errno = 0;
 			if (access((path + *index_it).c_str(), R_OK) == 0) {
 				path += *index_it;
@@ -178,7 +177,6 @@ std::string Location::getPathTo(std::string const& uri) const
 		}
 	}
 
-		std::cerr << __FILE__ << ": " << __LINE__ << " | return: " << path << std::endl;
 	return path;
 }
 
@@ -231,7 +229,6 @@ std::string Location::readFile(std::string const& path) const
 	}
 
 	body << file.rdbuf();
-	// body << CRLF;
 	file.close();
 
 	headers << "Content-Length: " << body.str().size() << CRLF
@@ -353,15 +350,13 @@ std::string Location::getGmtTime(void) const
 
 /**
  * @brief returns the content type for the response header
- * @param uri path to the file
+ * @param path path to the file
  * @return string with the corresponding content type
  */
-std::string Location::getContentType(std::string const& uri) const
+std::string Location::getContentType(std::string const& path) const
 {
-	std::string const extension = getFileType(getPathTo(uri));
+	std::string const extension = getFileType(path);
 
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | uri: " << "'" << uri << "'" << std::endl;
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | content type: " << "'" << extension << "'" << std::endl;
 	if (extension == "")
 		return "text/plain";
 
@@ -482,7 +477,6 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
-	// TODO: comprobar la extension del archivo
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
 		body = CGIget(getPathTo(uri), query);// content lenght y content type
 	else
@@ -490,7 +484,6 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 		body = getBody(uri);
 		// body = CRLF + body;// TODO: que body plante un salto de linea
 	}
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | body:\n" << body << "EOF" << std::endl;
 	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
