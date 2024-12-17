@@ -182,7 +182,8 @@ get_instruction(std::istream& stream, std::string& buffer)
 			break;
 
 		case COMMA:
-			line += US;
+			if (*line.rbegin() != US)
+				line += US;
 			break;
 
 		case NEW_LINE:
