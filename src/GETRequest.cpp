@@ -13,7 +13,7 @@ GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 #endif
 }
 
-std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: pasarle los servers
+std::string GETRequest::generateResponse(std::vector<Server> & servers)
 {
 	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
 	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
@@ -35,7 +35,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers) //TODO: 
 		}
 	}
 	Location selected_loc = selected_server.getLocation(_uri);
-	return selected_loc.responseGET(_uri, ""); //TODO: meter query
+	return selected_loc.responseGET(_uri, _query);
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }
