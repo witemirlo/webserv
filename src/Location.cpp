@@ -554,7 +554,7 @@ void Server::callcgi(std::string const& file, std::string const& query) const //
 	int count;
 	for (count = 0; environ[count]; count++) {}
 	
-	char const ** new_envp = new char const *[count + 5];
+	char const ** new_envp = new char const *[count + 6];
 	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
 
 	for (count = 0; environ[count]; count++) {
@@ -563,7 +563,7 @@ void Server::callcgi(std::string const& file, std::string const& query) const //
 	new_envp[count] = query_var.c_str(); 
 	new_envp[count + 1] = file_var.c_str(); 
 	new_envp[count + 2] = method.c_str(); 
-	new_envp[count + 3] = redirect.c_str(); 
+	new_envp[count + 3] = redirect.c_str();
 	new_envp[count + 4] = NULL; 
 
 
