@@ -149,11 +149,13 @@ get_instruction(std::istream& stream, std::string& buffer)
 		switch (get_instruction_case(buffer[i], open_quote, blank_line, container.size())) {
 		case OPEN_BRACE:
 			open_brace = true;
+			blank_line = false;
 			container.push('[');
 			line += STX;
 			break;
 
 		case CLOSE_BRACE:
+			blank_line = false;
 			if (container.size() != 0 && container.top() != '[') {
 				std::cerr << RED "Error:" NC " syntax error: missing '['" << std::endl;
 				exit(EXIT_FAILURE);
@@ -168,6 +170,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			break;
 
 		case QUOTE:
+			blank_line = false;
 			if (container.size() != 0 && container.top() == '\"') {
 				container.pop();
 				open_quote = false;
@@ -182,6 +185,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			break;
 
 		case COMMA:
+			blank_line = false;
 			if (*line.rbegin() != US && *line.rbegin() != STX && *line.rbegin() != ETX)
 				line += US;
 			break;
