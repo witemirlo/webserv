@@ -88,8 +88,27 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 		if (it == std::string::npos)
 			line = buffer;
 		else
+		{
+			if (buffer.find(STX) < it)
+			{
+				it = buffer.find(ETX);
+				if (it == std::string::npos)
+				{
+					std::cerr << RED "Error: " NC "unbalanced expresion in " + my_path + " location" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				it++;
+			}
+			std::cout << "Working..." << std::endl;
 			line = buffer.substr(0, it);
-
+		}
+		
+		if (line.find(STX) != std::string::npos)
+		{
+			line.erase(line.find(STX), 1);
+			line.erase(line.find(ETX), 1);
+		}
+		std::cout << "Keep Working..." << std::endl;
 		key = line.substr(0, line.find('='));
 		value = line.substr(line.find('=') + 1, line.size());
 		if (value.size() > 1 && *value.rbegin() != '/')
@@ -101,7 +120,7 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 
 		procRule(key, value);
 
-		if (it == std::string::npos)
+		if (it == std::string::npos || it >= buffer.size())
 			break;
 		else
 			buffer = buffer.substr(it + 1);
