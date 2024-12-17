@@ -190,7 +190,7 @@ void Server::setRoot(std::string const &root)
 {
 	if (has_delimiter(root))
 	{
-		std::cerr << RED "Error: " NC "\"sever_name\" directive cannot have delimiters \", [ ]\"" << std::endl;
+		std::cerr << RED "Error: " NC "\"root\" directive cannot have delimiters \", [ ]\"" << std::endl;
 		exit (EXIT_FAILURE);		
 	}
 	_root = root;
@@ -239,7 +239,7 @@ void Server::setAutoIndex(std::string const &autoindex)
 		_autoindex = false;
 	else
 	{
-		std::cerr << RED "Error: " NC "\"autoindex\" directive must be only \"true\" or \"false\"";
+		std::cerr << RED "Error: " NC "\"autoindex\" directive must be only \"true\" or \"false\"" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 }
