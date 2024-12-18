@@ -20,7 +20,8 @@ enum token_case {
 	CLOSE_BRACE,
 	COMMA,
 	COMMENT,
-	NEW_LINE
+	NEW_LINE,
+	KEY
 };
 
 static std::vector<std::string>                         get_file(std::string const&);
@@ -126,11 +127,12 @@ get_instruction(std::istream& stream, std::string& buffer)
 	std::stack<char> container;
 	std::string      line;
 	std::size_t      i;
-	bool             open_brace, open_quote, blank_line;
+	bool             open_brace, open_quote, blank_line, key;
 
 	open_brace = false;
 	open_quote = false;
 	blank_line = true;
+	key        = false;
 	i          = 0;
  	while (container.size() != 0 || open_brace || open_quote || buffer[i]) {
 		if (!buffer[i]) {
@@ -141,9 +143,16 @@ get_instruction(std::istream& stream, std::string& buffer)
 				std::cerr << RED "Error:" NC " syntax error: missing operator" << std::endl;
 				exit(EXIT_FAILURE);
 			}
-			i = 0;
 			buffer.push_back('\n');
+			i = 0;
 			blank_line = true;
+			if (key) { // TODO: index = [\n
+				if (*line.rbegin() == US)
+					*line.rbegin() = ETX;
+				else
+					line += ETX;
+			}
+			key = false;
 		}
 
 		switch (get_instruction_case(buffer[i], open_quote, blank_line, container.size())) {
@@ -193,6 +202,13 @@ get_instruction(std::istream& stream, std::string& buffer)
 		case NEW_LINE:
 			break;
 
+		case KEY:
+			key = true;
+			blank_line = false;
+			line += '=';
+			line += STX;
+			break;
+
 		default:
 			if (open_quote || !std::isspace(buffer[i])) {
 				line += buffer[i];
@@ -213,6 +229,7 @@ get_instruction(std::istream& stream, std::string& buffer)
  *
  * @param token the token to analyce.
  * @param open_quote bool know if the token is inside quotes.
+ * @param container_size size of the stack with open '['
  * @return a number for the get_line() switch case.
  */
 static enum token_case
@@ -238,6 +255,9 @@ get_instruction_case(char token, bool open_quote, bool blank_line, std::size_t c
 
 	if (token == '\n')
 		return NEW_LINE;
+	
+	if (token == '=' && container_size != 0)
+		return KEY;
 
 	return LITERAL;
 }
