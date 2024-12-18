@@ -136,23 +136,22 @@ get_instruction(std::istream& stream, std::string& buffer)
 	i          = 0;
  	while (container.size() != 0 || open_brace || open_quote || buffer[i]) {
 		if (!buffer[i]) {
+			if (key && open_brace) {
+				if (*line.rbegin() == US)
+					*line.rbegin() = ETX;
+				else if (container.size() == 1)
+					line += ETX;
+			}
+			blank_line = true;
+			i = 0;
+			key = false;
 			buffer.clear();
 			std::getline(stream, buffer);
-			// if (buffer.empty()) {// TODO: antiguo, revisar si todo funciona correctamente
 			if (stream.eof()) {
 				std::cerr << RED "Error:" NC " syntax error: missing operator" << std::endl;
 				exit(EXIT_FAILURE);
 			}
 			buffer.push_back('\n');
-			i = 0;
-			blank_line = true;
-			if (key && !open_brace) { // TODO: index = [\n
-				if (*line.rbegin() == US)
-					*line.rbegin() = ETX;
-				else
-					line += ETX;
-			}
-			key = false;
 		}
 
 		switch (get_instruction_case(buffer[i], open_quote, blank_line, container.size())) {
