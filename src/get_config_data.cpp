@@ -206,7 +206,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			blank_line = false;
 			tmp = i + 1;
 			line += '=';
-			while (buffer[tmp] && (buffer[tmp] == ' ' || buffer[tmp] == '\t')) // TODO: revisar si hay funcion para hacer esto mas limpio
+			while (buffer[tmp] && (buffer[tmp] == ' ' || buffer[tmp] == '\t'))
 				tmp++;
 			if (buffer[tmp] == '\n') {
 				std::cerr << RED "Error: " NC "'=' without content" << std::endl;
@@ -228,6 +228,13 @@ get_instruction(std::istream& stream, std::string& buffer)
 	}
 
 	line = trim(line);
+
+	for (std::size_t j = 0; line[j]; j++) {
+		if (line[j] == STX && line[j + 1] == STX) {
+			std::cerr << RED "Error: " NC "syntax error" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
 	return line;
 }
 
