@@ -126,7 +126,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 {
 	std::stack<char> container;
 	std::string      line;
-	std::size_t      i;
+	std::size_t      i, tmp;
 	bool             open_brace, open_quote, blank_line, key;
 
 	open_brace = false;
@@ -146,7 +146,7 @@ get_instruction(std::istream& stream, std::string& buffer)
 			buffer.push_back('\n');
 			i = 0;
 			blank_line = true;
-			if (key) { // TODO: index = [\n
+			if (key && !open_brace) { // TODO: index = [\n
 				if (*line.rbegin() == US)
 					*line.rbegin() = ETX;
 				else
@@ -205,8 +205,16 @@ get_instruction(std::istream& stream, std::string& buffer)
 		case KEY:
 			key = true;
 			blank_line = false;
+			tmp = i + 1;
 			line += '=';
-			line += STX;
+			while (buffer[tmp] && (buffer[tmp] == ' ' || buffer[tmp] == '\t')) // TODO: revisar si hay funcion para hacer esto mas limpio
+				tmp++;
+			if (buffer[tmp] == '\n') {
+				std::cerr << RED "Error: " NC "'=' without content" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			else if (buffer[tmp] != '[')
+				line += STX;
 			break;
 
 		default:
