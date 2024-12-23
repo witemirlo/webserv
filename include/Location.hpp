@@ -39,6 +39,7 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
+	std::string responseDELETE(std::string const& uri, std::string const& query) const;
 };
 
 #endif

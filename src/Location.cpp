@@ -407,7 +407,7 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
-		if (status_code != 200)
+		if (status_code != 200) // TODO: habria que hacer que sean todos los codigos 2XX
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
 			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
@@ -522,6 +522,25 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 			// std::cout << std::flush;
 		// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
+}
+
+
+std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
+{
+	std::string file_path, response;
+	int         status_code;
+
+	(void)uri;
+	(void)query;
+
+	file_path = getPathTo(uri);// y si esta el index?
+
+
+
+
+	response = getHeaders("", uri, status_code);
+
+	return response;
 }
 
 std::string read_cgi_response(int fd)
