@@ -20,21 +20,8 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers)
 
 	//TODO: mover select server a ARequest
 	std::cerr << servers[0].getListen() << std::endl;
-	Server selected_server = servers[0];
-	std::string name = getHeaderValue(std::string("host"));
-
-	if (name.size() != 0)
-	{
-		for (size_t ind = 0; ind < servers.size(); ind++)
-		{
-			if (servers[ind].isNamed(name))
-			{
-				selected_server = servers[ind];
-				break ;
-			}
-		}
-	}
-	Location selected_loc = selected_server.getLocation(_uri);
+	
+	Location selected_loc = getSelectedLocation(servers);
 	return selected_loc.responseGET(_uri, _query);
 
 	return ("HTTP/1.1 200 OK\r\n" + headers + body);

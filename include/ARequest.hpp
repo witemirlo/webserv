@@ -36,6 +36,8 @@ public:
 	virtual std::string generateResponse(std::vector<Server> & servers) = 0;
 	std::string const getHeaderValue(std::string const & key);
 
+	Location const& getSelectedLocation(std::vector<Server> & servers);
+
 //	GETTERs TODO: maybe its only for debug
 	std::string const&getInitial(void);
 	std::string getHeaders(void);

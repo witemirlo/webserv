@@ -62,6 +62,26 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	_headers[key] = value; //TODO: check for dups -> error code?
 }
 
+Location const& ARequest::getSelectedLocation(std::vector<Server> & servers)
+{
+	Server selected_server = servers[0];
+	std::string name = getHeaderValue(std::string("host"));
+
+	if (name.size() != 0)
+	{
+		for (size_t ind = 0; ind < servers.size(); ind++)
+		{
+			if (servers[ind].isNamed(name))
+			{
+				selected_server = servers[ind];
+				break ;
+			}
+		}
+	}
+
+	return selected_server.getLocation(_uri);
+}
+
 std::string const ARequest::getHeaderValue(std::string const & key)
 {
 	try {
