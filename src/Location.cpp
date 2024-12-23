@@ -189,7 +189,7 @@ std::string Location::getPathTo(std::string const& uri) const
 	if (S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			errno = 0;
-			if (access((path + *index_it).c_str(), R_OK) == 0) {
+			if (access((path + *index_it).c_str(), F_OK) == 0) {
 				path += *index_it;
 				break;
 			}
