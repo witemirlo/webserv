@@ -483,6 +483,16 @@ std::string Location::getBodyError(int status_code) const
 /**
  * @brief generates the response of a get request
  * @param uri uri to the file
+ * @return string with the content of the response
+ */
+std::string Location::responsePOST(std::string const& uri) const
+{
+	
+}
+
+/**
+ * @brief generates the response of a get request
+ * @param uri uri to the file
  * @param query query of the request
  * @return string with the content of the response
  */

@@ -62,6 +62,9 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	_headers[key] = value; //TODO: check for dups -> error code?
 }
 
+/*
+	Returns the Location object related to the specified URI of the Server referred by the 'host' header
+*/
 Location const& ARequest::getSelectedLocation(std::vector<Server> & servers)
 {
 	Server selected_server = servers[0];
