@@ -449,6 +449,23 @@ int Location::getStatusCode(void) const
 }
 
 /**
+ * @brief Returns the status line corresponding to errno
+ * @return status line 
+ */
+std::string Location::getStatusLine(void) const
+{
+	std::stringstream buffer;
+	int               status_code;
+
+	buffer << "HTTP/1.1 "
+	       << status_code
+	       << ((status_code >= 300) ? " KO" : " OK") // TODO: seguro?
+	       << CRLF;
+
+	return buffer.str();
+}
+
+/**
  * @brief generates the body of a error response
  * @param status_code status code of the response
  * @return body generated with the configured error page

@@ -20,6 +20,7 @@ private:
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& uri) const;
 
+	std::string getStatusLine(void) const;
 	int getStatusCode(void) const;
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
