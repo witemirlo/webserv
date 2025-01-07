@@ -432,27 +432,21 @@ int Location::getStatusCode(void) const
 {
 	switch (errno) {
 	case 0:
-		errno = 0;
 		return 200; // HINT: ok
 
 	case ENAMETOOLONG:  // NOTE: pathname too long
-		errno = 0;
 		return 400; // HINT: bad request
 	
 	case ENOTDIR:       // NOTE: pathname contains a nondirectory as directory
-		errno = 0;
 		return 400; // HINT: bad request
 	
 	case EACCES:        // NOTE: the file exist but not have permissions
-		errno = 0;
 		return 403; // HINT: forbidden TODO: quizas un 404
 	
 	case ENOENT:        // NOTE: file not found
-		errno = 0;
 		return 404; // HINT: file not found
 	
 	default:
-		errno = 0;
 		return 500; // HINT: inernal server error
 	}
 }
