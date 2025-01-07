@@ -484,7 +484,7 @@ std::string Location::getBodyError(int status_code) const
 	std::map<int, std::string>::const_iterator it;
 	std::fstream                               file;
 	std::string                                line;
-	std::stringstream                          buffer;
+	std::stringstream                          headers, buffer;
 
 	// std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	it = this->_error_pages.find(status_code);
@@ -493,17 +493,22 @@ std::string Location::getBodyError(int status_code) const
 		buffer << "An error ocurred at opening "
 		       << it->second
 		       << "\n";
-		return buffer.str();
+		
+		headers << "Content-Length: " << buffer.str().size() << CRLF
+	                << "Content-Type: " << "text/plain" << CRLF
+	                << CRLF;
+
+		return headers.str() + buffer.str();
 	}
 
-	buffer << CRLF;
-	while (getline(file, line)) {
-		buffer << line << '\n';
-		line.clear();
-	}
-
+	buffer << file.rdbuf();
 	file.close();
-	return buffer.str();
+
+	headers << "Content-Length: " << buffer.str().size() << CRLF
+		<< "Content-Type: " << "text/html" << CRLF
+	        << CRLF;
+
+	return headers.str() + buffer.str();
 }
 
 /**
