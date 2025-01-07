@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <dirent.h>
@@ -407,7 +408,8 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
-		if (status_code != 200) // TODO: habria que hacer que sean todos los codigos 2XX
+		// if (status_code != 200 && status_code != 204) // TODO: habria que hacer que sean todos los codigos 2XX
+		if (status_code >= 300) // TODO: seguro?
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
 			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
@@ -532,7 +534,8 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	headers = getHeaders(body, uri, status_code);
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | headers: " << headers << std::endl;
 	// status_line = getStatusLine(status_code);
-	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
+	// status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
+	status_line = getStatusLine();
 			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
@@ -541,23 +544,32 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	return (status_line + headers + body);
 }
 
-
 std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
 {
-	std::string file_path, response;
-	int         status_code;
+	std::string file_path;
+	struct stat file_info;
+	int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
 
 	(void)uri;
 	(void)query;
 
-	file_path = getPathTo(uri);// y si esta el index?
+	errno = 0;
+	std::memset(&file_info, 0, sizeof(struct stat));
 
+	file_path = getPathTo(uri);// TODO: y si esta el index?
 
+	// TODO: cuales son los permisos para borrar un archivo?
+	if (access(file_path.c_str(), F_OK) < 0) // TODO: si existe pero no tiene permisos internal server error
+		return getStatusLine() + getHeaders("", uri, 404) + CRLF;
 
+	if (stat(file_path.c_str(), &file_info) < 0)
+		return getStatusLine() + getHeaders("", uri, 500) + CRLF;
 
-	response = getHeaders("", uri, status_code);
+	if (std::remove(file_path.c_str()) < 0)
+		return getStatusLine() + getHeaders("", uri, 500) + CRLF;
 
-	return response;
+	// TODO: faltaria el 202
+	return getStatusLine() + getHeaders("", uri, getStatusCode()) + CRLF;
 }
 
 std::string read_cgi_response(int fd)
