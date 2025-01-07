@@ -169,9 +169,10 @@ bool Location::operator<=(const Location & other) const
 /**
  * @brief Generates the full path to a file
  * @param uri uri to the file
+ * @param index bool for check in the index list
  * @return string with the full path to the file, if the file is a directory and there is an index, it returns the path to the file
  */
-std::string Location::getPathTo(std::string const& uri) const
+std::string Location::getPathTo(std::string const& uri, bool index) const
 {
 	// TODO: los directorios deben terminar en  / o con otro caracter?
 	std::vector<std::string>::const_iterator index_it;
@@ -187,7 +188,7 @@ std::string Location::getPathTo(std::string const& uri) const
 		return "";
 	}
 	
-	if (S_ISDIR(file_info.st_mode)) {
+	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			errno = 0;
 			if (access((path + *index_it).c_str(), F_OK) == 0) {
@@ -208,7 +209,7 @@ std::string Location::getPathTo(std::string const& uri) const
  */
 std::string Location::getBody(std::string const& uri) const
 {
-	std::string const path = getPathTo(uri);
+	std::string const path = getPathTo(uri, true);
 	struct stat file_info;
 
 	errno = 0;
@@ -272,7 +273,7 @@ std::string Location::autoIndex(std::string const& uri) const
 	char              date[512];
 	std::string       uri_path, host_path;
 	
-	host_path = getPathTo(uri);
+	host_path = getPathTo(uri, true);
 	host_path = (*host_path.rbegin() == '/') ? host_path : (host_path + "/");
 	uri_path  = (*uri.rbegin() == '/') ? uri : (uri + '/');
 
@@ -431,21 +432,27 @@ int Location::getStatusCode(void) const
 {
 	switch (errno) {
 	case 0:
+		errno = 0;
 		return 200; // HINT: ok
 
 	case ENAMETOOLONG:  // NOTE: pathname too long
+		errno = 0;
 		return 400; // HINT: bad request
 	
 	case ENOTDIR:       // NOTE: pathname contains a nondirectory as directory
+		errno = 0;
 		return 400; // HINT: bad request
 	
 	case EACCES:        // NOTE: the file exist but not have permissions
+		errno = 0;
 		return 403; // HINT: forbidden TODO: quizas un 404
 	
 	case ENOENT:        // NOTE: file not found
+		errno = 0;
 		return 404; // HINT: file not found
 	
 	default:
+		errno = 0;
 		return 500; // HINT: inernal server error
 	}
 }
@@ -457,7 +464,7 @@ int Location::getStatusCode(void) const
 std::string Location::getStatusLine(void) const
 {
 	std::stringstream buffer;
-	int               status_code;
+	const int         status_code = getStatusCode();
 
 	buffer << "HTTP/1.1 "
 	       << status_code
@@ -516,7 +523,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = CGIget(getPathTo(uri), query);// content lenght y content type
+		body = CGIget(getPathTo(uri, true), query);// content lenght y content type
 	else
 	{
 		body = getBody(uri);
@@ -548,28 +555,28 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 {
 	std::string file_path;
 	struct stat file_info;
-	int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
+	// int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
 
 	(void)uri;
-	(void)query;
+	(void)query;// TODO: esto haria falta para algo?
 
 	errno = 0;
 	std::memset(&file_info, 0, sizeof(struct stat));
 
-	file_path = getPathTo(uri);// TODO: y si esta el index?
+	file_path = getPathTo(uri, false);
 
 	// TODO: cuales son los permisos para borrar un archivo?
 	if (access(file_path.c_str(), F_OK) < 0) // TODO: si existe pero no tiene permisos internal server error
-		return getStatusLine() + getHeaders("", uri, 404) + CRLF;
+		return (getStatusLine() + getHeaders("", uri, 404) + CRLF);
 
 	if (stat(file_path.c_str(), &file_info) < 0)
-		return getStatusLine() + getHeaders("", uri, 500) + CRLF;
+		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
 
 	if (std::remove(file_path.c_str()) < 0)
-		return getStatusLine() + getHeaders("", uri, 500) + CRLF;
+		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
 
 	// TODO: faltaria el 202
-	return getStatusLine() + getHeaders("", uri, getStatusCode()) + CRLF;
+	return (getStatusLine() + getHeaders("", uri, getStatusCode()) + CRLF);
 }
 
 std::string read_cgi_response(int fd)
