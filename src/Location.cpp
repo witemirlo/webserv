@@ -572,6 +572,7 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 	file_path = getPathTo(uri, false);
 
 	// TODO: cuales son los permisos para borrar un archivo?
+	// TODO: delete de un archivo que no existe?
 	if (access(file_path.c_str(), F_OK) < 0) // TODO: si existe pero no tiene permisos internal server error
 		return (getStatusLine() + getHeaders("", uri, 404) + CRLF);
 
