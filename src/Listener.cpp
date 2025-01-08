@@ -1,5 +1,6 @@
 #include "Listener.hpp"
 #include "GETRequest.hpp"
+#include "POSTRequest.hpp"
 
 #include <iostream>
 #include <sys/types.h>
@@ -10,8 +11,8 @@
 #include <cstdlib>
 #include <cstring>
 
-const std::string Listener::request_types[] = {"GET", ""};
-ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet};
+const std::string Listener::request_types[] = {"GET", "POST", ""};
+ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet, &Listener::createPost};
 
 static int get_listener(std::string & host, std::string & port);
 
@@ -58,6 +59,11 @@ ARequest *Listener::createRequest(std::string & buffer)
 ARequest *Listener::createGet(std::string const & init)
 {
 	return (new GETRequest(init));
+}
+
+ARequest *Listener::createPost(std::string const & init)
+{
+	return (new POSTRequest(init));
 }
 
 void Listener::printRequest(int index)

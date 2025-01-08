@@ -47,6 +47,7 @@ public:
 	
 	ARequest *createRequest(std::string & buffer);
 	ARequest *createGet(std::string const & init);
+	ARequest *createPost(std::string const & init);
 
 //	OCCF
 	Listener(); //TODO: revisar OCCF

@@ -480,14 +480,93 @@ std::string Location::getBodyError(int status_code) const
 	return buffer.str();
 }
 
+void Server::callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const
+{
+	std::string type_var = "CONTENT_TYPE=" + type;
+	std::string len_var = "CONTENT_LENGTH=" + len;
+	std::string file_var = "SCRIPT_FILENAME=" + file;
+	std::string method = "REQUEST_METHOD=POST";
+	std::string redirect = "REDIRECT_STATUS=true";
+
+	chdir(_root.c_str());
+
+	// std::cerr << "My variables" << std::endl;
+	// std::cerr << type_var << std::endl;
+	// std::cerr << len_var << std::endl;
+	// std::cerr << file_var << std::endl;
+	// std::cerr << method << std::endl;
+	// std::cerr << redirect << std::endl;
+
+	// char buff[101];
+	// buff[100] = 0;
+	// read(0, buff, atoi(len.c_str()));
+	// std::cerr << __FILE__ << ": " << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
+
+	int count;
+	for (count = 0; environ[count]; count++) {}
+	
+	char const ** new_envp = new char const *[count + 7];
+	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
+
+	for (count = 0; environ[count]; count++) {
+		new_envp[count] = environ[count];
+	}
+	new_envp[count] = type_var.c_str(); 
+	new_envp[count + 1] = file_var.c_str(); 
+	new_envp[count + 2] = method.c_str(); 
+	new_envp[count + 3] = redirect.c_str();
+	new_envp[count + 4] = len_var.c_str();
+	new_envp[count + 5] = NULL; 
+
+
+	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
+	delete [] new_envp;
+	exit(errno);
+}
+
+std::string Location::CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const
+{
+	errno = 0;
+	int readpipe[2];
+	int writepipe[2];
+	pipe(readpipe);
+	pipe(writepipe);
+
+	pid_t pid = fork(); //TODO: fallo?
+	if (pid == 0)
+	{
+		dup2(readpipe[1], STDOUT_FILENO);
+		dup2(writepipe[0], STDIN_FILENO);
+		close(writepipe[0]);
+		close(writepipe[1]);
+		close(readpipe[0]);
+		close(readpipe[1]);
+		callPOSTcgi(file, type, len);
+	}
+	close(writepipe[0]);
+	write(writepipe[1], body.c_str(), body.size());
+	write(writepipe[1], body.c_str(), body.size());
+	close(writepipe[1]);
+	close(readpipe[1]);
+	std::cerr << __FILE__ << ": " << __LINE__  << " |  body: \"" << body << "\"" <<std::endl;
+
+	return read_cgi_response(readpipe[0]); //TODO: y si algo del otro lado ha ido mal??
+	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
+}
+
 /**
  * @brief generates the response of a get request
  * @param uri uri to the file
  * @return string with the content of the response
  */
-std::string Location::responsePOST(std::string const& uri) const
+std::string Location::responsePOST(std::string const& uri, std::string const& msg, std::string const& type, std::string const& len) const
 {
-	
+	std::string body;
+
+	if (getFileType(uri) == _cgi_extension)
+		body = CGIpost(getPathTo(uri), msg, type, len);
+
+	return ("HTTP/1.1 200 OK\r\n" + body);
 }
 
 /**
@@ -558,7 +637,7 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
-void Server::callcgi(std::string const& file, std::string const& query) const //TODO: ordenar funciones
+void Server::callGETcgi(std::string const& file, std::string const& query) const //TODO: ordenar funciones
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + file;
@@ -606,7 +685,7 @@ std::string Location::CGIget(std::string const& file, std::string const& query) 
 		dup2(pipefds[1], STDOUT_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		callcgi(file, query);
+		callGETcgi(file, query);
 	}
 	close(pipefds[1]);
 	return read_cgi_response(pipefds[0]); //TODO: y si algo del otro lado ha ido mal??

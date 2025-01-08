@@ -67,7 +67,7 @@ void ARequest::procHeader(std::string & raw, size_t index)
 */
 Location const& ARequest::getSelectedLocation(std::vector<Server> & servers)
 {
-	Server selected_server = servers[0];
+	size_t selected = 0;
 	std::string name = getHeaderValue(std::string("host"));
 
 	if (name.size() != 0)
@@ -76,13 +76,13 @@ Location const& ARequest::getSelectedLocation(std::vector<Server> & servers)
 		{
 			if (servers[ind].isNamed(name))
 			{
-				selected_server = servers[ind];
+				selected = ind;
 				break ;
 			}
 		}
 	}
 
-	return selected_server.getLocation(_uri);
+	return servers[selected].getLocation(_uri);
 }
 
 std::string const ARequest::getHeaderValue(std::string const & key)

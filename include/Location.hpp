@@ -25,6 +25,8 @@ private:
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
 	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
+	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
+
 
 public:
 	Location();
@@ -39,7 +41,9 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
-	std::string responsePOST(std::string const& uri) const;
+	std::string responsePOST(std::string const& uri, std::string const& msg, std::string const& type, std::string const& len) const;
 };
+
+std::string read_cgi_response(int fd);
 
 #endif

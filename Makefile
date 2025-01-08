@@ -15,6 +15,7 @@ SRC = \
 	src/get_config_data.cpp\
 	src/ARequest.cpp\
 	src/GETRequest.cpp\
+	src/POSTRequest.cpp\
 	src/Listener.cpp\
 	src/Location.cpp\
 	src/Server.cpp
