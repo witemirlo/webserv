@@ -489,6 +489,7 @@ std::string Location::getBodyError(int status_code) const
 	// std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	it = this->_error_pages.find(status_code);
 	file.open(it->second.c_str());
+	std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	if (!file.is_open()) {
 		buffer << "An error ocurred at opening "
 		       << it->second
@@ -537,7 +538,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
-	if (status_code != 200) {
+	if (status_code >= 300) {
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
 	}
