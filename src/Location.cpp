@@ -403,13 +403,12 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	headers = getCgiHeaders(body);
 	date = getGmtTime();
 
-	buffer << "date: " << date << CRLF
-	       << "server: webserv" CRLF;
+	buffer << "Date: " << date << CRLF
+	       << "Server: webserv" CRLF;
 	
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
-		// if (status_code != 200 && status_code != 204) // TODO: habria que hacer que sean todos los codigos 2XX
 		if (status_code >= 300) // TODO: seguro?
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
@@ -496,7 +495,7 @@ std::string Location::getBodyError(int status_code) const
 		       << "\n";
 		
 		headers << "Content-Length: " << buffer.str().size() << CRLF
-	                << "Content-Type: " << "text/plain" << CRLF
+	                << "Content-Type: " << "text/html" << CRLF
 	                << CRLF;
 
 		return headers.str() + buffer.str();
