@@ -457,15 +457,22 @@ int Location::getStatusCode(void) const
  */
 std::string Location::getStatusLine(void) const
 {
-	std::stringstream buffer;
-	const int         status_code = getStatusCode();
-
-	buffer << "HTTP/1.1 "
-	       << status_code
-	       << ((status_code >= 300) ? " KO" : " OK") // TODO: seguro?
-	       << CRLF;
-
-	return buffer.str();
+	switch (getStatusCode()) {
+	case 200:
+		return ("HTTP/1.1 200 OK" CRLF);
+	
+	case 400:
+		return ("HTTP/1.1 400 Bad Request" CRLF);
+	
+	case 403:
+		return ("HTTP/1.1 403 Forbidden" CRLF);
+	
+	case 404:
+		return ("HTTP/1.1 404 Not Found" CRLF);
+	
+	default:
+		return ("HTTP/1.1 500 Internal Server Error" CRLF);
+	}
 }
 
 /**
