@@ -16,6 +16,7 @@ SRC = \
 	src/ARequest.cpp\
 	src/GETRequest.cpp\
 	src/POSTRequest.cpp\
+	src/DELETERequest.cpp\
 	src/Listener.cpp\
 	src/Location.cpp\
 	src/Server.cpp
