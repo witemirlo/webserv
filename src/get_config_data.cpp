@@ -139,8 +139,6 @@ get_instruction(std::istream& stream, std::string& buffer)
 			if (key && open_brace) {
 				if (*line.rbegin() == US)
 					*line.rbegin() = ETX;
-				else if (container.size() == 1)
-					line += ETX;
 			}
 			blank_line = true;
 			i = 0;
