@@ -27,7 +27,7 @@ private:
 
 	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
 
-	bool copy_file(std::string const& origin, std::string const& dest) const;
+	bool copy_file(std::string const& body, std::string const& dest) const;
 
 public:
 	Location();
