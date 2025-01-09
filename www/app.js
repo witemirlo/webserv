@@ -2,7 +2,8 @@
 const http = new DeleteHTTP; 
 
 // Update Post 
-http.delete('https://jsonplaceholder.typicode.com/users/2') 
+http.delete('tmp') 
+// http.delete('https://jsonplaceholder.typicode.com/users/2') 
 
 // Resolving promise for response data 
 .then(data => console.log(data)) 

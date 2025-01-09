@@ -454,9 +454,17 @@ int Location::getStatusCode(void) const
  */
 std::string Location::getStatusLine(void) const
 {
-	switch (getStatusCode()) {
+	return getStatusLine(getStatusCode());
+}
+
+std::string Location::getStatusLine(unsigned int code) const
+{
+	switch (code) {
 	case 200:
 		return ("HTTP/1.1 200 OK" CRLF);
+
+	case 204:
+		return ("HTTP/1.1 204 No Content" CRLF);
 	
 	case 400:
 		return ("HTTP/1.1 400 Bad Request" CRLF);
@@ -470,6 +478,7 @@ std::string Location::getStatusLine(void) const
 	default:
 		return ("HTTP/1.1 500 Internal Server Error" CRLF);
 	}
+
 }
 
 /**
@@ -484,10 +493,8 @@ std::string Location::getBodyError(int status_code) const
 	std::string                                line;
 	std::stringstream                          headers, buffer;
 
-	// std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	it = this->_error_pages.find(status_code);
 	file.open(it->second.c_str());
-	std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	if (!file.is_open()) {
 		buffer << "An error ocurred at opening "
 		       << it->second
@@ -671,8 +678,7 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 		return (getStatusLine() + getHeaders(CRLF, uri, 500) + CRLF);
 	}
 
-	// TODO: faltaria el 202
-	return (getStatusLine() + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
+	return (getStatusLine(204) + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
 }
 
 std::string read_cgi_response(int fd)

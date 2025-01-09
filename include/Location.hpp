@@ -21,6 +21,7 @@ private:
 	std::string autoIndex(std::string const& uri) const;
 
 	std::string getStatusLine(void) const;
+	std::string getStatusLine(unsigned int code) const;
 	int getStatusCode(void) const;
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
