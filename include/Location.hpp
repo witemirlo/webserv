@@ -16,10 +16,11 @@ private:
 	std::string getBodyError(int status_code) const;
 	std::string getGmtTime(void) const;
 	std::string getContentType(std::string const& path) const;
-	std::string getPathTo(std::string const& uri) const;
+	std::string getPathTo(std::string const& uri, bool index) const;
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& uri) const;
 
+	std::string getStatusLine(void) const;
 	int getStatusCode(void) const;
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
@@ -27,6 +28,7 @@ private:
 	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
 	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
 
+	bool copy_file(std::string const& body, std::string const& dest) const;
 
 public:
 	Location();
@@ -41,6 +43,7 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
+	std::string responseDELETE(std::string const& uri, std::string const& query) const;
 	std::string responsePOST(std::string const& uri, std::string const& msg, std::string const& type, std::string const& len) const;
 };
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <dirent.h>
@@ -168,9 +169,10 @@ bool Location::operator<=(const Location & other) const
 /**
  * @brief Generates the full path to a file
  * @param uri uri to the file
+ * @param index bool for check in the index list
  * @return string with the full path to the file, if the file is a directory and there is an index, it returns the path to the file
  */
-std::string Location::getPathTo(std::string const& uri) const
+std::string Location::getPathTo(std::string const& uri, bool index) const
 {
 	// TODO: los directorios deben terminar en  / o con otro caracter?
 	std::vector<std::string>::const_iterator index_it;
@@ -186,10 +188,10 @@ std::string Location::getPathTo(std::string const& uri) const
 		return "";
 	}
 	
-	if (S_ISDIR(file_info.st_mode)) {
+	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			errno = 0;
-			if (access((path + *index_it).c_str(), R_OK) == 0) {
+			if (access((path + *index_it).c_str(), F_OK) == 0) {
 				path += *index_it;
 				break;
 			}
@@ -207,7 +209,7 @@ std::string Location::getPathTo(std::string const& uri) const
  */
 std::string Location::getBody(std::string const& uri) const
 {
-	std::string const path = getPathTo(uri);
+	std::string const path = getPathTo(uri, true);
 	struct stat file_info;
 
 	errno = 0;
@@ -271,7 +273,7 @@ std::string Location::autoIndex(std::string const& uri) const
 	char              date[512];
 	std::string       uri_path, host_path;
 	
-	host_path = getPathTo(uri);
+	host_path = getPathTo(uri, true);
 	host_path = (*host_path.rbegin() == '/') ? host_path : (host_path + "/");
 	uri_path  = (*uri.rbegin() == '/') ? uri : (uri + '/');
 
@@ -401,13 +403,13 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	headers = getCgiHeaders(body);
 	date = getGmtTime();
 
-	buffer << "date: " << date << CRLF
-	       << "server: webserv" CRLF;
+	buffer << "Date: " << date << CRLF
+	       << "Server: webserv" CRLF;
 	
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
-		if (status_code != 200)
+		if (status_code >= 300) // TODO: seguro?
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
 			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
@@ -449,6 +451,30 @@ int Location::getStatusCode(void) const
 }
 
 /**
+ * @brief Returns the status line corresponding to errno
+ * @return status line 
+ */
+std::string Location::getStatusLine(void) const
+{
+	switch (getStatusCode()) {
+	case 200:
+		return ("HTTP/1.1 200 OK" CRLF);
+	
+	case 400:
+		return ("HTTP/1.1 400 Bad Request" CRLF);
+	
+	case 403:
+		return ("HTTP/1.1 403 Forbidden" CRLF);
+	
+	case 404:
+		return ("HTTP/1.1 404 Not Found" CRLF);
+	
+	default:
+		return ("HTTP/1.1 500 Internal Server Error" CRLF);
+	}
+}
+
+/**
  * @brief generates the body of a error response
  * @param status_code status code of the response
  * @return body generated with the configured error page
@@ -458,26 +484,32 @@ std::string Location::getBodyError(int status_code) const
 	std::map<int, std::string>::const_iterator it;
 	std::fstream                               file;
 	std::string                                line;
-	std::stringstream                          buffer;
+	std::stringstream                          headers, buffer;
 
 	// std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	it = this->_error_pages.find(status_code);
 	file.open(it->second.c_str());
+	std::cerr << "MY STATUS CODE IS " << status_code << std::endl;
 	if (!file.is_open()) {
 		buffer << "An error ocurred at opening "
 		       << it->second
 		       << "\n";
-		return buffer.str();
+		
+		headers << "Content-Length: " << buffer.str().size() << CRLF
+	                << "Content-Type: " << "text/html" << CRLF
+	                << CRLF;
+
+		return headers.str() + buffer.str();
 	}
 
-	buffer << CRLF;
-	while (getline(file, line)) {
-		buffer << line << '\n';
-		line.clear();
-	}
-
+	buffer << file.rdbuf();
 	file.close();
-	return buffer.str();
+
+	headers << "Content-Length: " << buffer.str().size() << CRLF
+		<< "Content-Type: " << "text/html" << CRLF
+	        << CRLF;
+
+	return headers.str() + buffer.str();
 }
 
 void Server::callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const
@@ -585,7 +617,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = CGIget(getPathTo(uri), query);// content lenght y content type
+		body = CGIget(getPathTo(uri, true), query);// content lenght y content type
 	else
 	{
 		body = getBody(uri);
@@ -594,7 +626,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
-	if (status_code != 200) {
+	if (status_code >= 300) {
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
 	}
@@ -603,13 +635,43 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	headers = getHeaders(body, uri, status_code);
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | headers: " << headers << std::endl;
 	// status_line = getStatusLine(status_code);
-	status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
+	// status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
+	status_line = getStatusLine();
 			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
 			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
 			// std::cout << std::flush;
 		// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
+}
+
+std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
+{
+	std::string file_path;
+	struct stat file_info;
+	// int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
+
+	(void)uri;
+	(void)query;// TODO: esto haria falta para algo?
+
+	errno = 0;
+	std::memset(&file_info, 0, sizeof(struct stat));
+
+	file_path = getPathTo(uri, false);
+
+	// TODO: cuales son los permisos para borrar un archivo?
+	// TODO: delete de un archivo que no existe?
+	if (access(file_path.c_str(), F_OK) < 0) // TODO: si existe pero no tiene permisos internal server error
+		return (getStatusLine() + getHeaders("", uri, 404) + CRLF);
+
+	if (stat(file_path.c_str(), &file_info) < 0)
+		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
+
+	if (std::remove(file_path.c_str()) < 0)
+		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
+
+	// TODO: faltaria el 202
+	return (getStatusLine() + getHeaders("", uri, getStatusCode()) + CRLF);
 }
 
 std::string read_cgi_response(int fd)
@@ -702,4 +764,27 @@ std::string Location::getFileType(std::string const& file) const
 		return "";
 
 	return (file.substr(file.find_last_of('.') + 1));
+}
+
+/**
+ * @brief copies a file
+ * @param origin name of the file to be copied
+ * @param dest name of the copied file
+ * @return true in success, false in failure
+ */
+bool Location::copy_file(std::string const& body, std::string const& dest) const
+{
+	std::ofstream cloned_file;
+
+	cloned_file.open(dest.c_str(), std::ios::binary);
+	if (!cloned_file.is_open()) {
+		std::cerr << RED "Error: " NC << dest << ": " << strerror(errno) << std::endl;
+		return false;
+	}
+
+	cloned_file << body;
+
+	cloned_file.close();
+
+	return true;
 }
