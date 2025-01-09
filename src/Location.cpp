@@ -65,6 +65,24 @@ Location::~Location()
 #endif
 }
 
+bool is_balanced(std::string const & line, size_t str, size_t end)
+{
+	int opened = 0;
+
+	for (size_t ind = str + 1; ind < end; ind++)
+	{
+		if (line[ind] == STX)
+			opened++;
+		else if (line[ind] == ETX)
+		{
+			if (!opened)
+				return false;
+			opened--;
+		}
+	}
+	return opened == 0;
+}
+
 /**
  * @param o the Server object used as the default configuration of this new location
  * @param config a std::string with the specifics of the configuration of the location
@@ -77,54 +95,47 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 	std::cout << GREEN "Location constructor called" NC << std::endl;
 #endif
 	std::string buffer, line, key, value;
-	std::size_t it;
+	std::size_t ind, endtxt, starttxt;
 
-	if (config[0] != STX)
-    		buffer = config;
-	else
-    		buffer = config.substr(1, config.size() - 2);
-
+	ind = 0;
+	buffer = config;
 	while (true) {
-		it = buffer.find(US);
-		if (it == std::string::npos)
-			line = buffer;
-		else
-		{
-			if (buffer.find(STX) < it)
+
+
+		starttxt = buffer.find(STX, ind);
+		if (starttxt == std::string::npos)
+				break ; //TODO: revisar que no se coma el ultimo
+
+		endtxt = ind;
+		while (true) {
+			endtxt = buffer.find(ETX, endtxt);
+			if (endtxt < starttxt || endtxt == std::string::npos)
 			{
-				it = buffer.find(ETX);
-				if (it == std::string::npos)
-				{
-					std::cerr << RED "Error: " NC "unbalanced expresion in " + my_path + " location" << std::endl;
-					exit(EXIT_FAILURE);
-				}
-				it++;
+				std::cerr << RED "Error: " NC "unbalanced expresion in " + my_path + " location" << std::endl;
+				exit(EXIT_FAILURE);
 			}
-			std::cout << "Working..." << std::endl;
-			line = buffer.substr(0, it);
+			if (is_balanced(buffer, starttxt, endtxt))
+				break ;
+			else
+				endtxt++;
 		}
-		
-		if (line.find(STX) != std::string::npos)
-		{
-			line.erase(line.find(STX), 1);
-			line.erase(line.find(ETX), 1);
-		}
-		std::cout << "Keep Working..." << std::endl;
+
+		line = buffer.substr(ind, endtxt - ind);
+		ind = endtxt + 1;
+		line.erase(line.find(STX), 1);
+
 		key = line.substr(0, line.find('='));
 		value = line.substr(line.find('=') + 1, line.size());
-		if (value.size() > 1 && *value.rbegin() != '/')
-			value.push_back('/');
+		
+		// if (value.size() > 1 && *value.rbegin() != '/')
+		// 	value.push_back('/'); TODO: esto lo he quitado porque creo que esta mal
 		/*
-		if key en prohibidas
+		TODO: if key en prohibidas
 			std::cerr key solo se permite en server
 		*/
 
 		procRule(key, value);
 
-		if (it == std::string::npos || it >= buffer.size())
-			break;
-		else
-			buffer = buffer.substr(it + 1);
 	}
 	setErrorPages("");
 	if (my_path == "/")

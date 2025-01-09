@@ -126,19 +126,29 @@ void Server::setErrorPages(std::string const &errors)
 		return;
 	}
 
-	std::vector<std::string> error_pages = setVector(_err_tmp);
-	for (size_t ind = 0; ind < error_pages.size(); ind++)
-	{
-		size_t eq = error_pages[ind].find("=");
+	std::string line;
+	int ind = 0;
 
-		int num = atoi(error_pages[ind].substr(0, eq).c_str()); //TODO: lista de errores permitidos ERROR DE SYNTAX
-		std::string	pages = error_pages[ind].substr(eq + 1); //TODO: check pages before
+	for (size_t i = _err_tmp.find(ETX); i != std::string::npos; i = _err_tmp.find(ETX, ind))
+	{
+		line = _err_tmp.substr(ind, i - ind);
+		if (line.find(STX) != std::string::npos)
+			line.erase(line.find(STX), 1);
+
+		size_t eq = line.find("=");
+
+		int num = atoi(line.substr(0, eq).c_str()); //TODO: lista de errores permitidos ERROR DE SYNTAX
+		std::string	pages = line.substr(eq + 1); //TODO: check pages before
 
 		if (*_root.rbegin() != '/' && *pages.begin() != '/')
 			_error_pages[num] = _root + "/" + pages;
 		else
 			_error_pages[num] = _root + pages;
+
+		ind = i + 1;
 	}
+
+	std::map<int, std::string>::iterator it;
 }
 
 /**
@@ -157,13 +167,22 @@ std::vector<std::string> Server::setVector(std::string const & str)
 		return result;
 	}
 
-	int ind = 0;
+	int ind;
+
+	if (str[0] == STX)
+		ind = 1;
+	else
+		ind = 0;
 	for (size_t i = str.find(US); i != std::string::npos; i = str.find(US, ind + 1))
 	{
 		result.push_back(str.substr(ind, i - ind));
 		ind = i;
 	}
-	result.push_back(str.substr(ind, str.size() - ind));
+
+	if (str[str.size() - 1] == ETX)
+		result.push_back(str.substr(ind, str.size() - ind - 1));
+	else
+		result.push_back(str.substr(ind, str.size() - ind));
 
 	return (result);
 }
