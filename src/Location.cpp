@@ -545,7 +545,6 @@ std::string Location::CGIpost(std::string const& file, std::string const& body, 
 	}
 	close(writepipe[0]);
 	write(writepipe[1], body.c_str(), body.size());
-	write(writepipe[1], body.c_str(), body.size());
 	close(writepipe[1]);
 	close(readpipe[1]);
 	std::cerr << __FILE__ << ": " << __LINE__  << " |  body: \"" << body << "\"" <<std::endl;
