@@ -595,7 +595,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 	std::string body;
 
 	if (getFileType(uri) == _cgi_extension)
-		body = CGIpost(getPathTo(uri), msg, type, len);
+		body = CGIpost(getPathTo(uri, true), msg, type, len);
 
 	return ("HTTP/1.1 200 OK\r\n" + body);
 }
