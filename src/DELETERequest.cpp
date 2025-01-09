@@ -34,7 +34,10 @@ DELETERequest::DELETERequest(std::string const &uri) : ARequest(uri)
 std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 {
 	Location selected_loc = getSelectedLocation(servers);
-	return selected_loc.responseDELETE(_uri, _query);
+	std::string tmp; // TODO: borrar
 
-	return getSelectedLocation(servers).responseDELETE(_uri, _query);
+	tmp = selected_loc.responseDELETE(_uri, _query);
+	std::cerr << __FILE__ << ": " << __LINE__ << ": DELETERequest::generateResponse:\n" << tmp;
+	return tmp;
+	// return getSelectedLocation(servers).responseDELETE(_uri, _query);
 }

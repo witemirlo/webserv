@@ -418,8 +418,6 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	if (headers.find("content-length") == headers.end())
 		buffer << "Content-Length: " << (body.size() - 2) << CRLF;
 
-	// buffer << "\r\n";
-
 	return buffer.str();
 }
 
@@ -661,17 +659,20 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 
 	// TODO: cuales son los permisos para borrar un archivo?
 	// TODO: delete de un archivo que no existe?
-	if (access(file_path.c_str(), F_OK) < 0) // TODO: si existe pero no tiene permisos internal server error
-		return (getStatusLine() + getHeaders("", uri, 404) + CRLF);
+	if (access(file_path.c_str(), F_OK) < 0) { // TODO: si existe pero no tiene permisos internal server error
+		return (getStatusLine() + getHeaders(CRLF, uri, 404) + CRLF);
+	}
 
-	if (stat(file_path.c_str(), &file_info) < 0)
-		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
+	if (stat(file_path.c_str(), &file_info) < 0) {
+		return (getStatusLine() + getHeaders(CRLF, uri, 500) + CRLF);
+	}
 
-	if (std::remove(file_path.c_str()) < 0)
-		return (getStatusLine() + getHeaders("", uri, 500) + CRLF);
+	if (std::remove(file_path.c_str()) < 0) {
+		return (getStatusLine() + getHeaders(CRLF, uri, 500) + CRLF);
+	}
 
 	// TODO: faltaria el 202
-	return (getStatusLine() + getHeaders("", uri, getStatusCode()) + CRLF);
+	return (getStatusLine() + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
 }
 
 std::string read_cgi_response(int fd)
