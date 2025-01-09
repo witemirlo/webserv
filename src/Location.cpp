@@ -496,10 +496,11 @@ std::string Location::getBodyError(int status_code) const
 	it = this->_error_pages.find(status_code);
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
-		buffer << "An error ocurred at opening "
+		errno = EIO;
+		buffer << "An error ocurred with "
 		       << it->second
 		       << "\n";
-		
+
 		headers << "Content-Length: " << buffer.str().size() << CRLF
 	                << "Content-Type: " << "text/html" << CRLF
 	                << CRLF;
