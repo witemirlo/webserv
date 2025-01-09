@@ -677,3 +677,34 @@ std::string Location::getFileType(std::string const& file) const
 
 	return (file.substr(file.find_last_of('.') + 1));
 }
+
+/**
+ * @brief copies a file
+ * @param origin name of the file to be copied
+ * @param dest name of the copied file
+ * @return true in success, false in failure
+ */
+bool Location::copy_file(std::string const& origin, std::string const& dest) const
+{
+	std::ifstream original_file;
+	std::ofstream cloned_file;
+
+	original_file.open(origin.c_str(), std::ios::binary);
+	if (!original_file.is_open()) {
+		std::cerr << RED "Error: " NC << origin << ": " << strerror(errno) << std::endl;
+		return false;
+	}
+
+	cloned_file.open(dest.c_str(), std::ios::binary);
+	if (!cloned_file.is_open()) {
+		std::cerr << RED "Error: " NC << dest << ": " << strerror(errno) << std::endl;
+		original_file.close();
+		return false;
+	}
+
+	cloned_file << original_file.rdbuf();
+
+	original_file.close();
+	cloned_file.close();
+	return true;
+}
