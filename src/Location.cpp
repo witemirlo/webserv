@@ -662,6 +662,14 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	return (status_line + headers + body);
 }
 
+
+std::string Location::responseGET(unsigned int error_code) const
+{
+	std::string const body = getBodyError(error_code);
+
+	return (getStatusLine(error_code) + getHeaders(body, "", error_code)  + body);
+}
+
 std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
 {
 	std::string file_path;
