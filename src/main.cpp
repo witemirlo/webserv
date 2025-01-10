@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <map>
@@ -73,9 +73,9 @@ void respond_http(Listener & listener, int fd)
 
 int false_http(Listener & listener, int fd)
 {
-	char buffer[128]; //TODO:  hay que verlo
-	std::memset(buffer, 0, sizeof buffer);
-	int bytes = recv(fd, buffer, sizeof buffer - 1, 0);
+	char buffer[BUFSIZ]; //TODO:  hay que verlo
+	std::memset(buffer, 0, sizeof(buffer));
+	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes == -1)
 	{
