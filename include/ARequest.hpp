@@ -9,6 +9,7 @@
 # include <map>
 # include <iostream>
 # include <vector>
+# include <cstdio>
 
 enum request_status {
 	INIT,
@@ -28,7 +29,7 @@ protected:
 	std::string _body;
 	int _status;
 public:
-	int appendRequest(std::string & append);
+	int appendRequest(std::string & append, int bytes_read);
 	void procHeader(std::string & raw, size_t index);
 
 	ARequest(std::string const & uri);
