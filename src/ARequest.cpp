@@ -19,7 +19,7 @@ int ARequest::appendRequest(std::string & append, int bytes_read)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (this->_status == BODY)
+		if (this->_status == BODY || this->_status == END)
 			break ;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);

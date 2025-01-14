@@ -10,7 +10,58 @@
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
 # define DEF_ROOT "/var"
-# define DEF_404 "/var/404.html"
+
+// DEFAULT ERROR PAGES -------------------
+# define DEF_100_FILE DEF_ROOT "/100.html"
+# define DEF_101_FILE DEF_ROOT "/101.html"
+
+# define DEF_200_FILE DEF_ROOT "/200.html"
+# define DEF_201_FILE DEF_ROOT "/201.html"
+# define DEF_202_FILE DEF_ROOT "/202.html"
+# define DEF_203_FILE DEF_ROOT "/203.html"
+# define DEF_204_FILE DEF_ROOT "/204.html"
+# define DEF_205_FILE DEF_ROOT "/205.html"
+# define DEF_206_FILE DEF_ROOT "/206.html"
+
+# define DEF_300_FILE DEF_ROOT "/300.html"
+# define DEF_301_FILE DEF_ROOT "/301.html"
+# define DEF_302_FILE DEF_ROOT "/302.html"
+# define DEF_303_FILE DEF_ROOT "/303.html"
+# define DEF_304_FILE DEF_ROOT "/304.html"
+# define DEF_305_FILE DEF_ROOT "/305.html"
+# define DEF_307_FILE DEF_ROOT "/307.html"
+# define DEF_308_FILE DEF_ROOT "/308.html"
+
+# define DEF_400_FILE DEF_ROOT "/400.html"
+# define DEF_401_FILE DEF_ROOT "/401.html"
+# define DEF_402_FILE DEF_ROOT "/402.html"
+# define DEF_403_FILE DEF_ROOT "/403.html"
+# define DEF_404_FILE DEF_ROOT "/404.html"
+# define DEF_405_FILE DEF_ROOT "/405.html"
+# define DEF_406_FILE DEF_ROOT "/406.html"
+# define DEF_407_FILE DEF_ROOT "/407.html"
+# define DEF_408_FILE DEF_ROOT "/408.html"
+# define DEF_409_FILE DEF_ROOT "/409.html"
+# define DEF_410_FILE DEF_ROOT "/410.html"
+# define DEF_411_FILE DEF_ROOT "/411.html"
+# define DEF_412_FILE DEF_ROOT "/412.html"
+# define DEF_413_FILE DEF_ROOT "/413.html"
+# define DEF_414_FILE DEF_ROOT "/414.html"
+# define DEF_415_FILE DEF_ROOT "/415.html"
+# define DEF_416_FILE DEF_ROOT "/416.html"
+# define DEF_417_FILE DEF_ROOT "/417.html"
+# define DEF_421_FILE DEF_ROOT "/421.html"
+# define DEF_422_FILE DEF_ROOT "/422.html"
+# define DEF_426_FILE DEF_ROOT "/426.html"
+
+# define DEF_500_FILE DEF_ROOT "/500.html"
+# define DEF_501_FILE DEF_ROOT "/501.html"
+# define DEF_502_FILE DEF_ROOT "/502.html"
+# define DEF_503_FILE DEF_ROOT "/503.html"
+# define DEF_504_FILE DEF_ROOT "/504.html"
+# define DEF_505_FILE DEF_ROOT "/505.html"
+//----------------------------------------
+
 
 class Location;
 

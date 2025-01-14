@@ -15,6 +15,7 @@ BADRequest& BADRequest::operator=(BADRequest const& other) {
 BADRequest::BADRequest(unsigned int code)
 	: _code(code)
 {
+	_status = HEADERS;
 	std::cerr << __FILE__ << ":" << __LINE__ << " | BADRequest(" << code << ") contructor called" << std::endl;
 }
 

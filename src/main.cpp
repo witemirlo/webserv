@@ -94,7 +94,7 @@ int false_http(Listener & listener, int fd)
 
 	int status = listener.updateRequest(fd, std::string(buffer, BUFSIZ), bytes);
 	
-#ifdef DEBUG
+
 	switch (status)
 	{
 	case INIT:
@@ -112,10 +112,12 @@ int false_http(Listener & listener, int fd)
 	default:
 		std::cout << "THE FUCK?" << std::endl;
 	}
-#endif
 
 	if (status == END)
+	{
+		std::cout << "IM WRITING" << std::endl;
 		listener.setFdToWrite(fd);
+	}
 	return (status);
 }
 

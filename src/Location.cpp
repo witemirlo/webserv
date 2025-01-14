@@ -505,6 +505,7 @@ std::string Location::getBodyError(int status_code) const
 	std::stringstream                          headers, buffer;
 
 	it = this->_error_pages.find(status_code);
+	if (it == this->_error_pages.end()) std::cerr << __FILE__ << ":" << __LINE__ << " | it for status code " << status_code << " was not found" << std::endl;
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
 		errno = EIO;
