@@ -24,14 +24,14 @@ static int get_listener(std::string & host, std::string & port);
  * 
  * @return the status of the request
  */
-int Listener::updateRequest(int fd, std::string buffer)
+int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 {
 	std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
 	try {
-		return (_requests.at(fd)->appendRequest(buffer));
+		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
 	} catch (std::exception const & e) {
 		_requests[fd] = createRequest(buffer);
-		return (_requests.at(fd)->appendRequest(buffer));
+		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
 	}
 }
 

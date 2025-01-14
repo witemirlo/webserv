@@ -9,22 +9,25 @@
  * 
  * @return the actual status of the request
  */
-int ARequest::appendRequest(std::string & append)
+int ARequest::appendRequest(std::string & append, int bytes_read)
 {
 	static std::string raw;
 
-	raw += append;
+	raw.append(append);
+
+	// std::cout << "This is raw -> " << raw << std::endl;
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
+		if (this->_status == BODY)
+			break ;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		raw.erase(0, ind + 2);
 	}
-	if (_status == BODY)
+	if (this->_status == BODY)
 	{
-		std::cerr << "RAW SIZE: " << raw.size() << std::endl;
-		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size())
+		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size() || bytes_read < BUFSIZ - 1)
 		{
 			_body = raw.substr();
 			_status = END;

@@ -596,7 +596,6 @@ std::string Location::CGIpost(std::string const& file, std::string const& body, 
 	write(writepipe[1], body.c_str(), body.size());
 	close(writepipe[1]);
 	close(readpipe[1]);
-	std::cerr << __FILE__ << ":" << __LINE__  << " |  body: \"" << body << "\"" <<std::endl;
 
 	return read_cgi_response(readpipe[0]); //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
@@ -713,13 +712,11 @@ std::string read_cgi_response(int fd)
 			break ;
 		str = str + std::string(buffer);
 	}
-	std::cerr << __FILE__ << ":" << __LINE__  << " |  CGI returns: " << str << std::endl;
 
 	size_t crlf = str.find(CRLF CRLF);
 	length << (str.size() - crlf - 4);
 	std::string response;
 	length >> response;
-	std::cout << __FILE__ << ": " << __LINE__  << " |  My guarrada: " << response << std::endl;
 	response = "Content-Length: " + response + CRLF + str;
 	close(fd);
 	return (response);

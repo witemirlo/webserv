@@ -92,7 +92,7 @@ int false_http(Listener & listener, int fd)
 		return (0);
 	}
 
-	int status = listener.updateRequest(fd, std::string(buffer));
+	int status = listener.updateRequest(fd, std::string(buffer, BUFSIZ), bytes);
 	
 #ifdef DEBUG
 	switch (status)

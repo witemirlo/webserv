@@ -43,7 +43,7 @@ public:
 
 	std::string respondTo(int fd);
 	void printRequest(int index);
-	int updateRequest(int index, std::string buffer);
+	int updateRequest(int index, std::string buffer, int bytes_read);
 	
 	ARequest *createRequest(std::string & buffer);
 	ARequest *createGet(std::string const & init);
