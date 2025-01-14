@@ -189,9 +189,9 @@ int main(int argc, char* argv[])
 	std::vector<std::map<std::string, std::string> >::iterator it;
 	std::size_t n = 0;
 	for (it = server_config.begin(); it < server_config.end(); it++) {
-		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
+		std::cerr << __FILE__ << ":" << __LINE__ << " | server[" << n << "]: " << std::endl;
 		for (i = it->begin(); i != it->end(); i++) {
-			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: ";
+			std::cerr << __FILE__ << ":" << __LINE__ << " | [key: " << i->first << ", value: ";
 			for (std::size_t j = 0; i->second[j]; j++) {
 				switch (i->second[j]) {
 				case STX:

@@ -549,7 +549,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 	// char buff[101];
 	// buff[100] = 0;
 	// read(0, buff, atoi(len.c_str()));
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
 
 	int count;
 	for (count = 0; environ[count]; count++) {}
@@ -596,7 +596,7 @@ std::string Location::CGIpost(std::string const& file, std::string const& body, 
 	write(writepipe[1], body.c_str(), body.size());
 	close(writepipe[1]);
 	close(readpipe[1]);
-	std::cerr << __FILE__ << ": " << __LINE__  << " |  body: \"" << body << "\"" <<std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__  << " |  body: \"" << body << "\"" <<std::endl;
 
 	return read_cgi_response(readpipe[0]); //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
@@ -628,8 +628,8 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	std::string status_line, headers, body;
 	int         status_code;
 	(void)query;
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  uri: " << uri << std::endl;
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  query: " << query << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  uri: " << uri << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  query: " << query << std::endl;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
@@ -640,9 +640,9 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 		body = getBody(uri);
 		// body = CRLF + body;// TODO: que body plante un salto de linea
 	}
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | status code: " << status_code << std::endl;
 	if (status_code >= 300) {
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
@@ -650,15 +650,15 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: comprobar el status code y trabajar en consecuencia
 
 	headers = getHeaders(body, uri, status_code);
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | headers: " << headers << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | headers: " << headers << std::endl;
 	// status_line = getStatusLine(status_code);
 	// status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 	status_line = getStatusLine();
-			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
+			// std::cerr << __FILE__ << ":" << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
 			// std::cout << std::flush;
-		// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
+		// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
 }
 
@@ -713,7 +713,7 @@ std::string read_cgi_response(int fd)
 			break ;
 		str = str + std::string(buffer);
 	}
-	std::cerr << __FILE__ << ": " << __LINE__  << " |  CGI returns: " << str << std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__  << " |  CGI returns: " << str << std::endl;
 
 	size_t crlf = str.find(CRLF CRLF);
 	length << (str.size() - crlf - 4);

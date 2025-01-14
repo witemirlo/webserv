@@ -26,7 +26,7 @@ static int get_listener(std::string & host, std::string & port);
  */
 int Listener::updateRequest(int fd, std::string buffer)
 {
-	std::cerr << __FILE__ << ": " << __LINE__ << ": buffer: " << buffer;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
 	try {
 		return (_requests.at(fd)->appendRequest(buffer));
 	} catch (std::exception const & e) {

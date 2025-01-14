@@ -5,7 +5,6 @@
 #include <iostream>
 
 BADRequest::BADRequest(void) : _code(500) {}
-BADRequest::BADRequest(unsigned int code) : _code(code) {}
 BADRequest::BADRequest(BADRequest const& other) { *this = other; }
 BADRequest::~BADRequest(void) {}
 BADRequest& BADRequest::operator=(BADRequest const& other) {
@@ -13,7 +12,14 @@ BADRequest& BADRequest::operator=(BADRequest const& other) {
 	return *this;
 }
 
+BADRequest::BADRequest(unsigned int code)
+	: _code(code)
+{
+	std::cerr << __FILE__ << ":" << __LINE__ << " | BADRequest(" << code << ") contructor called" << std::endl;
+}
+
 std::string BADRequest::generateResponse(std::vector<Server> & servers)
 {
+	std::cerr << __FILE__ << ":" << __LINE__ << " | BADRequest(" << _code << ")::generateResponse called " << std::endl;
 	return getSelectedLocation(servers).responseGET(_code);
 }
