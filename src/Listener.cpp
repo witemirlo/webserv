@@ -53,7 +53,7 @@ ARequest *Listener::createRequest(std::string & buffer)
 	std::size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
 	if (ind == std::string::npos) {
 		// TODO: control de errores
-		return new BADRequest(403);
+		return new BADRequest(400);
 		return NULL;
 	}
 
@@ -68,7 +68,7 @@ ARequest *Listener::createRequest(std::string & buffer)
 	buffer.erase(0, ind + 2);
 	if (uri.size() == 0) {
 		// TODO: control de errores
-		return new BADRequest(403);
+		return new BADRequest(400);
 		return NULL;
 	}
 
@@ -78,7 +78,7 @@ ARequest *Listener::createRequest(std::string & buffer)
 		if (method == request_types[i])
 			return ((this->*creators[i])(uri));
 	}
-	return new BADRequest(403);
+	return new BADRequest(400);
 	return (NULL); //TODO: error management
 }
 
@@ -278,11 +278,13 @@ void Listener::setFdToRead(int fd)
  */
 std::string Listener::respondTo(int fd)
 {
+	std::cerr << __FILE__ << ":" << __LINE__ << " | " << "hola caracola"  << std::endl;
 	std::string response = _requests[fd]->generateResponse(_assoc_servers);
 
 	delete _requests[fd];
 	_requests.erase(fd);
 	setFdToRead(fd);
+	std::cerr << __FILE__ << ":" << __LINE__ << " | " << "Listener::respondTo returns:\n" << response << std::endl;
 	return (response);
 }
 

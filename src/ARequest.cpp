@@ -23,6 +23,7 @@ int ARequest::appendRequest(std::string & append)
 	}
 	if (_status == BODY)
 	{
+		std::cerr << "RAW SIZE: " << raw.size() << std::endl;
 		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size())
 		{
 			_body = raw.substr();
@@ -43,6 +44,8 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	{
 		try {
 			_headers.at("content-length"); //TODO: transfer encoding
+			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
+				throw std::exception();
 			this->_status = BODY;
 			return;
 		} catch(const std::exception& e) {

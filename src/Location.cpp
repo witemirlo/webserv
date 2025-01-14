@@ -468,7 +468,7 @@ std::string Location::getStatusLine(void) const
 	return getStatusLine(getStatusCode());
 }
 
-std::string Location::getStatusLine(unsigned int code) const
+std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
 {
 	switch (code) {
 	case 200:
