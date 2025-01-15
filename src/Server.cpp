@@ -50,9 +50,10 @@ Server::Server(std::map<std::string, std::string> & config)
 	{
 		//TODO: check for duplicated locations
 		// TODO: en general los index dentro de un location funcionan raro, cuando hay varios directamente lo pone mal
-		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8)); //TODO: a lo peor no se asigna bien
+		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8));
 	}
-	//TODO: reglas fundamentales ej. listen
+	if (loc_to_process.size() == 0)
+		_locations["/"] = Location(*this, "", "/");
 }
 
 /**
