@@ -1,13 +1,14 @@
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <errno.h>
 #include <iostream>
 #include <map>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
-#include <signal.h>
 
 #include "Listener.hpp"
 #include "Server.hpp"
@@ -64,7 +65,8 @@ void respond_http(Listener & listener, int fd)
 		iter = send(fd, response + sent, len - sent, 0);
 		if (iter == -1)
 		{
-			std::cerr << RED "Error: " NC "an error ocurred while sending" << std::endl;
+			std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl; // TODO: GET a img/big.png genera error y cierra el servidor (httpie)
+			// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
 			exit(EXIT_FAILURE);
 		}
 		sent += iter;
@@ -79,7 +81,8 @@ int false_http(Listener & listener, int fd)
 
 	if (bytes == -1)
 	{
-		std::cout << "Error while reciving" << std::endl;
+		std::cout << RED "Error: " NC  << std::strerror(errno) << std::endl; // TODO: GET img/marioneta.jpg salta y cierra el serve (httpie)
+		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
 		exit (EXIT_FAILURE);
 	}
 
@@ -91,7 +94,7 @@ int false_http(Listener & listener, int fd)
 
 	int status = listener.updateRequest(fd, std::string(buffer, BUFSIZ), bytes);
 	
-#ifdef DEBUG
+
 	switch (status)
 	{
 	case INIT:
@@ -109,10 +112,12 @@ int false_http(Listener & listener, int fd)
 	default:
 		std::cout << "THE FUCK?" << std::endl;
 	}
-#endif
 
 	if (status == END)
+	{
+		std::cout << "IM WRITING" << std::endl;
 		listener.setFdToWrite(fd);
+	}
 	return (status);
 }
 
@@ -186,9 +191,9 @@ int main(int argc, char* argv[])
 	std::vector<std::map<std::string, std::string> >::iterator it;
 	std::size_t n = 0;
 	for (it = server_config.begin(); it < server_config.end(); it++) {
-		std::cerr << __FILE__ << ": " << __LINE__ << " | server[" << n << "]: " << std::endl;
+		std::cerr << __FILE__ << ":" << __LINE__ << " | server[" << n << "]: " << std::endl;
 		for (i = it->begin(); i != it->end(); i++) {
-			std::cerr << __FILE__ << ": " << __LINE__ << " | [key: " << i->first << ", value: ";
+			std::cerr << __FILE__ << ":" << __LINE__ << " | [key: " << i->first << ", value: ";
 			for (std::size_t j = 0; i->second[j]; j++) {
 				switch (i->second[j]) {
 				case STX:

@@ -19,7 +19,7 @@ int ARequest::appendRequest(std::string & append, int bytes_read)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (this->_status == BODY)
+		if (this->_status == BODY || this->_status == END)
 			break ;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
@@ -47,6 +47,8 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	{
 		try {
 			_headers.at("content-length"); //TODO: transfer encoding
+			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
+				throw std::exception();
 			this->_status = BODY;
 			return;
 		} catch(const std::exception& e) {

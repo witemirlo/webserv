@@ -14,6 +14,7 @@ SRC = \
 	src/socket_management.cpp\
 	src/get_config_data.cpp\
 	src/ARequest.cpp\
+	src/BADRequest.cpp\
 	src/GETRequest.cpp\
 	src/POSTRequest.cpp\
 	src/DELETERequest.cpp\

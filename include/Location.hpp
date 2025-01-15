@@ -44,6 +44,7 @@ public:
 	bool operator<=(const Location & other) const;
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
+	std::string responseGET(unsigned int error_code) const;
 	std::string responseDELETE(std::string const& uri, std::string const& query) const;
 	std::string responsePOST(std::string const& uri, std::string const& msg, std::string const& type, std::string const& len) const;
 };

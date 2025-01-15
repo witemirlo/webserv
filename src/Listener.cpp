@@ -2,6 +2,7 @@
 #include "GETRequest.hpp"
 #include "POSTRequest.hpp"
 #include "DELETERequest.hpp"
+#include "BADRequest.hpp"
 
 #include <iostream>
 #include <sys/types.h>
@@ -11,6 +12,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 
 const std::string Listener::request_types[] = {"GET", "POST", "DELETE", ""};
 ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet, &Listener::createPost, &Listener::createDelete};
@@ -24,6 +26,7 @@ static int get_listener(std::string & host, std::string & port);
  */
 int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 {
+	// std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
 	try {
 		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
 	} catch (std::exception const & e) {
@@ -35,25 +38,48 @@ int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 
 ARequest *Listener::createRequest(std::string & buffer)
 {
-	size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+	// NOTE: index del CRLF
+	// std::stringstream tmp(buffer);
+	// std::string method, uri;
 
-	std::string request_line = buffer.substr(0, ind + 2);
+	// tmp >> method;
+	// tmp >> uri;
 
-	size_t sp = request_line.find(" ");
-	std::string method = request_line.substr(0, sp);
+	// if (tmp.str() != CRLF) {
+	// 	// TODO: error check
+	// 	return NULL;
+	// }
+	//----------------------------------------------------------------------
+	std::size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+	if (ind == std::string::npos) {
+		// TODO: control de errores
+		return new BADRequest(400);
+		return NULL;
+	}
+
+	std::string request_line = buffer.substr(0, ind + 2); // linea de la peticion (GET /)
+
+	size_t sp = request_line.find(" "); // TODO: un unico espacio? o cualquier espacio?
+	std::string method = request_line.substr(0, sp); // NOTE: primera palabra (GET, ...)
 	request_line.erase(0, sp + 1);
 
-
 	sp = request_line.find(" ");
-	std::string uri = request_line.substr(0, sp);
+	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
 	buffer.erase(0, ind + 2);
-
+	std::cerr << __FILE__ << ":" << __LINE__ << " buffer after extract two first tokens" << buffer << std::endl;
+	if (uri.size() == 0) {
+		// TODO: control de errores
+		return new BADRequest(400);
+		return NULL;
+	}
 
 	for (int i = 0; request_types[i].size(); i++)
 	{
-		if (!method.compare(request_types[i]))
+		// if (!method.compare(request_types[i])) // TODO: borrar
+		if (method == request_types[i])
 			return ((this->*creators[i])(uri));
 	}
+	return new BADRequest(400);
 	return (NULL); //TODO: error management
 }
 
@@ -253,11 +279,13 @@ void Listener::setFdToRead(int fd)
  */
 std::string Listener::respondTo(int fd)
 {
+	std::cerr << __FILE__ << ":" << __LINE__ << " | " << "hola caracola"  << std::endl;
 	std::string response = _requests[fd]->generateResponse(_assoc_servers);
 
 	delete _requests[fd];
 	_requests.erase(fd);
 	setFdToRead(fd);
+	// std::cerr << __FILE__ << ":" << __LINE__ << " | " << "Listener::respondTo returns:\n" << response << std::endl;
 	return (response);
 }
 

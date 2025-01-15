@@ -468,7 +468,7 @@ std::string Location::getStatusLine(void) const
 	return getStatusLine(getStatusCode());
 }
 
-std::string Location::getStatusLine(unsigned int code) const
+std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
 {
 	switch (code) {
 	case 200:
@@ -508,6 +508,7 @@ std::string Location::getBodyError(int status_code) const
 	std::stringstream                          headers, buffer;
 
 	it = this->_error_pages.find(status_code);
+	if (it == this->_error_pages.end()) std::cerr << __FILE__ << ":" << __LINE__ << " | it for status code " << status_code << " was not found" << std::endl;
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
 		errno = EIO;
@@ -552,7 +553,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 	// char buff[101];
 	// buff[100] = 0;
 	// read(0, buff, atoi(len.c_str()));
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
 
 	int count;
 	for (count = 0; environ[count]; count++) {}
@@ -573,6 +574,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callPOSTcgi()" << std::endl;
 	exit(errno);
 }
 
@@ -635,8 +637,8 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	std::string status_line, headers, body;
 	int         status_code;
 	(void)query;
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  uri: " << uri << std::endl;
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  query: " << query << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  uri: " << uri << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  query: " << query << std::endl;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
@@ -647,9 +649,9 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 		body = getBody(uri);
 		// body = CRLF + body;// TODO: que body plante un salto de linea
 	}
-	// std::cerr << __FILE__ << ": " << __LINE__  << " |  This is body: " << body << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | status code: " << status_code << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | status code: " << status_code << std::endl;
 	if (status_code >= 300) {
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
@@ -657,16 +659,24 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: comprobar el status code y trabajar en consecuencia
 
 	headers = getHeaders(body, uri, status_code);
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | headers: " << headers << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | headers: " << headers << std::endl;
 	// status_line = getStatusLine(status_code);
 	// status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 	status_line = getStatusLine();
-			// std::cerr << __FILE__ << ": " << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
-			// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n";
+			// std::cerr << __FILE__ << ":" << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
+			// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n";
 			// std::cout << (status_line + headers + body);
 			// std::cout << std::flush;
-		// std::cerr << __FILE__ << ": " << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
+		// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
+}
+
+
+std::string Location::responseGET(unsigned int error_code) const
+{
+	std::string const body = getBodyError(error_code);
+
+	return (getStatusLine(error_code) + getHeaders(body, "", error_code)  + body);
 }
 
 std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
@@ -755,6 +765,7 @@ void Server::callGETcgi(std::string const& file, std::string const& query) const
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callGETcgi()" << std::endl;
 	exit(errno);
 }
 

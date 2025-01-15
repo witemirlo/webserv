@@ -17,7 +17,50 @@ static std::map<int, std::string> default_error_pages(void)
 {
 	std::map<int, std::string> err_pags;
 
-	err_pags[404] = DEF_404;
+	err_pags[100] = DEF_100_FILE;
+	err_pags[101] = DEF_101_FILE;
+	err_pags[200] = DEF_200_FILE;
+	err_pags[201] = DEF_201_FILE;
+	err_pags[202] = DEF_202_FILE;
+	err_pags[203] = DEF_203_FILE;
+	err_pags[204] = DEF_204_FILE;
+	err_pags[205] = DEF_205_FILE;
+	err_pags[206] = DEF_206_FILE;
+	err_pags[300] = DEF_300_FILE;
+	err_pags[301] = DEF_301_FILE;
+	err_pags[302] = DEF_302_FILE;
+	err_pags[303] = DEF_303_FILE;
+	err_pags[304] = DEF_304_FILE;
+	err_pags[305] = DEF_305_FILE;
+	err_pags[307] = DEF_307_FILE;
+	err_pags[308] = DEF_308_FILE;
+	err_pags[400] = DEF_400_FILE;
+	err_pags[401] = DEF_401_FILE;
+	err_pags[402] = DEF_402_FILE;
+	err_pags[403] = DEF_403_FILE;
+	err_pags[404] = DEF_404_FILE;
+	err_pags[405] = DEF_405_FILE;
+	err_pags[406] = DEF_406_FILE;
+	err_pags[407] = DEF_407_FILE;
+	err_pags[408] = DEF_408_FILE;
+	err_pags[409] = DEF_409_FILE;
+	err_pags[410] = DEF_410_FILE;
+	err_pags[411] = DEF_411_FILE;
+	err_pags[412] = DEF_412_FILE;
+	err_pags[413] = DEF_413_FILE;
+	err_pags[414] = DEF_414_FILE;
+	err_pags[415] = DEF_415_FILE;
+	err_pags[416] = DEF_416_FILE;
+	err_pags[417] = DEF_417_FILE;
+	err_pags[421] = DEF_421_FILE;
+	err_pags[422] = DEF_422_FILE;
+	err_pags[426] = DEF_426_FILE;
+	err_pags[500] = DEF_500_FILE;
+	err_pags[501] = DEF_501_FILE;
+	err_pags[502] = DEF_502_FILE;
+	err_pags[503] = DEF_503_FILE;
+	err_pags[504] = DEF_504_FILE;
+	err_pags[505] = DEF_505_FILE;
 
 	return (err_pags);
 }
@@ -148,8 +191,7 @@ void Server::setErrorPages(std::string const &errors)
 
 		ind = i + 1;
 	}
-
-	std::map<int, std::string>::iterator it;
+	_err_tmp = "";
 }
 
 /**

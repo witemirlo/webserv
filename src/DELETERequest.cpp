@@ -1,15 +1,16 @@
 #include "DELETERequest.hpp"
+#include "ARequest.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
 
 #include <iostream>
 
-DELETERequest::DELETERequest(void)
+DELETERequest::DELETERequest(void) : ARequest("")
 {
 	// std::cout << GREEN "DELETERequest default constructor called" NC << std::endl;
 }
 
-DELETERequest::DELETERequest(DELETERequest const& other)
+DELETERequest::DELETERequest(DELETERequest const& other) : ARequest("")
 {
 	// std::cout << GREEN "DELETERequest copy constructor called" NC << std::endl;
 	*this = other;
