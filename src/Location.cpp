@@ -571,6 +571,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callPOSTcgi()" << std::endl;
 	exit(errno);
 }
 
@@ -756,6 +757,7 @@ void Server::callGETcgi(std::string const& file, std::string const& query) const
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callGETcgi()" << std::endl;
 	exit(errno);
 }
 

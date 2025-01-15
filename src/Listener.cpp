@@ -26,7 +26,7 @@ static int get_listener(std::string & host, std::string & port);
  */
 int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 {
-	std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
+	// std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
 	try {
 		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
 	} catch (std::exception const & e) {
@@ -59,13 +59,14 @@ ARequest *Listener::createRequest(std::string & buffer)
 
 	std::string request_line = buffer.substr(0, ind + 2); // linea de la peticion (GET /)
 
-	size_t sp = request_line.find(" ");
+	size_t sp = request_line.find(" "); // TODO: un unico espacio? o cualquier espacio?
 	std::string method = request_line.substr(0, sp); // NOTE: primera palabra (GET, ...)
 	request_line.erase(0, sp + 1);
 
 	sp = request_line.find(" ");
 	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
 	buffer.erase(0, ind + 2);
+	std::cerr << __FILE__ << ":" << __LINE__ << " buffer after extract two first tokens" << buffer << std::endl;
 	if (uri.size() == 0) {
 		// TODO: control de errores
 		return new BADRequest(400);
@@ -284,7 +285,7 @@ std::string Listener::respondTo(int fd)
 	delete _requests[fd];
 	_requests.erase(fd);
 	setFdToRead(fd);
-	std::cerr << __FILE__ << ":" << __LINE__ << " | " << "Listener::respondTo returns:\n" << response << std::endl;
+	// std::cerr << __FILE__ << ":" << __LINE__ << " | " << "Listener::respondTo returns:\n" << response << std::endl;
 	return (response);
 }
 
