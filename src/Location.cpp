@@ -485,6 +485,9 @@ std::string Location::getStatusLine(unsigned int code) const
 	
 	case 404:
 		return ("HTTP/1.1 404 Not Found" CRLF);
+
+	case 405:
+		return ("HTTP/1.1 405 Method Not Allowed" CRLF);
 	
 	default:
 		return ("HTTP/1.1 500 Internal Server Error" CRLF);
@@ -611,9 +614,14 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 	std::string body;
 
 	if (getFileType(uri) == _cgi_extension)
+	{
 		body = CGIpost(getPathTo(uri, true), msg, type, len);
+		return (getStatusLine(200) + body);
+	}
+	else
+		return (getStatusLine(405) + "Allow: GET, DELETE" + CRLF + CRLF); //TODO: ajustar con allowed methods
 
-	return ("HTTP/1.1 200 OK\r\n" + body);
+
 }
 
 /**
