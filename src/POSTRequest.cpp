@@ -15,13 +15,8 @@ POSTRequest::POSTRequest(std::string const &uri) : ARequest(uri)
 
 std::string POSTRequest::generateResponse(std::vector<Server> & servers)
 {
-	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
-	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
-
 	Location selected_loc = getSelectedLocation(servers);
 	return selected_loc.responsePOST(_uri, _body, getHeaderValue("content-type"), getHeaderValue("content-length"));
-
-	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }
 
 //	OCCF
