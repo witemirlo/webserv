@@ -49,13 +49,15 @@ ARequest *Listener::createRequest(std::string & buffer)
 		return new BADRequest(400);
 
 	size_t sp = request_line.find(" ");
+	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: " << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	std::string method = request_line.substr(0, sp);
-	request_line = request_line.substr(sp);
-	std::cerr << __FILE__ << ":" << __LINE__ << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	request_line.erase(0, sp + 1);
+	std::cerr << __FILE__ << ":" << __LINE__ << ": method: " << method << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
+	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: " << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 
 	sp = request_line.find(" ");
 	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
+	std::cerr << __FILE__ << ":" << __LINE__ << ": uri: " << uri << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	buffer.erase(0, ind + 2);
 
 	if (uri.size() == 0) {
