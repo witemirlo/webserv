@@ -11,6 +11,8 @@ DEFAULT_ROOT = \"$(shell pwd)/error_pages\"
 
 OBJ = $(SRC:.cpp=.o)
 
+DEFAULT_ROOT = \"$(shell pwd)/error_pages\"
+
 SRC = \
 	src/main.cpp\
 	src/socket_management.cpp\
