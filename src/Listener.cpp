@@ -4,6 +4,7 @@
 #include "DELETERequest.hpp"
 #include "BADRequest.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -37,48 +38,35 @@ int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 
 ARequest *Listener::createRequest(std::string & buffer)
 {
-	// NOTE: index del CRLF
-	// std::stringstream tmp(buffer);
-	// std::string method, uri;
-
-	// tmp >> method;
-	// tmp >> uri;
-
-	// if (tmp.str() != CRLF) {
-	// 	// TODO: error check
-	// 	return NULL;
-	// }
-	//----------------------------------------------------------------------
-	std::size_t ind = buffer.find(CRLF); //TODO: he leido que algunos empiezan con CRLF y tecnicamente podría pasar que no esté en el primer read
+	std::size_t ind = buffer.find(CRLF);
 	if (ind == std::string::npos) {
-		// TODO: control de errores
 		return new BADRequest(400);
-		return NULL;
 	}
 
-	std::string request_line = buffer.substr(0, ind + 2); // linea de la peticion (GET /)
+	std::string request_line = buffer.substr(0, ind + 2);
+	if (std::count(request_line.begin(), request_line.end(), ' ') != 2)
+		return new BADRequest(400);
 
-	size_t sp = request_line.find(" "); // TODO: un unico espacio? o cualquier espacio?
-	std::string method = request_line.substr(0, sp); // NOTE: primera palabra (GET, ...)
+	size_t sp = request_line.find(" ");
+	std::string method = request_line.substr(0, sp);
+	request_line = request_line.substr(sp);
+	std::cerr << __FILE__ << ":" << __LINE__ << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	request_line.erase(0, sp + 1);
 
 	sp = request_line.find(" ");
 	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
 	buffer.erase(0, ind + 2);
+
 	if (uri.size() == 0) {
-		// TODO: control de errores
 		return new BADRequest(400);
-		return NULL;
 	}
 
 	for (int i = 0; request_types[i].size(); i++)
 	{
-		// if (!method.compare(request_types[i])) // TODO: borrar
 		if (method == request_types[i])
 			return ((this->*creators[i])(uri));
 	}
 	return new BADRequest(400);
-	return (NULL); //TODO: error management
 }
 
 ARequest *Listener::createGet(std::string const & init)
