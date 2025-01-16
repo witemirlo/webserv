@@ -51,7 +51,7 @@ ARequest *Listener::createRequest(std::string & buffer)
 		return new BADRequest(BAD_REQUEST);
 	}
 
-	std::string request_line = buffer.substr(0, ind + 2);
+	std::string request_line = buffer.substr(0, ind/*  + 2 */);
 	if (std::count(request_line.begin(), request_line.end(), ' ') != 2)
 		return new BADRequest(BAD_REQUEST);
 
@@ -66,20 +66,23 @@ ARequest *Listener::createRequest(std::string & buffer)
 	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
 	std::cerr << __FILE__ << ":" << __LINE__ << ": uri: " << uri << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	request_line.erase(0, sp + 1);
-	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: " << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
+	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: |" << request_line << "|" << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 	buffer.erase(0, ind + 2);
 
 	if (uri.size() == 0)
 		return new BADRequest(BAD_REQUEST);
 
-	if (request_line != "HTTP/1.1")
-		return new BADRequest(NOT_IMPLEMENTED);
+	if (request_line != "HTTP/1.1") {
+		if (!request_line.compare(0, 5, "HTTP/"))
+			return new BADRequest(HTTP_VERSION_NOT_SUPPORTED);
+		return new BADRequest(BAD_REQUEST);
+	}
 
-	for (int i = 0; request_types[i].size(); i++)
-	{
+	for (int i = 0; request_types[i].size(); i++) {
 		if (method == request_types[i])
 			return ((this->*creators[i])(uri));
 	}
+
 	return new BADRequest(NOT_IMPLEMENTED);
 }
 

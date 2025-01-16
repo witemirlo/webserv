@@ -4,7 +4,7 @@ CPPFLAGS = -I include/
 
 CXX = c++
 
-CPPFLAGS = -I include/#-D DEBUG
+CPPFLAGS = -I include/ -D DEF_ROOT=\"$(shell pwd)/error_pages\"#-D DEBUG
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -O0 -g3 -Wshadow -Wno-shadow -pedantic -fsanitize=address,leak
 
 OBJ = $(SRC:.cpp=.o)

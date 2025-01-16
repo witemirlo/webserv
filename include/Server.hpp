@@ -9,7 +9,10 @@
 
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
-# define DEF_ROOT "/var"
+
+# ifndef DEF_ROOT
+#  define DEF_ROOT "/var"
+# endif
 
 // DEFAULT ERROR PAGES -------------------
 # define DEF_100_FILE DEF_ROOT "/100.html"
