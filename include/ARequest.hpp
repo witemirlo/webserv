@@ -29,7 +29,7 @@ protected:
 	std::string _body;
 	int _status;
 public:
-	int appendRequest(std::string & append, int bytes_read);
+	int appendRequest(std::string & append, size_t bytes_read);
 	void procHeader(std::string & raw, size_t index);
 
 	ARequest(std::string const & uri);

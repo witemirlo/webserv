@@ -26,7 +26,6 @@ static int get_listener(std::string & host, std::string & port);
  */
 int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
 {
-	// std::cerr << __FILE__ << ":" << __LINE__ << ": buffer: \n" << buffer;
 	try {
 		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
 	} catch (std::exception const & e) {
@@ -66,7 +65,6 @@ ARequest *Listener::createRequest(std::string & buffer)
 	sp = request_line.find(" ");
 	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
 	buffer.erase(0, ind + 2);
-	std::cerr << __FILE__ << ":" << __LINE__ << " buffer after extract two first tokens" << buffer << std::endl;
 	if (uri.size() == 0) {
 		// TODO: control de errores
 		return new BADRequest(400);
@@ -279,7 +277,6 @@ void Listener::setFdToRead(int fd)
  */
 std::string Listener::respondTo(int fd)
 {
-	std::cerr << __FILE__ << ":" << __LINE__ << " | " << "hola caracola"  << std::endl;
 	std::string response = _requests[fd]->generateResponse(_assoc_servers);
 
 	delete _requests[fd];

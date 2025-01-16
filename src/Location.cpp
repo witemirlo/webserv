@@ -621,7 +621,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 		return (getStatusLine(200) + body);
 	}
 	else
-		return (getStatusLine(405) + "Allow: GET, DELETE" + CRLF + CRLF); //TODO: ajustar con allowed methods
+		return (getStatusLine(405) + "Allow: GET, DELETE" CRLF + getBodyError(405)); //TODO: ajustar con allowed methods
 
 
 }

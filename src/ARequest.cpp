@@ -9,13 +9,11 @@
  * 
  * @return the actual status of the request
  */
-int ARequest::appendRequest(std::string & append, int bytes_read)
+int ARequest::appendRequest(std::string & append, size_t bytes_read)
 {
 	static std::string raw;
 
 	raw.append(append);
-
-	// std::cout << "This is raw -> " << raw << std::endl;
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
@@ -25,11 +23,13 @@ int ARequest::appendRequest(std::string & append, int bytes_read)
 			procHeader(raw, ind);
 		raw.erase(0, ind + 2);
 	}
+	(void)bytes_read;
 	if (this->_status == BODY)
 	{
-		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size() || bytes_read < BUFSIZ - 1)
+		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size() /*|| bytes_read < BUFSIZ - 1*/)
 		{
 			_body = raw.substr();
+			raw.erase();
 			_status = END;
 		}
 	}
@@ -52,12 +52,12 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			this->_status = BODY;
 			return;
 		} catch(const std::exception& e) {
+			raw.erase();
 			this->_status = END;
 			return ;
 		}
 	}
 	std::string header = raw.substr(0, index);
-	// std::cout << "CRLF index: " << index << " for header -> " << header << std::endl;
 	size_t sep = header.find(":"); //TODO: errors
 	std::string key = header.substr(0, sep);
 	std::string value = trim(header.substr(sep + 1));

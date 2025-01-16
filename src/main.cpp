@@ -54,7 +54,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 
 void respond_http(Listener & listener, int fd)
 {
-	std::string returned = listener.respondTo(fd);
+	std::string returned = listener.respondTo(fd); 
 	const char *response = returned.c_str();
 	std::size_t sent = 0;
 	std::size_t len = returned.size();
@@ -75,9 +75,9 @@ void respond_http(Listener & listener, int fd)
 
 int false_http(Listener & listener, int fd)
 {
-	char buffer[BUFSIZ]; //TODO:  hay que verlo
+	char buffer[BUFSIZ];
 	std::memset(buffer, 0, sizeof(buffer));
-	int bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
 
 	if (bytes == -1)
 	{
@@ -92,9 +92,8 @@ int false_http(Listener & listener, int fd)
 		return (0);
 	}
 
-	int status = listener.updateRequest(fd, std::string(buffer, BUFSIZ), bytes);
+	int status = listener.updateRequest(fd, std::string(buffer, bytes), bytes);
 	
-
 	switch (status)
 	{
 	case INIT:
