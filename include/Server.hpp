@@ -4,12 +4,16 @@
 # include <map>
 # include <string>
 # include <vector>
+# include <algorithm>
 
 # include "colors.hpp"
+# include "delimiter.hpp"
 
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
 # define DEF_ROOT "/var"
+# define DEF_BODY_SIZE 5000000
+# define DEF_METHODS "GET\037POST\037DELETE"
 
 // DEFAULT ERROR PAGES -------------------
 # define DEF_100_FILE DEF_ROOT "/100.html"
@@ -78,6 +82,10 @@ protected:
 	bool _autoindex;
 	std::map<int, std::string> _error_pages;
 	std::string _cgi_extension;
+	std::map<std::string, std::string> _redirect;
+	size_t _body_size;
+	std::vector<std::string> _allow;
+
 	static const std::string rules[];
 	static void (Server::* const setters [])(std::string const &);
 
@@ -99,6 +107,9 @@ public:
 	void setAutoIndex(std::string const&autoindex);
 	void setErrorPages(std::string const &errors);
 	void setCGIExtension(std::string const &cgi_extension);
+	void setRedirections(std::string const &redirections);
+	void setBodySize(std::string const &body_size);
+	void setAllowedMethods(std::string const &allowed_methods);
 
 //	GETTER
 	std::vector<std::string> const& getServerName(void) const;

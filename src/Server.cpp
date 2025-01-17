@@ -7,9 +7,10 @@
 #include <sstream>
 
 const std::string Server::rules[] = 
-	{"listen", "server_name", "root", "index", "autoindex", "error_pages", "cgi_extension", ""};
+	{"listen", "server_name", "root", "index", "autoindex", "error_pages", "cgi_extension", "redirect", "body_size", "allow",""};
 void (Server::* const Server::setters [])(std::string const &) = 
-	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex, &Server::setErrorPages, &Server::setCGIExtension};
+	{&Server::setListen, &Server::setServerName, &Server::setRoot, &Server::setIndex, &Server::setAutoIndex, &Server::setErrorPages, &Server::setCGIExtension,
+	&Server::setRedirections, &Server::setBodySize, &Server::setAllowedMethods};
 
 static bool has_delimiter(std::string const & str);
 
@@ -75,7 +76,10 @@ Server::Server(std::map<std::string, std::string> & config)
 	_index(std::vector<std::string> ()),
 	_autoindex(false),
 	_error_pages(default_error_pages()),
-	_cgi_extension("*")
+	_cgi_extension("*"),
+	_redirect(std::map<std::string, std::string> ()),
+	_body_size(DEF_BODY_SIZE),
+	_allow(setVector(DEF_METHODS))
 {
 	std::vector<std::string> loc_to_process;
 
@@ -197,11 +201,10 @@ void Server::setErrorPages(std::string const &errors)
 /**
  * Creates a vector of strings using str
  * 
- * @param str a std::string with the elements separed using US (ASCII number 2)
+ * @param str a std::string with the elements separed using US (ASCII number 31)
  */
 std::vector<std::string> Server::setVector(std::string const & str)
 {
-	// TODO: a veces pone el index como index.html/
 	std::vector<std::string> result;
 	
 	if (!has_delimiter(str))
@@ -216,10 +219,10 @@ std::vector<std::string> Server::setVector(std::string const & str)
 		ind = 1;
 	else
 		ind = 0;
-	for (size_t i = str.find(US); i != std::string::npos; i = str.find(US, ind + 1))
+	for (size_t i = str.find(US); i != std::string::npos; i = str.find(US, ind))
 	{
 		result.push_back(str.substr(ind, i - ind));
-		ind = i;
+		ind = i + 1;
 	}
 
 	if (str[str.size() - 1] == ETX)
@@ -228,6 +231,67 @@ std::vector<std::string> Server::setVector(std::string const & str)
 		result.push_back(str.substr(ind, str.size() - ind));
 
 	return (result);
+}
+
+void Server::setAllowedMethods(std::string const &allowed_methods)
+{
+	std::vector<std::string> check = setVector(allowed_methods);
+
+	for (size_t i = 0; i < check.size(); i++) {
+		if (std::find(this->_allow.begin(), this->_allow.end(), check[i]) == this->_allow.end())
+		{
+			std::cerr << RED "Error: " NC "\"" + check[i] + "\" is not a valid method" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+	_allow = check;
+}
+
+void Server::setRedirections(std::string const &redirections)
+{
+	std::vector<std::string> crude = setVector(redirections);
+
+	for (size_t i = 0; i < crude.size(); i++)
+	{
+		size_t ind = crude[i].find("->");
+
+		if (ind == std::string::npos)
+		{
+			std::cerr << RED "Error: " NC "redirections follow this syntax \"/ROUTE -> /OTHER/ROUTE\"" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		
+		std::string old_route = crude[i].substr(0, ind);
+		std::string new_route = crude[i].substr(ind + 2);
+
+		if (old_route.size() < 1 || new_route.size() < 1)
+		{
+			std::cerr << RED "Error: " NC " routes in redirection need to be AT LEAST one character long" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		if (*old_route.begin() != '/')
+			old_route = "/" + old_route;
+		if (*new_route.begin() != '/')
+			new_route = "/" + new_route;
+
+		_redirect[old_route] = new_route;
+	}
+}
+
+void Server::setBodySize(std::string const &body_size)
+{
+	size_t test;
+	std::stringstream convert(body_size);
+
+	convert >> test;
+	if (!convert.fail() && body_size[0] != '-' && test && convert.eof())
+		_body_size = test;
+	else
+	{
+		std::cerr << RED "Error: " NC "\"" + body_size + "\" is not a valid body size" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 }
 
 void Server::setCGIExtension(std::string const &cgi_extension)
@@ -363,7 +427,10 @@ Server::Server(const Server &other) :
 	_index(other._index),
 	_autoindex(other._autoindex),
 	_error_pages(other._error_pages),
-	_cgi_extension(other._cgi_extension)
+	_cgi_extension(other._cgi_extension),
+	_redirect(other._redirect),
+	_body_size(other._body_size),
+	_allow(other._allow)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
@@ -387,6 +454,9 @@ Server &Server::operator=(const Server &other)
 	_error_pages = other._error_pages;
 	_cgi_extension = other._cgi_extension;
 	_locations = other._locations;
+	_redirect = other._redirect;
+	_body_size = other._body_size;
+	_allow = other._allow;
 
 	return (*this);
 }
