@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include "delimiter.hpp"
+#include "HTTP_status_code.hpp"
 #include "ARequest.hpp"
 
 #include <algorithm>
@@ -417,6 +418,7 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "Date: " << date << CRLF
 	       << "Server: webserv" CRLF;
 	
+	// TODO: meter headers correspondientes segun el status code
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
@@ -471,26 +473,51 @@ std::string Location::getStatusLine(void) const
 std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
 {
 	switch (code) {
-	case 200:
-		return ("HTTP/1.1 200 OK" CRLF);
-
-	case 204:
-		return ("HTTP/1.1 204 No Content" CRLF);
-	
-	case 400:
-		return ("HTTP/1.1 400 Bad Request" CRLF);
-	
-	case 403:
-		return ("HTTP/1.1 403 Forbidden" CRLF);
-	
-	case 404:
-		return ("HTTP/1.1 404 Not Found" CRLF);
-
-	case 405:
-		return ("HTTP/1.1 405 Method Not Allowed" CRLF);
-	
-	default:
-		return ("HTTP/1.1 500 Internal Server Error" CRLF);
+		case 100: return ("HTTP/1.1 100 Continue" CRLF);
+		case 101: return ("HTTP/1.1 101 Switching Protocols" CRLF);
+		case 200: return ("HTTP/1.1 200 OK" CRLF);
+		case 201: return ("HTTP/1.1 201 Created" CRLF);
+		case 202: return ("HTTP/1.1 202 Accepted" CRLF);
+		case 203: return ("HTTP/1.1 203 Non-Authoritative Information" CRLF);
+		case 204: return ("HTTP/1.1 204 No Content" CRLF);
+		case 205: return ("HTTP/1.1 205 Reset Content" CRLF);
+		case 206: return ("HTTP/1.1 206 Partial Content" CRLF);
+		case 300: return ("HTTP/1.1 300 Multiple Choices" CRLF);
+		case 301: return ("HTTP/1.1 301 Moved Permanently" CRLF);
+		case 302: return ("HTTP/1.1 302 Found" CRLF);
+		case 303: return ("HTTP/1.1 303 See Other" CRLF);
+		case 304: return ("HTTP/1.1 304 Not Modified" CRLF);
+		case 305: return ("HTTP/1.1 305 Use Proxy" CRLF);
+		case 307: return ("HTTP/1.1 307 Temporary Redirect" CRLF);
+		case 308: return ("HTTP/1.1 308 Permanent Redirect" CRLF);
+		case 400: return ("HTTP/1.1 400 Bad Request" CRLF);
+		case 401: return ("HTTP/1.1 401 Unauthorized" CRLF);
+		case 402: return ("HTTP/1.1 402 Payment Required" CRLF);
+		case 403: return ("HTTP/1.1 403 Forbidden" CRLF);
+		case 404: return ("HTTP/1.1 404 Not Found" CRLF);
+		case 405: return ("HTTP/1.1 405 Method Not Allowed" CRLF);
+		case 406: return ("HTTP/1.1 406 Not Acceptable" CRLF);
+		case 407: return ("HTTP/1.1 407 Proxy Authentication Required" CRLF);
+		case 408: return ("HTTP/1.1 408 Request Timeout" CRLF);
+		case 409: return ("HTTP/1.1 409 Conflict" CRLF);
+		case 410: return ("HTTP/1.1 410 Gone" CRLF);
+		case 411: return ("HTTP/1.1 411 Length Required" CRLF);
+		case 412: return ("HTTP/1.1 412 Precondition Failed" CRLF);
+		case 413: return ("HTTP/1.1 413 Content Too Large" CRLF);
+		case 414: return ("HTTP/1.1 414 URI Too Long" CRLF);
+		case 415: return ("HTTP/1.1 415 Unsupported Media Type" CRLF);
+		case 416: return ("HTTP/1.1 416 Range Not Satisfiable" CRLF);
+		case 417: return ("HTTP/1.1 417 Expectation Failed" CRLF);
+		case 421: return ("HTTP/1.1 421 Misdirected Request" CRLF);
+		case 422: return ("HTTP/1.1 422 Unprocessable Content" CRLF);
+		case 426: return ("HTTP/1.1 426 Upgrade Required" CRLF);
+		case 500: return ("HTTP/1.1 500 Internal Server Error" CRLF);
+		case 501: return ("HTTP/1.1 501 Not Implemented" CRLF);
+		case 502: return ("HTTP/1.1 502 Bad Gateway" CRLF);
+		case 503: return ("HTTP/1.1 503 Service Unavailable" CRLF);
+		case 504: return ("HTTP/1.1 504 Gateway Timeout" CRLF);
+		case 505: return ("HTTP/1.1 505 HTTP Version Not Supported" CRLF);
+		default:  return ("HTTP/1.1 500 Internal Server Error" CRLF);
 	}
 
 }
@@ -618,10 +645,10 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 	if (getFileType(uri) == _cgi_extension)
 	{
 		body = CGIpost(getPathTo(uri, true), msg, type, len);
-		return (getStatusLine(200) + body);
+		return (getStatusLine(OK) + body);
 	}
 	else
-		return (getStatusLine(405) + "Allow: GET, DELETE" CRLF + getBodyError(405)); //TODO: ajustar con allowed methods
+		return (getStatusLine(METHOD_NOT_ALLOWED) + "Allow: GET, DELETE" + CRLF + CRLF); //TODO: ajustar con allowed methods
 
 
 }
@@ -696,29 +723,29 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 	// TODO: cuales son los permisos para borrar un archivo?
 	// TODO: delete de un archivo que no existe?
 	if (access(file_path.c_str(), F_OK) < 0) { // TODO: si existe pero no tiene permisos internal server error
-		return (getStatusLine() + getHeaders(CRLF, uri, 404) + CRLF);
+		return (getStatusLine() + getHeaders(CRLF, uri, NOT_FOUND) + CRLF);
 	}
 
 	if (stat(file_path.c_str(), &file_info) < 0) {
-		return (getStatusLine() + getHeaders(CRLF, uri, 500) + CRLF);
+		return (getStatusLine() + getHeaders(CRLF, uri, INTERNAL_SERVER_ERROR) + CRLF);
 	}
 
 	if (std::remove(file_path.c_str()) < 0) {
-		return (getStatusLine() + getHeaders(CRLF, uri, 500) + CRLF);
+		return (getStatusLine() + getHeaders(CRLF, uri, INTERNAL_SERVER_ERROR) + CRLF);
 	}
 
-	return (getStatusLine(204) + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
+	return (getStatusLine(NO_CONTENT) + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
 }
 
 std::string read_cgi_response(int fd)
 {
-	char buffer[1024];
+	char buffer[BUFSIZ];
 	std::string str;
 	std::stringstream length;
 
 	while (42) {
-		memset(buffer, 0, 1024);
-		if (read(fd, buffer, 1024 - 1) <= 0)
+		memset(buffer, 0, BUFSIZ);
+		if (read(fd, buffer, BUFSIZ - 1) <= 0)
 			break ;
 		str = str + std::string(buffer);
 	}

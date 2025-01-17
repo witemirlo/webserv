@@ -11,9 +11,12 @@
 
 # define DEF_PORT "8080"
 # define DEF_HOST "localhost"
-# define DEF_ROOT "/var"
-# define DEF_BODY_SIZE 5000000
 # define DEF_METHODS "GET\037POST\037DELETE"
+
+# ifndef DEF_ROOT
+#  define DEF_ROOT "/var"
+# endif
+# define DEF_BODY_SIZE 5000000
 
 // DEFAULT ERROR PAGES -------------------
 # define DEF_100_FILE DEF_ROOT "/100.html"
