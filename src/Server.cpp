@@ -397,6 +397,26 @@ bool Server::getAutoIndex(void) const
 	return _autoindex;
 }
 
+std::string const& Server::getCGIExtension(void) const
+{
+	return _cgi_extension;
+}
+
+std::map<std::string, std::string> const& Server::getRedirections(void) const
+{
+	return _redirect;
+}
+
+size_t Server::getBodySize(void) const
+{
+	return _body_size;
+}
+
+std::vector<std::string> const& Server::getAllowedMethods(void) const
+{
+	return _allow;
+}
+
 // OTHERS
 
 static bool has_delimiter(std::string const & str)

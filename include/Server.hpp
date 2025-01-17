@@ -121,6 +121,9 @@ public:
 	std::vector<std::string> const& getIndex(void) const;
 	bool getAutoIndex(void) const;
 	std::string const& getCGIExtension(void) const;
+	std::map<std::string, std::string> const& getRedirections(void) const;
+	size_t getBodySize(void) const;
+	std::vector<std::string> const& getAllowedMethods(void) const;
 
 //	OCCF
 	Server();
