@@ -92,7 +92,7 @@ int false_http(Listener & listener, int fd)
 		return (0);
 	}
 
-	int status = listener.updateRequest(fd, std::string(buffer, bytes), bytes);
+	int status = listener.updateRequest(fd, std::string(buffer, bytes));
 	
 	switch (status)
 	{
@@ -113,10 +113,8 @@ int false_http(Listener & listener, int fd)
 	}
 
 	if (status == END)
-	{
-		std::cout << "IM WRITING" << std::endl;
 		listener.setFdToWrite(fd);
-	}
+
 	return (status);
 }
 

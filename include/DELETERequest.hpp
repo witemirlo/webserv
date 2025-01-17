@@ -5,7 +5,7 @@
 
 class DELETERequest : public ARequest {
 public:
-	DELETERequest(std::string const &uri);
+	DELETERequest(std::string const &uri, std::vector<Server> & servers);
 	std::string generateResponse(std::vector<Server> & servers);
 
 	DELETERequest(void);

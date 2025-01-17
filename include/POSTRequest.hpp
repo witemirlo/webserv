@@ -6,7 +6,7 @@
 class POSTRequest : public ARequest
 {
 public:
-	POSTRequest(std::string const &uri);
+	POSTRequest(std::string const &uri, std::vector<Server> & servers);
 	std::string generateResponse(std::vector<Server> & servers);
 
 //	OCCF

@@ -6,7 +6,7 @@
 class GETRequest : public ARequest
 {
 public:
-	GETRequest(std::string const &uri);
+	GETRequest(std::string const &uri, std::vector<Server> & servers);
 	std::string generateResponse(std::vector<Server> & servers);
 
 //	OCCF

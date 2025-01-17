@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <vector>
 
-GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
+GETRequest::GETRequest(std::string const &uri, std::vector<Server> & servers) : ARequest(uri, servers)
 {
 #ifdef DEBUG
 	std::cout << GREEN "GETRequest constructor for uri " + uri + " called" NC << std::endl;
@@ -15,13 +15,9 @@ GETRequest::GETRequest(std::string const &uri) : ARequest(uri)
 
 std::string GETRequest::generateResponse(std::vector<Server> & servers)
 {
-	std::string body = "<!DOCTYPE html>\n<html>\n<head>\n<title>Page Title</title>\n</head>\n<body>\n\n<h1>This is a Heading</h1>\n<p>This is a paragraph.</p>\n\n</body>\n</html>";
-	std::string headers = "Content-Type: text/html\r\nContent-Length: 143\r\n\r\n";
-
 	Location selected_loc = getSelectedLocation(servers);
 	return selected_loc.responseGET(_uri, _query);
 
-	return ("HTTP/1.1 200 OK\r\n" + headers + body);
 }
 
 //	OCCF

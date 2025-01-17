@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <vector>
 
-POSTRequest::POSTRequest(std::string const &uri) : ARequest(uri)
+POSTRequest::POSTRequest(std::string const &uri, std::vector<Server> & servers) : ARequest(uri, servers)
 {
 #ifdef DEBUG
 	std::cout << GREEN "POSTRequest constructor for uri " + uri + " called" NC << std::endl;

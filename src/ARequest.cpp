@@ -9,7 +9,7 @@
  * 
  * @return the actual status of the request
  */
-int ARequest::appendRequest(std::string & append, size_t bytes_read)
+int ARequest::appendRequest(std::string & append)
 {
 	static std::string raw;
 
@@ -17,16 +17,15 @@ int ARequest::appendRequest(std::string & append, size_t bytes_read)
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (this->_status == BODY || this->_status == END)
+		if (this->_status >= BODY)
 			break ;
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		raw.erase(0, ind + 2);
 	}
-	(void)bytes_read;
 	if (this->_status == BODY)
 	{
-		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size() /*|| bytes_read < BUFSIZ - 1*/)
+		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size())
 		{
 			_body = raw.substr();
 			raw.erase();
@@ -50,6 +49,7 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 				throw std::exception();
 			this->_status = BODY;
+			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 			return;
 		} catch(const std::exception& e) {
 			raw.erase();
@@ -100,8 +100,10 @@ std::string const ARequest::getHeaderValue(std::string const & key)
 	}
 }
 
-ARequest::ARequest(std::string const & uri) : _status(HEADERS)
+ARequest::ARequest(std::string const & uri, std::vector<Server> & servers) : _status(HEADERS)
 {
+	_my_servers = servers;
+
 	size_t ind = uri.find('?');
 
 	if (ind == std::string::npos)
@@ -151,7 +153,7 @@ ARequest::ARequest(void)
 #endif
 }
 
-ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _status(other._status)
+ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _my_servers(other._my_servers), _status(other._status)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;

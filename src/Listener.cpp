@@ -15,9 +15,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
 
 const std::string Listener::request_types[] = {"GET", "POST", "DELETE", ""};
-ARequest* (Listener::* const Listener::creators [])(std::string const &) = {&Listener::createGet, &Listener::createPost, &Listener::createDelete};
+ARequest* (Listener::* const Listener::creators [])(std::string const &, std::vector<Server> &) = {&Listener::createGet, &Listener::createPost, &Listener::createDelete};
 
 static int get_listener(std::string & host, std::string & port);
 
@@ -26,18 +27,18 @@ static int get_listener(std::string & host, std::string & port);
  * 
  * @return the status of the request
  */
-int Listener::updateRequest(int fd, std::string buffer, int bytes_read)
+int Listener::updateRequest(int fd, std::string buffer)
 {
 	try {
-		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
+		return (_requests.at(fd)->appendRequest(buffer));
 	} catch (std::exception const & e) {
-		_requests[fd] = createRequest(buffer);
-		return (_requests.at(fd)->appendRequest(buffer, bytes_read));
+		_requests[fd] = createRequest(buffer,_assoc_servers);
+		return (_requests.at(fd)->appendRequest(buffer));
 	}
 }
 
 
-ARequest *Listener::createRequest(std::string & buffer)
+ARequest *Listener::createRequest(std::string & buffer, std::vector<Server> & servers)
 {
 	std::size_t ind = buffer.find(CRLF);
 	if (ind == std::string::npos) {
@@ -79,25 +80,25 @@ ARequest *Listener::createRequest(std::string & buffer)
 
 	for (int i = 0; request_types[i].size(); i++) {
 		if (method == request_types[i])
-			return ((this->*creators[i])(uri));
+			return ((this->*creators[i])(uri, servers));
 	}
 
 	return new BADRequest(NOT_IMPLEMENTED);
 }
 
-ARequest *Listener::createGet(std::string const & init)
+ARequest *Listener::createGet(std::string const & init, std::vector<Server> & servers)
 {
-	return (new GETRequest(init));
+	return (new GETRequest(init, servers));
 }
 
-ARequest *Listener::createPost(std::string const & init)
+ARequest *Listener::createPost(std::string const & init, std::vector<Server> & servers)
 {
-	return (new POSTRequest(init));
+	return (new POSTRequest(init, servers));
 }
 
-ARequest *Listener::createDelete(std::string const & init)
+ARequest *Listener::createDelete(std::string const & init, std::vector<Server> & servers)
 {
-	return (new DELETERequest(init));
+	return (new DELETERequest(init, servers));
 }
 
 void Listener::printRequest(int index)

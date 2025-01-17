@@ -27,12 +27,13 @@ protected:
 	std::string _path_info;
 	std::map<std::string, std::string> _headers;
 	std::string _body;
+	std::vector<Server> _my_servers;
 	int _status;
 public:
-	int appendRequest(std::string & append, size_t bytes_read);
+	int appendRequest(std::string & append);
 	void procHeader(std::string & raw, size_t index);
 
-	ARequest(std::string const & uri);
+	ARequest(std::string const & uri, std::vector<Server> & servers);
 
 	virtual std::string generateResponse(std::vector<Server> & servers) = 0;
 	std::string const getHeaderValue(std::string const & key);

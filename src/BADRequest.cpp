@@ -4,8 +4,8 @@
 
 #include <iostream>
 
-BADRequest::BADRequest(void) : ARequest(""), _code(500) {}
-BADRequest::BADRequest(BADRequest const& other) : ARequest("") { *this = other; }
+BADRequest::BADRequest(void) : ARequest(), _code(500) {}
+BADRequest::BADRequest(BADRequest const& other) : ARequest() { *this = other; }
 BADRequest::~BADRequest(void) {}
 BADRequest& BADRequest::operator=(BADRequest const& other) {
 	this->_code = other._code;
@@ -13,7 +13,7 @@ BADRequest& BADRequest::operator=(BADRequest const& other) {
 }
 
 BADRequest::BADRequest(unsigned int code)
-	: ARequest("")
+	: ARequest()
 	, _code(code)
 {
 	_status = HEADERS;

@@ -5,12 +5,12 @@
 
 #include <iostream>
 
-DELETERequest::DELETERequest(void) : ARequest("")
+DELETERequest::DELETERequest(void) : ARequest()
 {
 	// std::cout << GREEN "DELETERequest default constructor called" NC << std::endl;
 }
 
-DELETERequest::DELETERequest(DELETERequest const& other) : ARequest("")
+DELETERequest::DELETERequest(DELETERequest const& other) : ARequest(other)
 {
 	// std::cout << GREEN "DELETERequest copy constructor called" NC << std::endl;
 	*this = other;
@@ -27,7 +27,7 @@ DELETERequest& DELETERequest::operator=(DELETERequest const& other)
 	return *this;
 }
 
-DELETERequest::DELETERequest(std::string const &uri) : ARequest(uri)
+DELETERequest::DELETERequest(std::string const &uri, std::vector<Server> & servers) : ARequest(uri, servers)
 {
 
 }
