@@ -428,6 +428,20 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
 	}
 
+	if (status_code == METHOD_NOT_ALLOWED)
+	{
+		buffer << "Allow: ";
+		for (size_t i = 0; i < _allow.size(); i++){
+			if (_allow[i] != "POST" || getFileType(uri) == _cgi_extension)
+			{
+				buffer << _allow[i];
+				if (i != _allow.size() - 1)
+					buffer << ", ";
+			}
+		}
+		buffer << CRLF;
+	}
+
 	if (headers.find("content-length") == headers.end())
 		buffer << "Content-Length: " << (body.size() - 2) << CRLF;
 
@@ -655,15 +669,15 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 {
 	std::string body;
 
+	if (std::find(_allow.begin(), _allow.end(), "POST") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	if (getFileType(uri) == _cgi_extension)
 	{
 		body = CGIpost(getPathTo(uri, true), msg, type, len);
 		return (getStatusLine(OK) + body);
 	}
-	else
-		return (getStatusLine(METHOD_NOT_ALLOWED) + "Allow: GET, DELETE" + CRLF + CRLF); //TODO: ajustar con allowed methods
-
-
+	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
 }
 
 /**
@@ -674,6 +688,9 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
  */
 std::string Location::responseGET(std::string const& uri, std::string const& query) const
 {
+	if (std::find(_allow.begin(), _allow.end(), "GET") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	std::string status_line, headers, body;
 	int         status_code;
 	(void)query;
@@ -719,8 +736,18 @@ std::string Location::responseGET(unsigned int error_code) const
 	return (getStatusLine(error_code) + getHeaders(body, "", error_code)  + body);
 }
 
+std::string Location::responseGET(unsigned int error_code, std::string const& uri) const
+{
+	std::string const body = getBodyError(error_code);
+
+	return (getStatusLine(error_code) + getHeaders(body, uri, error_code)  + body);
+}
+
 std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
 {
+	if (std::find(_allow.begin(), _allow.end(), "DELETE") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	std::string file_path;
 	struct stat file_info;
 	// int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
