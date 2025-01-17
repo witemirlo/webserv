@@ -1,5 +1,6 @@
-#include "DELETERequest.hpp"
 #include "ARequest.hpp"
+#include "DELETERequest.hpp"
+#include "HTTP_status_code.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
 
@@ -34,5 +35,10 @@ DELETERequest::DELETERequest(std::string const &uri) : ARequest(uri)
 
 std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 {
-	return getSelectedLocation(servers).responseDELETE(_uri, _query);
+	Location tmp = getSelectedLocation(servers);
+
+	if (tmp.getRedirections().find(_uri) != tmp.getRedirections().end()))
+		return tmp.responseGET(MOVED_PERMANENTLY, tpm.getRedirections()[_uri]);
+
+	return tmp.responseDELETE(_uri, _query);
 }

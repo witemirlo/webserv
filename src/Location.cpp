@@ -430,6 +430,8 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "Date: " << date << CRLF
 	       << "Server: webserv" CRLF;
 	
+	if (status_code == 301)
+		buffer << "Location: " << uri << CRLF;
 	// TODO: meter headers correspondientes segun el status code
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
@@ -721,7 +723,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ":" << __LINE__ << " | status code: " << status_code << std::endl;
-	if (status_code >= 300) {
+	if (status_code >= 300) {// TODO: no me acaba de convencer esto, la redireccion entraria aqui
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
 	}
