@@ -28,6 +28,7 @@ private:
 
 	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
 	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
+	std::string getHttpMessage(int code) const;
 
 	bool copy_file(std::string const& body, std::string const& dest) const;
 
