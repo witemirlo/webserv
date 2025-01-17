@@ -28,6 +28,7 @@ private:
 
 	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
 	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
+	std::string getHttpMessage(int code) const;
 
 	bool copy_file(std::string const& body, std::string const& dest) const;
 
@@ -45,6 +46,7 @@ public:
 
 	std::string responseGET(std::string const& uri, std::string const& query) const;
 	std::string responseGET(unsigned int error_code) const;
+	std::string responseGET(unsigned int error_code, std::string const& uri) const;
 	std::string responseDELETE(std::string const& uri, std::string const& query) const;
 	std::string responsePOST(std::string const& uri, std::string const& msg, std::string const& type, std::string const& len) const;
 };

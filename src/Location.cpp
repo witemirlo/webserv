@@ -192,9 +192,21 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	struct stat                              file_info;
 
 	if (*(this->_root.rbegin()) == '/')
-		path = this->_root.substr(0, this->_root.size() - 1) + uri;
+		path = this->_root.substr(0, this->_root.size() - 1);
 	else
-		path = this->_root + uri;
+		path = this->_root;
+	
+	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
+	if (this->_redirect.find(uri) == this->_redirect.end()) {
+		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect NOT founded" << std::endl;
+		path += uri;
+	}
+	else {
+		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect founded" << std::endl;
+		path = this->_root + this->_redirect.find(uri)->second;
+	}
+	
+	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
 
 	if (stat(path.c_str(), &file_info) < 0) {
 		return "";
@@ -418,6 +430,8 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "Date: " << date << CRLF
 	       << "Server: webserv" CRLF;
 	
+	if (status_code == 301)
+		buffer << "Location: " << uri << CRLF;
 	// TODO: meter headers correspondientes segun el status code
 	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
@@ -426,6 +440,20 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
 			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
+	}
+
+	if (status_code == METHOD_NOT_ALLOWED)
+	{
+		buffer << "Allow: ";
+		for (size_t i = 0; i < _allow.size(); i++){
+			if (_allow[i] != "POST" || getFileType(uri) == _cgi_extension)
+			{
+				buffer << _allow[i];
+				if (i != _allow.size() - 1)
+					buffer << ", ";
+			}
+		}
+		buffer << CRLF;
 	}
 
 	if (headers.find("content-length") == headers.end())
@@ -472,54 +500,11 @@ std::string Location::getStatusLine(void) const
 
 std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
 {
-	switch (code) {
-		case 100: return ("HTTP/1.1 100 Continue" CRLF);
-		case 101: return ("HTTP/1.1 101 Switching Protocols" CRLF);
-		case 200: return ("HTTP/1.1 200 OK" CRLF);
-		case 201: return ("HTTP/1.1 201 Created" CRLF);
-		case 202: return ("HTTP/1.1 202 Accepted" CRLF);
-		case 203: return ("HTTP/1.1 203 Non-Authoritative Information" CRLF);
-		case 204: return ("HTTP/1.1 204 No Content" CRLF);
-		case 205: return ("HTTP/1.1 205 Reset Content" CRLF);
-		case 206: return ("HTTP/1.1 206 Partial Content" CRLF);
-		case 300: return ("HTTP/1.1 300 Multiple Choices" CRLF);
-		case 301: return ("HTTP/1.1 301 Moved Permanently" CRLF);
-		case 302: return ("HTTP/1.1 302 Found" CRLF);
-		case 303: return ("HTTP/1.1 303 See Other" CRLF);
-		case 304: return ("HTTP/1.1 304 Not Modified" CRLF);
-		case 305: return ("HTTP/1.1 305 Use Proxy" CRLF);
-		case 307: return ("HTTP/1.1 307 Temporary Redirect" CRLF);
-		case 308: return ("HTTP/1.1 308 Permanent Redirect" CRLF);
-		case 400: return ("HTTP/1.1 400 Bad Request" CRLF);
-		case 401: return ("HTTP/1.1 401 Unauthorized" CRLF);
-		case 402: return ("HTTP/1.1 402 Payment Required" CRLF);
-		case 403: return ("HTTP/1.1 403 Forbidden" CRLF);
-		case 404: return ("HTTP/1.1 404 Not Found" CRLF);
-		case 405: return ("HTTP/1.1 405 Method Not Allowed" CRLF);
-		case 406: return ("HTTP/1.1 406 Not Acceptable" CRLF);
-		case 407: return ("HTTP/1.1 407 Proxy Authentication Required" CRLF);
-		case 408: return ("HTTP/1.1 408 Request Timeout" CRLF);
-		case 409: return ("HTTP/1.1 409 Conflict" CRLF);
-		case 410: return ("HTTP/1.1 410 Gone" CRLF);
-		case 411: return ("HTTP/1.1 411 Length Required" CRLF);
-		case 412: return ("HTTP/1.1 412 Precondition Failed" CRLF);
-		case 413: return ("HTTP/1.1 413 Content Too Large" CRLF);
-		case 414: return ("HTTP/1.1 414 URI Too Long" CRLF);
-		case 415: return ("HTTP/1.1 415 Unsupported Media Type" CRLF);
-		case 416: return ("HTTP/1.1 416 Range Not Satisfiable" CRLF);
-		case 417: return ("HTTP/1.1 417 Expectation Failed" CRLF);
-		case 421: return ("HTTP/1.1 421 Misdirected Request" CRLF);
-		case 422: return ("HTTP/1.1 422 Unprocessable Content" CRLF);
-		case 426: return ("HTTP/1.1 426 Upgrade Required" CRLF);
-		case 500: return ("HTTP/1.1 500 Internal Server Error" CRLF);
-		case 501: return ("HTTP/1.1 501 Not Implemented" CRLF);
-		case 502: return ("HTTP/1.1 502 Bad Gateway" CRLF);
-		case 503: return ("HTTP/1.1 503 Service Unavailable" CRLF);
-		case 504: return ("HTTP/1.1 504 Gateway Timeout" CRLF);
-		case 505: return ("HTTP/1.1 505 HTTP Version Not Supported" CRLF);
-		default:  return ("HTTP/1.1 500 Internal Server Error" CRLF);
-	}
+	std::stringstream token;
 
+	token << code;
+
+	return ("HTTP/1.1 " + token.str() + " " + getHttpMessage(code) + CRLF);
 }
 
 /**
@@ -538,10 +523,15 @@ std::string Location::getBodyError(int status_code) const
 	if (it == this->_error_pages.end()) std::cerr << __FILE__ << ":" << __LINE__ << " | it for status code " << status_code << " was not found" << std::endl;
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
-		errno = EIO;
-		buffer << "An error ocurred with "
-		       << it->second
-		       << "\n";
+		// errno = EIO;
+		// buffer << "An error ocurred with "
+		//        << it->second
+		//        << "\n";
+
+		buffer << "<html><body>"
+		       << "<h1 style=\"text-align: center\">" << status_code << " " << getHttpMessage(status_code) << "</h1>"
+		       << "<p style=\"text-align: center\">webserv</p>"
+		       << "</body></html>\n";
 
 		headers << "Content-Length: " << buffer.str().size() << CRLF
 	                << "Content-Type: " << "text/html" << CRLF
@@ -558,6 +548,57 @@ std::string Location::getBodyError(int status_code) const
 	        << CRLF;
 
 	return headers.str() + buffer.str();
+}
+
+std::string Location::getHttpMessage(int code) const
+{
+	switch (code) {
+		case 100: return ("Continue");
+		case 101: return ("Switching Protocols");
+		case 200: return ("OK");
+		case 201: return ("Created");
+		case 202: return ("Accepted");
+		case 203: return ("Non-Authoritative Information");
+		case 204: return ("No Content");
+		case 205: return ("Reset Content");
+		case 206: return ("Partial Content");
+		case 300: return ("Multiple Choices");
+		case 301: return ("Moved Permanently");
+		case 302: return ("Found");
+		case 303: return ("See Other");
+		case 304: return ("Not Modified");
+		case 305: return ("Use Proxy");
+		case 307: return ("Temporary Redirect");
+		case 308: return ("Permanent Redirect");
+		case 400: return ("Bad Request");
+		case 401: return ("Unauthorized");
+		case 402: return ("Payment Required");
+		case 403: return ("Forbidden");
+		case 404: return ("Not Found");
+		case 405: return ("Method Not Allowed");
+		case 406: return ("Not Acceptable");
+		case 407: return ("Proxy Authentication Required");
+		case 408: return ("Request Timeout");
+		case 409: return ("Conflict");
+		case 410: return ("Gone");
+		case 411: return ("Length Required");
+		case 412: return ("Precondition Failed");
+		case 413: return ("Content Too Large");
+		case 414: return ("URI Too Long");
+		case 415: return ("Unsupported Media Type");
+		case 416: return ("Range Not Satisfiable");
+		case 417: return ("Expectation Failed");
+		case 421: return ("Misdirected Request");
+		case 422: return ("Unprocessable Content");
+		case 426: return ("Upgrade Required");
+		case 500: return ("Internal Server Error");
+		case 501: return ("Not Implemented");
+		case 502: return ("Bad Gateway");
+		case 503: return ("Service Unavailable");
+		case 504: return ("Gateway Timeout");
+		case 505: return ("HTTP Version Not Supported");
+		default:  return ("");
+	}
 }
 
 void Server::callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const
@@ -642,15 +683,15 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 {
 	std::string body;
 
+	if (std::find(_allow.begin(), _allow.end(), "POST") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	if (getFileType(uri) == _cgi_extension)
 	{
 		body = CGIpost(getPathTo(uri, true), msg, type, len);
 		return (getStatusLine(OK) + body);
 	}
-	else
-		return (getStatusLine(METHOD_NOT_ALLOWED) + "Allow: GET, DELETE" + CRLF + CRLF); //TODO: ajustar con allowed methods
-
-
+	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
 }
 
 /**
@@ -661,6 +702,9 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
  */
 std::string Location::responseGET(std::string const& uri, std::string const& query) const
 {
+	if (std::find(_allow.begin(), _allow.end(), "GET") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	std::string status_line, headers, body;
 	int         status_code;
 	(void)query;
@@ -679,7 +723,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
 			// std::cerr << __FILE__ << ":" << __LINE__ << " | status code: " << status_code << std::endl;
-	if (status_code >= 300) {
+	if (status_code >= 300) {// TODO: no me acaba de convencer esto, la redireccion entraria aqui
     		// TODO: mirar las error pages
 		body = getBodyError(status_code);
 	}
@@ -706,8 +750,18 @@ std::string Location::responseGET(unsigned int error_code) const
 	return (getStatusLine(error_code) + getHeaders(body, "", error_code)  + body);
 }
 
+std::string Location::responseGET(unsigned int error_code, std::string const& uri) const
+{
+	std::string const body = getBodyError(error_code);
+
+	return (getStatusLine(error_code) + getHeaders(body, uri, error_code)  + body);
+}
+
 std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
 {
+	if (std::find(_allow.begin(), _allow.end(), "DELETE") == _allow.end())
+		return (responseGET(METHOD_NOT_ALLOWED, uri));
+
 	std::string file_path;
 	struct stat file_info;
 	// int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar

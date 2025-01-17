@@ -1,5 +1,6 @@
-#include "DELETERequest.hpp"
 #include "ARequest.hpp"
+#include "DELETERequest.hpp"
+#include "HTTP_status_code.hpp"
 #include "Location.hpp"
 #include "Server.hpp"
 
@@ -10,7 +11,7 @@ DELETERequest::DELETERequest(void) : ARequest()
 	// std::cout << GREEN "DELETERequest default constructor called" NC << std::endl;
 }
 
-DELETERequest::DELETERequest(DELETERequest const& other) : ARequest(other)
+DELETERequest::DELETERequest(DELETERequest const& other) : ARequest()
 {
 	// std::cout << GREEN "DELETERequest copy constructor called" NC << std::endl;
 	*this = other;
@@ -34,7 +35,13 @@ DELETERequest::DELETERequest(std::string const &uri, std::vector<Server> & serve
 
 std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 {
+	Location tmp = getSelectedLocation(servers);
+
 	if (_status != END)
-		return getSelectedLocation(servers).responseGET(_status);
-	return getSelectedLocation(servers).responseDELETE(_uri, _query);
+		return tmp.responseGET(_status);
+	
+	if (tmp.getRedirections().find(_uri) != tmp.getRedirections().end())
+		return tmp.responseGET(MOVED_PERMANENTLY, tmp.getRedirections().at(_uri));
+
+	return tmp.responseDELETE(_uri, _query);
 }
