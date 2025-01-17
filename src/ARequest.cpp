@@ -1,5 +1,7 @@
 #include "ARequest.hpp"
 #include "get_config_data.hpp"
+#include "HTTP_status_code.hpp"
+#include "Location.hpp"
 
 #include <iostream>
 #include <cstdlib>
@@ -22,6 +24,16 @@ int ARequest::appendRequest(std::string & append)
 		if (this->_status == HEADERS)
 			procHeader(raw, ind);
 		raw.erase(0, ind + 2);
+
+		if (!_max_size)
+		{
+			try {
+				_headers.at("host");
+				_max_size = getSelectedLocation(_my_servers).getBodySize();
+				std::cerr << "Request max size = " << _max_size << std::endl;
+			}
+			catch(const std::exception& e) {}
+		}
 	}
 	if (this->_status == BODY)
 	{
@@ -49,7 +61,8 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 				throw std::exception();
 			this->_status = BODY;
-			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
+			if ((size_t)std::atoll(_headers["content-length"].c_str()) > _max_size)
+				this->_status = CONTENT_TOO_LARGE;
 			return;
 		} catch(const std::exception& e) {
 			raw.erase();
@@ -57,6 +70,7 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			return ;
 		}
 	}
+
 	std::string header = raw.substr(0, index);
 	size_t sep = header.find(":"); //TODO: errors
 	std::string key = header.substr(0, sep);
@@ -100,7 +114,7 @@ std::string const ARequest::getHeaderValue(std::string const & key)
 	}
 }
 
-ARequest::ARequest(std::string const & uri, std::vector<Server> & servers) : _status(HEADERS)
+ARequest::ARequest(std::string const & uri, std::vector<Server> & servers) : _max_size(0), _status(HEADERS)
 {
 	_my_servers = servers;
 
@@ -153,7 +167,7 @@ ARequest::ARequest(void)
 #endif
 }
 
-ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _my_servers(other._my_servers), _status(other._status)
+ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _my_servers(other._my_servers), _max_size(other._max_size), _status(other._status)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;

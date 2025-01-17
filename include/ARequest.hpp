@@ -28,6 +28,7 @@ protected:
 	std::map<std::string, std::string> _headers;
 	std::string _body;
 	std::vector<Server> _my_servers;
+	size_t _max_size;
 	int _status;
 public:
 	int appendRequest(std::string & append);

@@ -34,5 +34,7 @@ DELETERequest::DELETERequest(std::string const &uri, std::vector<Server> & serve
 
 std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 {
+	if (_status != END)
+		return getSelectedLocation(servers).responseGET(_status);
 	return getSelectedLocation(servers).responseDELETE(_uri, _query);
 }
