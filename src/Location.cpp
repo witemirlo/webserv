@@ -192,9 +192,21 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	struct stat                              file_info;
 
 	if (*(this->_root.rbegin()) == '/')
-		path = this->_root.substr(0, this->_root.size() - 1) + uri;
+		path = this->_root.substr(0, this->_root.size() - 1);
 	else
-		path = this->_root + uri;
+		path = this->_root;
+	
+	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
+	if (this->_redirect.find(uri) == this->_redirect.end()) {
+		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect NOT founded" << std::endl;
+		path += uri;
+	}
+	else {
+		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect founded" << std::endl;
+		path = this->_root + this->_redirect.find(uri)->second;
+	}
+	
+	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
 
 	if (stat(path.c_str(), &file_info) < 0) {
 		return "";
