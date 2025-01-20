@@ -879,10 +879,21 @@ std::string Location::CGIget(std::string const& file, std::string const& query) 
  */
 std::string Location::getFileType(std::string const& file) const
 {
-	if (file.find('.') ==  std::string::npos)
-		return "";
+	std::size_t dot_pos, dir_pos;
 
-	return (file.substr(file.find_last_of('.') + 1));
+	dot_pos = file.find_last_of('.');
+	if (dot_pos ==  std::string::npos)
+		return "";
+	
+	dot_pos += 1;
+	
+	dir_pos = file.find('/', dot_pos);
+	if (dir_pos == std::string::npos)
+		dir_pos = file.length() - dot_pos;
+	else
+		dir_pos -= dot_pos;
+
+	return (file.substr(dot_pos, dir_pos));
 }
 
 /**
