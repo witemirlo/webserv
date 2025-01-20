@@ -1,6 +1,7 @@
 #include "POSTRequest.hpp"
 #include "Server.hpp"
 #include "Location.hpp"
+#include "HTTP_status_code.hpp"
 
 #include <iostream>
 #include <cstdlib>
@@ -19,6 +20,10 @@ std::string POSTRequest::generateResponse(std::vector<Server> & servers)
 	std::cout << "This is status: " << _status << std::endl;
 	if (GET_ERROR(_status) != 0)
 		return selected_loc.responseGET(GET_ERROR(_status));
+
+	if (selected_loc.getRedirections().find(_uri) != selected_loc.getRedirections().end())
+		return selected_loc.responseGET(MOVED_PERMANENTLY, selected_loc.getRedirections().at(_uri));
+
 	return selected_loc.responsePOST(_uri, _body, getHeaderValue("content-type"), getHeaderValue("content-length"));
 }
 

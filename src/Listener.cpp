@@ -202,7 +202,7 @@ int Listener::getSockets(struct pollfd ** sockets) const
 	int size = _derived_socks.size() + 1;
 	struct pollfd * scks = new struct pollfd [size];
 
-	memset(scks, 0, size);
+	memset(scks, 0, sizeof(struct pollfd) * size);
 	memcpy(scks, &_listener, sizeof(struct pollfd));
 	std::copy(_derived_socks.begin(), _derived_socks.end(), scks + 1);
 	*sockets = scks;

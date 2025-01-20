@@ -26,7 +26,7 @@ private:
 
 	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
-	std::string CGIget(std::string const& file, std::string const& query) const; //TODO: path_info
+	std::string CGIget(std::string const& file, std::string const& query) const;
 	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
 	void callGETcgi(std::string const& file, std::string const& query) const;
 	void callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const;

@@ -51,7 +51,7 @@ public:
 	ARequest *createDelete(std::string const & init, std::vector<Server> & servers);
 
 //	OCCF
-	Listener(); //TODO: revisar OCCF
+	Listener();
 	Listener(const Listener &other);
 	Listener &operator=(const Listener &other);
 	~Listener();
