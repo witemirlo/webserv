@@ -17,7 +17,7 @@ std::string GETRequest::generateResponse(std::vector<Server> & servers)
 {
 	Location selected_loc = getSelectedLocation(servers);
 	if (_status != END)
-		return selected_loc.responseGET(_status);
+		return selected_loc.responseGET(GET_ERROR(_status));
 	return selected_loc.responseGET(_uri, _query);
 
 }

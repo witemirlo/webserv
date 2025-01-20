@@ -72,8 +72,8 @@ void respond_http(Listener & listener, int fd)
 		sent += iter;
 	}
 
-	if (returned.substr(0, 12) == "HTTP/1.1 413")
-		listener.deleteFd(fd);
+	// if (returned.substr(0, 12) == "HTTP/1.1 413")
+	// 	listener.deleteFd(fd);
 }
 
 int false_http(Listener & listener, int fd)
@@ -89,15 +89,9 @@ int false_http(Listener & listener, int fd)
 		exit (EXIT_FAILURE);
 	}
 
-	if (bytes == 0)
-	{
-		listener.deleteFd(fd);
-		return (0);
-	}
-
 	int status = listener.updateRequest(fd, std::string(buffer, bytes));
 	
-	switch (status)
+	switch (status & END)
 	{
 	case INIT:
 		std::cout << GREEN "INIT" NC << std::endl;
@@ -115,7 +109,7 @@ int false_http(Listener & listener, int fd)
 		std::cout << "THE FUCK?" << std::endl;
 	}
 
-	if (status >= END)
+	if ((status & END) == END)
 		listener.setFdToWrite(fd);
 
 	return (status);

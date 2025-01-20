@@ -14,14 +14,15 @@
 int ARequest::appendRequest(std::string & append)
 {
 	static std::string raw;
+	static size_t body_size = 0;
 
 	raw.append(append);
 
 	for (size_t ind = raw.find(CRLF); ind != std::string::npos; ind = raw.find(CRLF))
 	{
-		if (this->_status >= BODY)
+		if ((this->_status & END) >= BODY)
 			break ;
-		if (this->_status == HEADERS)
+		if ((this->_status & END) == HEADERS)
 			procHeader(raw, ind);
 		raw.erase(0, ind + 2);
 
@@ -35,13 +36,20 @@ int ARequest::appendRequest(std::string & append)
 			catch(const std::exception& e) {}
 		}
 	}
-	if (this->_status == BODY)
+	if ((this->_status & END) == BODY)
 	{
-		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= raw.size())
+		body_size += raw.size();
+		if (GET_ERROR(_status) == CONTENT_TOO_LARGE)
+		{
+			std::cout << "Zaddy, im soooo full" << std::endl;
+			raw.erase();	
+		}
+		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= body_size)
 		{
 			_body = raw.substr();
 			raw.erase();
-			_status = END;
+			body_size = 0;
+			_status = SET_STATUS(_status, END);
 		}
 	}
 	return (this->_status);
@@ -60,13 +68,13 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			_headers.at("content-length"); //TODO: transfer encoding
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 				throw std::exception();
-			this->_status = BODY;
+			this->_status = SET_STATUS(_status, BODY);
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) > _max_size)
-				this->_status = CONTENT_TOO_LARGE;
+				this->_status = SET_ERROR(_status, CONTENT_TOO_LARGE);
 			return;
 		} catch(const std::exception& e) {
 			raw.erase();
-			this->_status = END;
+			this->_status = SET_STATUS(_status, END);
 			return ;
 		}
 	}

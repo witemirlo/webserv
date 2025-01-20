@@ -1,6 +1,9 @@
 #ifndef AREQUEST_HPP
 # define AREQUEST_HPP
-# define CRLF "\r\n" //TODO: he leido que algunos clientes solo hacen LF
+# define CRLF "\r\n"
+# define SET_STATUS(old_s, new_s) ((old_s & (~0x3)) | new_s)
+# define SET_ERROR(old_s, new_s) ((old_s & 0x3) | (new_s << 2))
+# define GET_ERROR(status) (status >> 2)
 
 # include "colors.hpp"
 # include "Server.hpp"
@@ -12,10 +15,10 @@
 # include <cstdio>
 
 enum request_status {
-	INIT,
-	HEADERS,
-	BODY,
-	END,
+	INIT, 		//0b00
+	HEADERS,	//0b01
+	BODY,		//0b10
+	END,		//0b11
 	ERROR
 };
 

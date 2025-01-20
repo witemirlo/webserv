@@ -38,7 +38,7 @@ std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 	Location tmp = getSelectedLocation(servers);
 
 	if (_status != END)
-		return tmp.responseGET(_status);
+		return tmp.responseGET(GET_ERROR( _status));
 	
 	if (tmp.getRedirections().find(_uri) != tmp.getRedirections().end())
 		return tmp.responseGET(MOVED_PERMANENTLY, tmp.getRedirections().at(_uri));

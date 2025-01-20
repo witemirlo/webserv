@@ -16,8 +16,9 @@ POSTRequest::POSTRequest(std::string const &uri, std::vector<Server> & servers) 
 std::string POSTRequest::generateResponse(std::vector<Server> & servers)
 {
 	Location selected_loc = getSelectedLocation(servers);
-	if (_status != END)
-		return selected_loc.responseGET(_status);
+	std::cout << "This is status: " << _status << std::endl;
+	if (GET_ERROR(_status) != 0)
+		return selected_loc.responseGET(GET_ERROR(_status));
 	return selected_loc.responsePOST(_uri, _body, getHeaderValue("content-type"), getHeaderValue("content-length"));
 }
 
