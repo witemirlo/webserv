@@ -208,6 +208,9 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	
 	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
 
+	if (path.find(this->_cgi_extension) != std::string::npos)
+		path = path.substr(0, (path.find(this->_cgi_extension) + this->_cgi_extension.length()));
+
 	if (stat(path.c_str(), &file_info) < 0) {
 		return "";
 	}
