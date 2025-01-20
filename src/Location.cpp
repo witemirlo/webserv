@@ -604,11 +604,12 @@ std::string Location::getHttpMessage(int code) const
 	}
 }
 
-void Server::callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const
+void Location::callPOSTcgi(std::string const& uri, std::string const& type, std::string const& len) const
 {
 	std::string type_var = "CONTENT_TYPE=" + type;
 	std::string len_var = "CONTENT_LENGTH=" + len;
-	std::string file_var = "SCRIPT_FILENAME=" + file;
+	std::string file_var = "SCRIPT_FILENAME=" + getPathTo(uri, false);
+	std::string path_var = "PATH_INFO=" + uri;
 	std::string method = "REQUEST_METHOD=POST";
 	std::string redirect = "REDIRECT_STATUS=true";
 
@@ -629,7 +630,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 	int count;
 	for (count = 0; environ[count]; count++) {}
 	
-	char const ** new_envp = new char const *[count + 7];
+	char const ** new_envp = new char const *[count + 8];
 	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
 
 	for (count = 0; environ[count]; count++) {
@@ -640,7 +641,8 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 	new_envp[count + 2] = method.c_str(); 
 	new_envp[count + 3] = redirect.c_str();
 	new_envp[count + 4] = len_var.c_str();
-	new_envp[count + 5] = NULL; 
+	new_envp[count + 5] = path_var.c_str();
+	new_envp[count + 6] = NULL; 
 
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
@@ -649,7 +651,7 @@ void Server::callPOSTcgi(std::string const& file, std::string const& type, std::
 	exit(errno);
 }
 
-std::string Location::CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const
+std::string Location::CGIpost(std::string const& uri, std::string const& body, std::string const& type, std::string const& len) const
 {
 	errno = 0;
 	int readpipe[2];
@@ -666,7 +668,7 @@ std::string Location::CGIpost(std::string const& file, std::string const& body, 
 		close(writepipe[1]);
 		close(readpipe[0]);
 		close(readpipe[1]);
-		callPOSTcgi(file, type, len);
+		callPOSTcgi(uri, type, len);
 	}
 	close(writepipe[0]);
 	write(writepipe[1], body.c_str(), body.size());
@@ -691,7 +693,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 
 	if (getFileType(uri) == _cgi_extension)
 	{
-		body = CGIpost(getPathTo(uri, true), msg, type, len);
+		body = CGIpost(uri, msg, type, len);
 		return (getStatusLine(OK) + body);
 	}
 	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
@@ -717,7 +719,7 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = CGIget(getPathTo(uri, true), query);// content lenght y content type
+		body = CGIget(uri, query);// content lenght y content type
 	else
 	{
 		body = getBody(uri);
@@ -816,10 +818,11 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
-void Server::callGETcgi(std::string const& file, std::string const& query) const //TODO: ordenar funciones
+void Location::callGETcgi(std::string const& uri, std::string const& query) const //TODO: ordenar funciones
 {
 	std::string query_var = "QUERY_STRING=" + query;
-	std::string file_var = "SCRIPT_FILENAME=" + file;
+	std::string file_var = "SCRIPT_FILENAME=" + getPathTo(uri, true);
+	std::string path_var = "PATH_INFO=" + uri;
 	std::string method = "REQUEST_METHOD=GET";
 	std::string redirect = "REDIRECT_STATUS=0";
 
@@ -834,7 +837,7 @@ void Server::callGETcgi(std::string const& file, std::string const& query) const
 	int count;
 	for (count = 0; environ[count]; count++) {}
 	
-	char const ** new_envp = new char const *[count + 6];
+	char const ** new_envp = new char const *[count + 7];
 	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
 
 	for (count = 0; environ[count]; count++) {
@@ -844,7 +847,8 @@ void Server::callGETcgi(std::string const& file, std::string const& query) const
 	new_envp[count + 1] = file_var.c_str(); 
 	new_envp[count + 2] = method.c_str(); 
 	new_envp[count + 3] = redirect.c_str();
-	new_envp[count + 4] = NULL; 
+	new_envp[count + 4] = path_var.c_str();
+	new_envp[count + 5] = NULL; 
 
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
@@ -853,7 +857,7 @@ void Server::callGETcgi(std::string const& file, std::string const& query) const
 	exit(errno);
 }
 
-std::string Location::CGIget(std::string const& file, std::string const& query) const //TODO: path_info, a ver si podemos dar una vuelta al envp
+std::string Location::CGIget(std::string const& uri, std::string const& query) const //TODO: path_info, a ver si podemos dar una vuelta al envp
 {
 	errno = 0;
 	int pipefds[2];
@@ -865,7 +869,7 @@ std::string Location::CGIget(std::string const& file, std::string const& query) 
 		dup2(pipefds[1], STDOUT_FILENO);
 		close(pipefds[0]);
 		close(pipefds[1]);
-		callGETcgi(file, query);
+		callGETcgi(uri, query);
 	}
 	close(pipefds[1]);
 	return read_cgi_response(pipefds[0]); //TODO: y si algo del otro lado ha ido mal??

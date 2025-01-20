@@ -99,8 +99,6 @@ public:
 	bool isNamed(std::string & name);
 	std::vector<std::string> setVector(std::string const & str);
 	Location const& getLocation(std::string const& uri) const;
-	void callGETcgi(std::string const& file, std::string const& query) const;
-	void callPOSTcgi(std::string const& file, std::string const& type, std::string const& len) const;
 
 //	SETTER
 	void setServerName(std::string const &server_name);

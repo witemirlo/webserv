@@ -89,6 +89,12 @@ int false_http(Listener & listener, int fd)
 		exit (EXIT_FAILURE);
 	}
 
+	if (bytes == 0)
+	{
+		listener.deleteFd(fd);
+		return (0);
+	}
+
 	int status = listener.updateRequest(fd, std::string(buffer, bytes));
 	
 	switch (status & END)
