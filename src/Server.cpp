@@ -95,7 +95,6 @@ Server::Server(std::map<std::string, std::string> & config)
 	setErrorPages("");
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
 	{
-		//TODO: check for duplicated locations
 		// TODO: en general los index dentro de un location funcionan raro, cuando hay varios directamente lo pone mal
 		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8));
 	}

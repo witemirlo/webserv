@@ -406,7 +406,7 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	
 	if (headers.find("content-type") == headers.end())
 	{
-		if (status_code >= 300) // TODO: seguro?
+		if (status_code >= 300)
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
 			buffer << "Content-Type: " << getContentType(uri) << CRLF;
@@ -470,7 +470,7 @@ std::string Location::getStatusLine(void) const
 	return getStatusLine(getStatusCode());
 }
 
-std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
+std::string Location::getStatusLine(unsigned int code) const
 {
 	std::stringstream token;
 
