@@ -197,33 +197,17 @@ std::ostream & operator<<(std::ostream & out, ARequest * req)
 
 //	OCCF
 
-ARequest::ARequest(void)
-{
-#ifdef DEBUG
-	std::cout << GREEN "ARequest default constructor called" NC << std::endl;
-#endif
-}
+ARequest::ARequest(void) {}
 
 ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _my_servers(other._my_servers), _max_size(other._max_size), _status(other._status)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;
-#endif
 	*this = other;
 }
 
 ARequest &ARequest::operator=(const ARequest &other)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "ARequest copy assignment operator called" NC << std::endl;
-#endif
 	(void)other;
 	return (*this);
 }
 
-ARequest::~ARequest()
-{
-#ifdef DEBUG
-	std::cout << RED "ARequest destrucutor called" NC << std::endl;
-#endif
-}
+ARequest::~ARequest() {}

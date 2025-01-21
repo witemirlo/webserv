@@ -42,29 +42,15 @@ const std::pair<std::string, std::string> Location::_file_types[] = {
 
 extern char **environ;
 
-Location::Location(void)
-	: Server()
-{
-#ifdef DEBUG
-	std::cout << GREEN "Location default constructor called" NC << std::endl;
-#endif
-}
+Location::Location(void) : Server() {}
 
 Location::Location(const Location &other)
 	: Server(dynamic_cast<Server const&>(other))
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Location copy constructor called" NC << std::endl;
-#endif
 	*this = other;
 }
 
-Location::~Location()
-{
-#ifdef DEBUG
-	std::cout << RED "Location destrucutor called" NC << std::endl;
-#endif
-}
+Location::~Location() {}
 
 bool is_balanced(std::string const & line, size_t str, size_t end)
 {
@@ -92,9 +78,6 @@ bool is_balanced(std::string const & line, size_t str, size_t end)
 Location::Location(Server const& o, std::string const & config, std::string const & my_path)
 	: Server(o)
 {
-#ifdef DEBUG
-	std::cout << GREEN "Location constructor called" NC << std::endl;
-#endif
 	std::string buffer, line, key, value;
 	std::size_t ind, endtxt, starttxt;
 
@@ -147,9 +130,6 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 
 Location &Location::operator=(const Location &other)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Location copy assignment operator called" NC << std::endl;
-#endif
 	if (this == &other)
 		return (*this);
 

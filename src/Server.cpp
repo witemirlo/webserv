@@ -452,17 +452,11 @@ Server::Server(const Server &other) :
 	_body_size(other._body_size),
 	_allow(other._allow)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Server copy constructor called" NC << std::endl;
-#endif
 	*this = other;
 }
 
 Server &Server::operator=(const Server &other)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Server copy assignment operator called" NC << std::endl;
-#endif
 	if (this == &other)
 		return (*this);
 		
@@ -481,9 +475,4 @@ Server &Server::operator=(const Server &other)
 	return (*this);
 }
 
-Server::~Server()
-{
-#ifdef DEBUG
-	std::cout << RED "Server destrucutor called" NC << std::endl;
-#endif
-}
+Server::~Server() {}
