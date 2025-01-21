@@ -52,76 +52,6 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	return (listener_socks);
 }
 
-void respond_http(Listener & listener, int fd)
-{
-	// try catch de si existe para crearlo
-	// 	send it
-	//	si ha terminado, cerrar y poner a leer
-	
-	std::string returned = listener.respondTo(fd); 
-	const char *response = returned.c_str();
-	std::size_t sent = 0;
-	std::size_t len = returned.size();
-	int iter;
-
-	while (sent < len)
-	{
-		iter = send(fd, response + sent, len - sent, 0);
-		if (iter == -1)
-		{
-			std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl; // TODO: GET a img/big.png genera error y cierra el servidor (httpie)
-			// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
-			exit(EXIT_FAILURE);
-		}
-		sent += iter;
-	}
-}
-
-int read_http(Listener & listener, int fd)
-{
-	char buffer[BUFSIZ];
-	std::memset(buffer, 0, sizeof(buffer));
-	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
-
-	if (bytes == -1)
-	{
-		std::cout << RED "Error: " NC  << std::strerror(errno) << std::endl; // TODO: GET img/marioneta.jpg salta y cierra el serve (httpie)
-		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
-		exit (EXIT_FAILURE);
-	}
-
-	if (bytes == 0)
-	{
-		listener.deleteFd(fd);
-		return (0);
-	}
-
-	int status = listener.updateRequest(fd, std::string(buffer, bytes));
-	
-	switch (status & END)
-	{
-	case INIT:
-		std::cout << GREEN "INIT" NC << std::endl;
-		break;
-	case HEADERS:
-		std::cout << YELLOW "HEADERS" NC << std::endl;
-		break;	
-	case BODY:
-		std::cout << MAGENTA "BODY" NC << std::endl;
-		break;
-	case END:
-		std::cout << CYAN "END" NC << std::endl;
-		break;
-	default:
-		std::cout << "THE FUCK?" << std::endl;
-	}
-
-	if ((status & END) == END)
-		listener.setFdToWrite(fd);
-
-	return (status);
-}
-
 void close_all(std::vector<Listener> sockets)
 {
 	for (size_t i = 0; i < sockets.size(); i++)
@@ -160,23 +90,13 @@ void pollloop(std::vector<Listener> sockets)
 				if (loc < 0)
 					accept_new_conn(sockets[WH_NEGATIVE(loc)], my_fds[i].fd);
 				else if (loc > 0)
-				{
-					if (sockets[WH_POSITIVE(loc)].is_cgi_socket(my_fds[i].fd)) 	//esto se puede hacer dentro de la función
-	// try catch de si existe para crearlo
-	// 	send it
-	//	si ha terminado, cerrar y poner a leer
-						continue ;
-					else
-						read_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
-				}
+					sockets[WH_POSITIVE(loc)].readFrom(my_fds[i].fd);
 			}
 			else if (my_fds[i].revents & POLLOUT)
 			{
 				int loc = where_is(my_fds[i].fd, sockets);
-				if (sockets[WH_POSITIVE(loc)].is_cgi_socket(my_fds[i].fd))
-					continue ; //en un método de Listener todo
-				else
-					respond_http(sockets[WH_POSITIVE(loc)], my_fds[i].fd);
+				sockets[WH_POSITIVE(loc)].respondTo(my_fds[i].fd);
+
 			}
 		}
 		delete [] my_fds;

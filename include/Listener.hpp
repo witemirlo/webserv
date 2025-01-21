@@ -41,10 +41,12 @@ public:
 	void setFdToWrite(int fd);
 	void setFdToRead(int fd);
 	bool is_cgi_socket(int fd) const;
+	void readFrom(int fd);
+	void respondTo(int fd);
 
 //	Requests and reponses
 
-	std::string respondTo(int fd);
+	std::string generateResponseOf(int fd);
 	void printRequest(int index);
 	int updateRequest(int index, std::string buffer);
 	

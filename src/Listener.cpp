@@ -16,11 +16,81 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <errno.h>
 
 const std::string Listener::request_types[] = {"GET", "POST", "DELETE", ""};
 ARequest* (Listener::* const Listener::creators [])(std::string const &, std::vector<Server> &) = {&Listener::createGet, &Listener::createPost, &Listener::createDelete};
 
 static int get_listener(std::string & host, std::string & port);
+
+void Listener::respondTo(int fd)
+{
+	//Check CGI
+	if (_responses.find(fd) == _responses.end())
+		_responses[fd] = this->generateResponseOf(fd);
+
+	const char *response = _responses[fd].c_str();
+	ssize_t bits = send(fd, response, _responses[fd].size(), 0);
+
+	if (bits == -1)
+	{
+		std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl; // TODO: GET a img/big.png genera error y cierra el servidor (httpie)
+		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
+		exit(EXIT_FAILURE);
+	}
+	if ((size_t)bits < _responses[fd].size())
+		_responses[fd].erase(0, bits);
+	else
+	{
+		_responses.erase(fd);
+		setFdToRead(fd);
+	}
+}
+
+void Listener::readFrom(int fd)
+{
+	char buffer[BUFSIZ];
+	std::memset(buffer, 0, sizeof(buffer));
+	ssize_t bytes = recv(fd, buffer, sizeof(buffer) - 1, 0);
+
+	if (bytes == -1)
+	{
+		std::cout << RED "Error: " NC  << std::strerror(errno) << std::endl; // TODO: GET img/marioneta.jpg salta y cierra el serve (httpie)
+		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
+		exit (EXIT_FAILURE);
+	}
+
+	if (bytes == 0)
+	{
+		this->deleteFd(fd);
+		return ;
+	}
+
+	//TODO: check CGI
+
+	int status = this->updateRequest(fd, std::string(buffer, bytes));
+	
+	switch (status & END)
+	{
+	case INIT:
+		std::cout << GREEN "INIT" NC << std::endl;
+		break;
+	case HEADERS:
+		std::cout << YELLOW "HEADERS" NC << std::endl;
+		break;	
+	case BODY:
+		std::cout << MAGENTA "BODY" NC << std::endl;
+		break;
+	case END:
+		std::cout << CYAN "END" NC << std::endl;
+		break;
+	default:
+		std::cout << "THE FUCK?" << std::endl;
+	}
+
+	if ((status & END) == END)
+		this->setFdToWrite(fd);
+}
 
 /**
  * Updates the request of the socket fd with new information. If it doesnt exists, it creates it.
@@ -301,14 +371,12 @@ void Listener::setFdToRead(int fd)
 /**
  * Creates a reponse to the request of fd and sets it to wait to read
  */
-std::string Listener::respondTo(int fd)
+std::string Listener::generateResponseOf(int fd)
 {
 	std::string response = _requests[fd]->generateResponse(_assoc_servers);
 
 	delete _requests[fd];
 	_requests.erase(fd);
-	setFdToRead(fd);
-	// std::cerr << __FILE__ << ":" << __LINE__ << " | " << "Listener::respondTo returns:\n" << response << std::endl;
 	return (response);
 }
 
