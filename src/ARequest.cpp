@@ -68,26 +68,55 @@ void ARequest::procHeader(std::string & raw, size_t index)
 			_headers.at("content-length"); //TODO: transfer encoding
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 				throw std::exception();
-			this->_status = SET_STATUS(_status, BODY);
+			this->_status = SET_STATUS(this->_status, BODY);
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) > _max_size)
-				this->_status = SET_ERROR(_status, CONTENT_TOO_LARGE);
+				this->_status = SET_ERROR(this->_status, CONTENT_TOO_LARGE);
 			return;
 		} catch(const std::exception& e) {
 			raw.erase();
-			this->_status = SET_STATUS(_status, END);
+			this->_status = SET_STATUS(this->_status, END);
 			return ;
 		}
 	}
 
 	std::string header = raw.substr(0, index);
-	size_t sep = header.find(":"); //TODO: errors
+	if (header.length() < 3) {
+		this->_status = SET_ERROR(this->_status, BAD_REQUEST);
+		return ;
+	}
+
+	size_t sep = header.find(":");
+	if (sep == std::string::npos) {
+		this->_status = SET_ERROR(this->_status, BAD_REQUEST);
+		return ;
+	}
+
 	std::string key = header.substr(0, sep);
 	std::string value = trim(header.substr(sep + 1));
+
+	if (key.length() == 0 || value.length() == 0 || !is_valid_header(key)) {
+		this->_status = SET_ERROR(this->_status, BAD_REQUEST);
+		return ;
+	}
 
 	for (size_t i = 0; i < key.size(); i++)
 		key[i] = tolower(key[i]);
 
-	_headers[key] = value; //TODO: check for dups -> error code?
+	if (this->_headers.find(key) != this->_headers.end()) {
+		this->_status = SET_ERROR(this->_status, BAD_REQUEST);
+		return ;
+	}
+
+	_headers[key] = value;
+}
+
+bool  ARequest::is_valid_header(std::string const& header_key) const
+{
+	for (std::size_t i = 0; header_key[i]; i++) {
+		if (isspace(header_key[i]))
+			return false;
+	}
+	return true;
 }
 
 /*
@@ -168,33 +197,17 @@ std::ostream & operator<<(std::ostream & out, ARequest * req)
 
 //	OCCF
 
-ARequest::ARequest(void)
-{
-#ifdef DEBUG
-	std::cout << GREEN "ARequest default constructor called" NC << std::endl;
-#endif
-}
+ARequest::ARequest(void) {}
 
 ARequest::ARequest(const ARequest &other) : _uri(other._uri), _headers(other._headers), _body(other._body), _my_servers(other._my_servers), _max_size(other._max_size), _status(other._status)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "ARequest copy constructor called" NC << std::endl;
-#endif
 	*this = other;
 }
 
 ARequest &ARequest::operator=(const ARequest &other)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "ARequest copy assignment operator called" NC << std::endl;
-#endif
 	(void)other;
 	return (*this);
 }
 
-ARequest::~ARequest()
-{
-#ifdef DEBUG
-	std::cout << RED "ARequest destrucutor called" NC << std::endl;
-#endif
-}
+ARequest::~ARequest() {}

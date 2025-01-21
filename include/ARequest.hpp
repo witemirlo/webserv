@@ -36,6 +36,7 @@ protected:
 public:
 	int appendRequest(std::string & append);
 	void procHeader(std::string & raw, size_t index);
+	bool  is_valid_header(std::string const& header_key) const;
 
 	ARequest(std::string const & uri, std::vector<Server> & servers);
 

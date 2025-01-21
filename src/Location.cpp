@@ -42,29 +42,15 @@ const std::pair<std::string, std::string> Location::_file_types[] = {
 
 extern char **environ;
 
-Location::Location(void)
-	: Server()
-{
-#ifdef DEBUG
-	std::cout << GREEN "Location default constructor called" NC << std::endl;
-#endif
-}
+Location::Location(void) : Server() {}
 
 Location::Location(const Location &other)
 	: Server(dynamic_cast<Server const&>(other))
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Location copy constructor called" NC << std::endl;
-#endif
 	*this = other;
 }
 
-Location::~Location()
-{
-#ifdef DEBUG
-	std::cout << RED "Location destrucutor called" NC << std::endl;
-#endif
-}
+Location::~Location() {}
 
 bool is_balanced(std::string const & line, size_t str, size_t end)
 {
@@ -92,9 +78,6 @@ bool is_balanced(std::string const & line, size_t str, size_t end)
 Location::Location(Server const& o, std::string const & config, std::string const & my_path)
 	: Server(o)
 {
-#ifdef DEBUG
-	std::cout << GREEN "Location constructor called" NC << std::endl;
-#endif
 	std::string buffer, line, key, value;
 	std::size_t ind, endtxt, starttxt;
 
@@ -147,9 +130,6 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 
 Location &Location::operator=(const Location &other)
 {
-#ifdef DEBUG
-	std::cout << YELLOW "Location copy assignment operator called" NC << std::endl;
-#endif
 	if (this == &other)
 		return (*this);
 
@@ -186,7 +166,6 @@ bool Location::operator<=(const Location & other) const
  */
 std::string Location::getPathTo(std::string const& uri, bool index) const
 {
-	// TODO: los directorios deben terminar en  / o con otro caracter?
 	std::vector<std::string>::const_iterator index_it;
 	std::string                              path;
 	struct stat                              file_info;
@@ -196,24 +175,16 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	else
 		path = this->_root;
 	
-	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
-	if (this->_redirect.find(uri) == this->_redirect.end()) {
-		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect NOT founded" << std::endl;
+	if (this->_redirect.find(uri) == this->_redirect.end())
 		path += uri;
-	}
-	else {
-		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect founded" << std::endl;
+	else
 		path = this->_root + this->_redirect.find(uri)->second;
-	}
 	
-	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
-
 	if (path.find(this->_cgi_extension) != std::string::npos)
 		path = path.substr(0, (path.find(this->_cgi_extension) + this->_cgi_extension.length()));
 
-	if (stat(path.c_str(), &file_info) < 0) {
+	if (stat(path.c_str(), &file_info) < 0)
 		return "";
-	}
 	
 	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
@@ -269,8 +240,10 @@ std::string Location::readFile(std::string const& path) const
 {
 	std::stringstream body, headers;
 	std::string const file_extension = getFileType(path);
-	std::ifstream     file(path.c_str(), std::ios::binary);
-
+	std::ifstream     file;
+	
+	// TODO: aqui se cuelan archivos del cgi si estan en el index y en la peticion hay una ruta
+	file.open(path.c_str(), std::ios::binary);
 	if (!file.is_open()) {
 		errno = ENOENT;
 		return "";
@@ -433,19 +406,17 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "Date: " << date << CRLF
 	       << "Server: webserv" CRLF;
 	
-	if (status_code == 301)
-		buffer << "Location: " << uri << CRLF;
-	// TODO: meter headers correspondientes segun el status code
-	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
-		if (status_code >= 300) // TODO: seguro?
+		if (status_code >= 300)
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
-			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
+			buffer << "Content-Type: " << getContentType(uri) << CRLF;
 	}
 
-	if (status_code == METHOD_NOT_ALLOWED)
+	if (status_code == MOVED_PERMANENTLY)
+		buffer << "Location: " << uri << CRLF;
+	else if (status_code == METHOD_NOT_ALLOWED)
 	{
 		buffer << "Allow: ";
 		for (size_t i = 0; i < _allow.size(); i++){
@@ -501,7 +472,7 @@ std::string Location::getStatusLine(void) const
 	return getStatusLine(getStatusCode());
 }
 
-std::string Location::getStatusLine(unsigned int code) const // TODO: faltan un huevo xd
+std::string Location::getStatusLine(unsigned int code) const
 {
 	std::stringstream token;
 
