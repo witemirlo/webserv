@@ -166,7 +166,6 @@ bool Location::operator<=(const Location & other) const
  */
 std::string Location::getPathTo(std::string const& uri, bool index) const
 {
-	// TODO: los directorios deben terminar en  / o con otro caracter?
 	std::vector<std::string>::const_iterator index_it;
 	std::string                              path;
 	struct stat                              file_info;
@@ -176,24 +175,16 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	else
 		path = this->_root;
 	
-	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
-	if (this->_redirect.find(uri) == this->_redirect.end()) {
-		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect NOT founded" << std::endl;
+	if (this->_redirect.find(uri) == this->_redirect.end())
 		path += uri;
-	}
-	else {
-		std::cerr << __FILE__  << ":" << __LINE__ << ": redirect founded" << std::endl;
+	else
 		path = this->_root + this->_redirect.find(uri)->second;
-	}
 	
-	std::cerr << __FILE__  << ":" << __LINE__ << ": path: " << path << std::endl;
-
 	if (path.find(this->_cgi_extension) != std::string::npos)
 		path = path.substr(0, (path.find(this->_cgi_extension) + this->_cgi_extension.length()));
 
-	if (stat(path.c_str(), &file_info) < 0) {
+	if (stat(path.c_str(), &file_info) < 0)
 		return "";
-	}
 	
 	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
