@@ -404,19 +404,17 @@ std::string Location::getHeaders(std::string const& body, std::string const& uri
 	buffer << "Date: " << date << CRLF
 	       << "Server: webserv" CRLF;
 	
-	if (status_code == 301)
-		buffer << "Location: " << uri << CRLF;
-	// TODO: meter headers correspondientes segun el status code
-	// TODO: a la hora de parsear pasar todo a mayusculas/minusculas
 	if (headers.find("content-type") == headers.end())
 	{
 		if (status_code >= 300) // TODO: seguro?
 			buffer << "Content-Type: " << "text/html" CRLF;
 		else
-			buffer << "Content-Type: " << getContentType(uri) << CRLF; // TODO: poner bien el tipo
+			buffer << "Content-Type: " << getContentType(uri) << CRLF;
 	}
 
-	if (status_code == METHOD_NOT_ALLOWED)
+	if (status_code == MOVED_PERMANENTLY)
+		buffer << "Location: " << uri << CRLF;
+	else if (status_code == METHOD_NOT_ALLOWED)
 	{
 		buffer << "Allow: ";
 		for (size_t i = 0; i < _allow.size(); i++){
