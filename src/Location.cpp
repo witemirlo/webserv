@@ -712,14 +712,13 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	std::string status_line, headers, body;
 	int         status_code;
-	(void)query;
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  uri: " << uri << std::endl;
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  query: " << query << std::endl;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = CGIget(uri, query);// content lenght y content type
+		return(CGIget(uri, query));// content lenght y content type
 	else
 	{
 		body = getBody(uri);
@@ -861,7 +860,8 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 {
 	errno = 0;
 	int pipefds[2];
-	pipe(pipefds);
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipefds) == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
 
 	pid_t pid = fork(); //TODO: fallo?
 	if (pid == 0)
@@ -872,7 +872,11 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 		callGETcgi(uri, query);
 	}
 	close(pipefds[1]);
-	return read_cgi_response(pipefds[0]); //TODO: y si algo del otro lado ha ido mal??
+
+	std::stringstream fd;
+	fd << pipefds[0];
+
+	return "POLLIN" + fd.str(); //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 

@@ -96,7 +96,6 @@ void pollloop(std::vector<Listener> sockets)
 			{
 				int loc = where_is(my_fds[i].fd, sockets);
 				sockets[WH_POSITIVE(loc)].respondTo(my_fds[i].fd);
-
 			}
 		}
 		delete [] my_fds;

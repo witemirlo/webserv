@@ -28,6 +28,7 @@ private:
 public:
 	Listener(std::string const& where_to_listen);
 	void addServer(Server server);
+	void parseSocket(std::string str, int fd);
 
 //	fd and socket management
 
@@ -40,6 +41,7 @@ public:
 	void deleteFd(int fd);
 	void setFdToWrite(int fd);
 	void setFdToRead(int fd);
+	void setFdToWait(int fd);
 	bool is_cgi_socket(int fd) const;
 	void readFrom(int fd);
 	void respondTo(int fd);

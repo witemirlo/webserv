@@ -4,6 +4,7 @@
 #include "HTTP_status_code.hpp"
 #include "Listener.hpp"
 #include "POSTRequest.hpp"
+#include "Location.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -23,13 +24,41 @@ ARequest* (Listener::* const Listener::creators [])(std::string const &, std::ve
 
 static int get_listener(std::string & host, std::string & port);
 
+void Listener::parseSocket(std::string str, int fd)
+{
+	size_t ind;
+	struct pollfd new_sock;
+
+	for (ind = 0; isalpha(str[ind]); ind++) {}
+
+	if (str.substr(0, ind) == "POLLOUT")
+		new_sock.events = POLLOUT;
+	else
+		new_sock.events = POLLIN;
+
+	new_sock.fd = atoi(str.substr(ind).c_str());
+	_cgi_sockets[fd] = new_sock;
+}
+
 void Listener::respondTo(int fd)
 {
 	//Check CGI
 	if (_responses.find(fd) == _responses.end())
-		_responses[fd] = this->generateResponseOf(fd);
+	{
+		std::string res = this->generateResponseOf(fd);
+		std::cerr << __FILE__ << ":" << __LINE__ << " Like the wind..." << std::endl;
+		if (res[0] != 'H')
+		{
+			setFdToWait(fd);
+			parseSocket(res, fd);
+			return ;
+		}
+		std::cerr << __FILE__ << ":" << __LINE__ << " More wind..." << std::endl;
+		_responses[fd] = res;
+	}
 
 	const char *response = _responses[fd].c_str();
+	std::cerr << "Let me write \n" << response << std::endl;
 	ssize_t bits = send(fd, response, _responses[fd].size(), 0);
 
 	if (bits == -1)
@@ -62,31 +91,24 @@ void Listener::readFrom(int fd)
 
 	if (bytes == 0)
 	{
+		for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+			if (it->second.fd == fd) {
+				setFdToWrite(it->first);
+				break ;
+			}
+		}
 		this->deleteFd(fd);
 		return ;
 	}
 
-	//TODO: check CGI
+	if (is_cgi_socket(fd))
+	{
+		std::cerr << __FILE__ << ":" << __LINE__ << " Reading CGI" << std::endl;
+		_responses[fd] = _responses[fd] + std::string(buffer, bytes);
+		return ;
+	}
 
 	int status = this->updateRequest(fd, std::string(buffer, bytes));
-	
-	switch (status & END)
-	{
-	case INIT:
-		std::cout << GREEN "INIT" NC << std::endl;
-		break;
-	case HEADERS:
-		std::cout << YELLOW "HEADERS" NC << std::endl;
-		break;	
-	case BODY:
-		std::cout << MAGENTA "BODY" NC << std::endl;
-		break;
-	case END:
-		std::cout << CYAN "END" NC << std::endl;
-		break;
-	default:
-		std::cout << "THE FUCK?" << std::endl;
-	}
 
 	if ((status & END) == END)
 		this->setFdToWrite(fd);
@@ -341,16 +363,28 @@ void Listener::deleteFd(int fd)
 			return ;
 		}
 	}
-
+	for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++)
+	{
+		if (it->second.fd == fd)
+		{
+			close(fd);
+			_cgi_sockets.erase(fd);
+			return ;
+		}
+	}
 }
 
 void Listener::setFdToWrite(int fd)
 {
-	for (size_t i = 0; i < _derived_socks.size(); i++)
-	{
-		if (fd == _derived_socks[i].fd)
-		{
+	for (size_t i = 0; i < _derived_socks.size(); i++) {
+		if (fd == _derived_socks[i].fd) {
 			_derived_socks[i].events = POLLOUT;
+			return ;
+		}
+	}
+	for (std::map<int, struct pollfd>::iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+		if (it->second.fd == fd) {
+			it->second.events = POLLOUT;
 			return ;
 		}
 	}
@@ -366,6 +400,30 @@ void Listener::setFdToRead(int fd)
 			return ;
 		}
 	}
+	for (std::map<int, struct pollfd>::iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+		if (it->second.fd == fd) {
+			it->second.events = POLLIN;
+			return ;
+		}
+	}
+}
+
+void Listener::setFdToWait(int fd)
+{
+	for (size_t i = 0; i < _derived_socks.size(); i++)
+	{
+		if (fd == _derived_socks[i].fd)
+		{
+			_derived_socks[i].events = POLLERR;
+			return ;
+		}
+	}
+	for (std::map<int, struct pollfd>::iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+		if (it->second.fd == fd) {
+			it->second.events = POLLERR;
+			return ;
+		}
+	}
 }
 
 /**
@@ -373,9 +431,33 @@ void Listener::setFdToRead(int fd)
  */
 std::string Listener::generateResponseOf(int fd)
 {
-	std::string response = _requests[fd]->generateResponse(_assoc_servers);
+	std::string response;
 
-	delete _requests[fd];
+	if (_cgi_sockets.find(fd) != _cgi_sockets.end())
+	{
+		if (_responses.find(_cgi_sockets[fd].fd) != _responses.end())
+		{
+			std::string body;
+			std::stringstream length;
+
+			size_t crlf = _responses[_cgi_sockets[fd].fd].find(CRLF CRLF);
+			length << (_responses[_cgi_sockets[fd].fd].size() - crlf - 4);
+			length >> body;
+			body = "Content-Length: " + body + CRLF + _responses[_cgi_sockets[fd].fd];
+
+			response = _requests[fd]->getSelectedLocation(_assoc_servers).getStatusLine(OK) +
+					body;
+			_responses.erase(_cgi_sockets[fd].fd);
+			_cgi_sockets.erase(fd);
+		}
+	}
+	else
+		response = _requests[fd]->generateResponse(_assoc_servers);
+		
+	if (response[0] != 'H')
+		return (response);
+
+	delete _requests[fd]; //TODO: possible leaksssssssssss
 	_requests.erase(fd);
 	return (response);
 }
@@ -387,7 +469,7 @@ Listener::Listener(void)
 	std::cout << GREEN "Listener default constructor called" NC << std::endl;
 }
 
-Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers)
+Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers), _cgi_sockets(other._cgi_sockets)
 {
 #ifdef DEBUG
 	std::cout << YELLOW "Listener copy constructor called" NC << std::endl;
