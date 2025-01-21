@@ -199,12 +199,18 @@ static int get_listener(std::string & host, std::string & port)
  */
 int Listener::getSockets(struct pollfd ** sockets) const
 {
-	int size = _derived_socks.size() + 1;
+	int size = getNumberofSockets();
 	struct pollfd * scks = new struct pollfd [size];
 
 	memset(scks, 0, sizeof(struct pollfd) * size);
 	memcpy(scks, &_listener, sizeof(struct pollfd));
 	std::copy(_derived_socks.begin(), _derived_socks.end(), scks + 1);
+	size_t next = _derived_socks.size() + 1;
+	for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++)
+	{
+		memcpy(scks + next, &(it->second), sizeof(struct pollfd));
+		next++;
+	}
 	*sockets = scks;
 	return (size);
 }
@@ -224,12 +230,27 @@ int Listener::is_fd_here(int fd) const
 		if (fd == _derived_socks[i].fd)
 			return (i + 1);
 	}
+	for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++)
+	{
+		if (fd == it->second.fd)
+			return (_derived_socks.size() + it->first);
+	}
 	return (FD_NOT_HERE);
+}
+
+bool Listener::is_cgi_socket(int fd) const
+{
+	for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++)
+	{
+		if (it->second.fd == fd)
+			return true;
+	}
+	return false;
 }
 
 size_t Listener::getNumberofSockets(void) const
 {
-	return (_derived_socks.size() + 1);
+	return (_derived_socks.size() + _cgi_sockets.size() + 1);
 }
 
 int Listener::getListenFd(void) const
@@ -327,4 +348,7 @@ void Listener::closeFds(void)
 	close(_listener.fd);
 	for (size_t i = 0; i < _derived_socks.size(); i++)
 		close(_derived_socks[i].fd);
+
+	for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++)
+		close(it->second.fd);
 }

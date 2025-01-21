@@ -20,6 +20,8 @@ private:
 	std::vector<struct pollfd> _derived_socks;
 	std::vector<Server> _assoc_servers;
 	std::map<int, ARequest *> _requests;
+	std::map<int, struct pollfd> _cgi_sockets;
+	std::map<int, std::string> _responses;
 
 	static const std::string request_types[];
 	static ARequest* (Listener::* const creators [])(std::string const &, std::vector<Server> &);
@@ -38,6 +40,7 @@ public:
 	void deleteFd(int fd);
 	void setFdToWrite(int fd);
 	void setFdToRead(int fd);
+	bool is_cgi_socket(int fd) const;
 
 //	Requests and reponses
 
