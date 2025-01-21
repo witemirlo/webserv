@@ -51,26 +51,25 @@ ARequest *Listener::createRequest(std::string & buffer, std::vector<Server> & se
 		return new BADRequest(BAD_REQUEST);
 	}
 
-	std::string request_line = buffer.substr(0, ind/*  + 2 */);
+	std::string request_line = buffer.substr(0, ind);
 	if (std::count(request_line.begin(), request_line.end(), ' ') != 2)
 		return new BADRequest(BAD_REQUEST);
 
 	size_t sp = request_line.find(" ");
-	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: " << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
+
 	std::string method = request_line.substr(0, sp);
+	if (method.size() == 0)
+		return new BADRequest(BAD_REQUEST);
 	request_line.erase(0, sp + 1);
-	std::cerr << __FILE__ << ":" << __LINE__ << ": method: " << method << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
-	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: " << request_line << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
 
 	sp = request_line.find(" ");
-	std::string uri = request_line.substr(0, sp); // NOTE: segunda palabra
-	std::cerr << __FILE__ << ":" << __LINE__ << ": uri: " << uri << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
-	request_line.erase(0, sp + 1);
-	std::cerr << __FILE__ << ":" << __LINE__ << ": resquest_line: |" << request_line << "|" << std::endl; // TODO: limpiar el uri de la request y comprobar su cotenido (el HTTP/1.1)
-	buffer.erase(0, ind + 2);
 
+	std::string uri = request_line.substr(0, sp);
 	if (uri.size() == 0)
 		return new BADRequest(BAD_REQUEST);
+
+	request_line.erase(0, sp + 1);
+	buffer.erase(0, ind + 2);
 
 	if (request_line != "HTTP/1.1") {
 		if (!request_line.compare(0, 5, "HTTP/"))
