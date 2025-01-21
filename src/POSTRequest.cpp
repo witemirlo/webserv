@@ -17,7 +17,6 @@ POSTRequest::POSTRequest(std::string const &uri, std::vector<Server> & servers) 
 std::string POSTRequest::generateResponse(std::vector<Server> & servers)
 {
 	Location selected_loc = getSelectedLocation(servers);
-	std::cout << "This is status: " << _status << std::endl;
 	if (GET_ERROR(_status) != 0)
 		return selected_loc.responseGET(GET_ERROR(_status));
 

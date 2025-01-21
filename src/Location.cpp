@@ -654,28 +654,28 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 std::string Location::CGIpost(std::string const& uri, std::string const& body, std::string const& type, std::string const& len) const
 {
 	errno = 0;
-	int readpipe[2];
-	int writepipe[2];
-	pipe(readpipe);
-	pipe(writepipe);
+	int pipefds[2];
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipefds) == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
 
-	pid_t pid = fork(); //TODO: fallo?
+	pid_t pid = fork();
+	if (pid == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
+
 	if (pid == 0)
 	{
-		dup2(readpipe[1], STDOUT_FILENO);
-		dup2(writepipe[0], STDIN_FILENO);
-		close(writepipe[0]);
-		close(writepipe[1]);
-		close(readpipe[0]);
-		close(readpipe[1]);
+		dup2(pipefds[1], STDOUT_FILENO);
+		dup2(pipefds[1], STDIN_FILENO);
+		close(pipefds[0]);
+		close(pipefds[1]);
 		callPOSTcgi(uri, type, len);
 	}
-	close(writepipe[0]);
-	write(writepipe[1], body.c_str(), body.size());
-	close(writepipe[1]);
-	close(readpipe[1]);
+	close(pipefds[1]);
 
-	return read_cgi_response(readpipe[0]); //TODO: y si algo del otro lado ha ido mal??
+	std::stringstream fd;
+	fd << pipefds[0];
+
+	return "POLLOUT" + fd.str() + " " + body; //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 
@@ -692,10 +692,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 		return (responseGET(METHOD_NOT_ALLOWED, uri));
 
 	if (getFileType(uri) == _cgi_extension)
-	{
-		body = CGIpost(uri, msg, type, len);
-		return (getStatusLine(OK) + body);
-	}
+		return (CGIpost(uri, msg, type, len));
 	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
 }
 
@@ -863,7 +860,10 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipefds) == -1)
 		return (responseGET(INTERNAL_SERVER_ERROR));
 
-	pid_t pid = fork(); //TODO: fallo?
+	pid_t pid = fork();
+	if (pid == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
+
 	if (pid == 0)
 	{
 		dup2(pipefds[1], STDOUT_FILENO);

@@ -38,11 +38,14 @@ void Listener::parseSocket(std::string str, int fd)
 
 	new_sock.fd = atoi(str.substr(ind).c_str());
 	_cgi_sockets[fd] = new_sock;
+
+	for (; str[ind] != ' ' ; ind++) {}
+	if (ind != str.size())
+		_responses[new_sock.fd] = str.substr(ind + 1); //TODO: ver que no se haya cargado el get
 }
 
 void Listener::respondTo(int fd)
 {
-	//Check CGI
 	if (_responses.find(fd) == _responses.end())
 	{
 		std::string res = this->generateResponseOf(fd);
@@ -58,7 +61,6 @@ void Listener::respondTo(int fd)
 	}
 
 	const char *response = _responses[fd].c_str();
-	std::cerr << "Let me write \n" << response << std::endl;
 	ssize_t bits = send(fd, response, _responses[fd].size(), 0);
 
 	if (bits == -1)
