@@ -240,8 +240,10 @@ std::string Location::readFile(std::string const& path) const
 {
 	std::stringstream body, headers;
 	std::string const file_extension = getFileType(path);
-	std::ifstream     file(path.c_str(), std::ios::binary);
-
+	std::ifstream     file;
+	
+	// TODO: aqui se cuelan archivos del cgi si estan en el index y en la peticion hay una ruta
+	file.open(path.c_str(), std::ios::binary);
 	if (!file.is_open()) {
 		errno = ENOENT;
 		return "";
