@@ -628,10 +628,11 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
 
 	int count;
+	std::string file = getPathTo(uri, false);
 	for (count = 0; environ[count]; count++) {}
 	
 	char const ** new_envp = new char const *[count + 8];
-	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
+	char const * argv[] = {(char *)"/usr/bin/php-cgi", file.c_str(), NULL};
 
 	for (count = 0; environ[count]; count++) {
 		new_envp[count] = environ[count];
@@ -644,8 +645,7 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 	new_envp[count + 5] = path_var.c_str();
 	new_envp[count + 6] = NULL; 
 
-
-	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
+	execve("/usr/bin/php-cgi", (char * const *)argv, (char * const *)new_envp);
 	delete [] new_envp;
 	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callPOSTcgi()" << std::endl;
 	exit(errno);

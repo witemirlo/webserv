@@ -81,7 +81,7 @@ void pollloop(std::vector<Listener> sockets)
 			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
 			exit (EXIT_FAILURE);
 		}
-	
+
 		for (int i = 0; i < fd_num; i++)
 		{
 			if (my_fds[i].revents & POLLIN)

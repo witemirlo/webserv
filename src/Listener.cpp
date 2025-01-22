@@ -49,14 +49,12 @@ void Listener::respondTo(int fd)
 	if (_responses.find(fd) == _responses.end())
 	{
 		std::string res = this->generateResponseOf(fd);
-		std::cerr << __FILE__ << ":" << __LINE__ << " Like the wind..." << std::endl;
 		if (res[0] != 'H')
 		{
 			setFdToWait(fd);
 			parseSocket(res, fd);
 			return ;
 		}
-		std::cerr << __FILE__ << ":" << __LINE__ << " More wind..." << std::endl;
 		_responses[fd] = res;
 	}
 

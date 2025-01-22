@@ -38,7 +38,7 @@ int ARequest::appendRequest(std::string & append)
 	}
 	if ((this->_status & END) == BODY)
 	{
-		body_size += raw.size();
+		body_size = raw.size();
 		if (GET_ERROR(_status) == CONTENT_TOO_LARGE)
 		{
 			std::cout << "Zaddy, im soooo full" << std::endl;
