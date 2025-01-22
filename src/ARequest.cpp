@@ -65,7 +65,7 @@ void ARequest::procHeader(std::string & raw, size_t index)
 	if (index == 0)
 	{
 		try {
-			_headers.at("content-length"); //TODO: transfer encoding
+			_headers.at("content-length");
 			if ((size_t)std::atoll(_headers["content-length"].c_str()) <= 0)
 				throw std::exception();
 			this->_status = SET_STATUS(this->_status, BODY);

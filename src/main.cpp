@@ -78,7 +78,7 @@ void pollloop(std::vector<Listener> sockets)
 		}
 		if (n_events == -1)
 		{
-			std::cerr << RED "An error in poll happened" NC << std::endl; //TODO: error format
+			std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl;
 			exit (EXIT_FAILURE);
 		}
 

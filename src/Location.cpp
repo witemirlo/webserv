@@ -88,7 +88,7 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 
 		starttxt = buffer.find(STX, ind);
 		if (starttxt == std::string::npos)
-				break ; //TODO: revisar que no se coma el ultimo
+				break ;
 
 		endtxt = ind;
 		while (true) {
@@ -111,8 +111,6 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 		key = line.substr(0, line.find('='));
 		value = line.substr(line.find('=') + 1, line.size());
 		
-		// if (value.size() > 1 && *value.rbegin() != '/')
-		// 	value.push_back('/'); TODO: esto lo he quitado porque creo que esta mal
 		/*
 		TODO: if key en prohibidas
 			std::cerr key solo se permite en server
@@ -664,7 +662,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 
 	if (getFileType(uri) == _cgi_extension)
 		return (CGIpost(uri, msg, type, len));
-	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
+	return (responseGET(METHOD_NOT_ALLOWED, uri));
 }
 
 /**
@@ -680,40 +678,20 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	std::string status_line, headers, body;
 	int         status_code;
-	// std::cerr << __FILE__ << ":" << __LINE__  << " |  uri: " << uri << std::endl;
-	// std::cerr << __FILE__ << ":" << __LINE__  << " |  query: " << query << std::endl;
 
-	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
+	if (getFileType(uri) == _cgi_extension)
+		return (CGIget(uri, query));
+	
+	body = getBody(uri);
 
-	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		return(CGIget(uri, query));// content lenght y content type
-	else
-	{
-		body = getBody(uri);
-		// body = CRLF + body;// TODO: que body plante un salto de linea
-	}
-	// std::cerr << __FILE__ << ":" << __LINE__  << " |  This is body: " << body << std::endl;
 	status_code = getStatusCode();
-			// std::cerr << __FILE__ << ":" << __LINE__ << " | status code: " << status_code << std::endl;
-	if (status_code >= 300) {// TODO: no me acaba de convencer esto, la redireccion entraria aqui
-    		// TODO: mirar las error pages
+	if (status_code >= 300) 
 		body = getBodyError(status_code);
-	}
-	// TODO: comprobar el status code y trabajar en consecuencia
 
 	headers = getHeaders(body, uri, status_code);
-			// std::cerr << __FILE__ << ":" << __LINE__ << " | headers: " << headers << std::endl;
-	// status_line = getStatusLine(status_code);
-	// status_line = "HTTP/1.1 200 OK\r\n";// TODO: hardcode
 	status_line = getStatusLine();
-			// std::cerr << __FILE__ << ":" << __LINE__ << "| response:\n" << (status_line + headers + body) << std::endl;
-			// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n";
-			// std::cout << (status_line + headers + body);
-			// std::cout << std::flush;
-		// std::cerr << __FILE__ << ":" << __LINE__ << " | response:\n" << (status_line + headers + body) << std::endl;
 	return (status_line + headers + body);
 }
-
 
 std::string Location::responseGET(unsigned int error_code) const
 {
@@ -736,9 +714,7 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 
 	std::string file_path;
 	struct stat file_info;
-	// int         status_code;// TODO: que en todas las que se hace esto se llame a la funcion en su lugar
 
-	(void)uri;
 	(void)query;// TODO: esto haria falta para algo?
 
 	errno = 0;
@@ -785,7 +761,7 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
-void Location::callGETcgi(std::string const& uri, std::string const& query) const //TODO: ordenar funciones
+void Location::callGETcgi(std::string const& uri, std::string const& query) const
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + getPathTo(uri, true);
@@ -794,12 +770,6 @@ void Location::callGETcgi(std::string const& uri, std::string const& query) cons
 	std::string redirect = "REDIRECT_STATUS=0";
 
 	chdir(_root.c_str());
-
-	// std::cerr << "My variables" << std::endl;
-	// std::cerr << query_var << std::endl;
-	// std::cerr << file_var << std::endl;
-	// std::cerr << method << std::endl;
-	// std::cerr << redirect << std::endl;
 
 	int count;
 	for (count = 0; environ[count]; count++) {}
@@ -824,7 +794,7 @@ void Location::callGETcgi(std::string const& uri, std::string const& query) cons
 	exit(errno);
 }
 
-std::string Location::CGIget(std::string const& uri, std::string const& query) const //TODO: path_info, a ver si podemos dar una vuelta al envp
+std::string Location::CGIget(std::string const& uri, std::string const& query) const
 {
 	errno = 0;
 	int pipefds[2];

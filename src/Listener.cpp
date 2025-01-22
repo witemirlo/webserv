@@ -351,14 +351,13 @@ int Listener::getListenFd(void) const
 
 void Listener::deleteFd(int fd)
 {
-	//TODO: exception?
 	for (size_t i = 0; i < _derived_socks.size(); i++)
 	{
 		if (fd == _derived_socks[i].fd)
 		{
 			close(fd); //TODO: esto falla?
 			_derived_socks.erase(_derived_socks.begin() + i);
-			_requests.erase(fd); //TODO: delete?
+			_requests.erase(fd);
 			return ;
 		}
 	}
@@ -456,7 +455,7 @@ std::string Listener::generateResponseOf(int fd)
 	if (response[0] != 'H')
 		return (response);
 
-	delete _requests[fd]; //TODO: possible leaksssssssssss
+	delete _requests[fd];
 	_requests.erase(fd);
 	return (response);
 }

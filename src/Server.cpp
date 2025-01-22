@@ -184,8 +184,8 @@ void Server::setErrorPages(std::string const &errors)
 
 		size_t eq = line.find("=");
 
-		int num = atoi(line.substr(0, eq).c_str()); //TODO: lista de errores permitidos ERROR DE SYNTAX
-		std::string	pages = line.substr(eq + 1); //TODO: check pages before
+		int num = atoi(line.substr(0, eq).c_str());
+		std::string	pages = line.substr(eq + 1);
 
 		if (*_root.rbegin() != '/' && *pages.begin() != '/')
 			_error_pages[num] = _root + "/" + pages;
