@@ -664,6 +664,19 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	if (getFileType(uri) == _cgi_extension)
 		return (CGIget(uri, query));
+	else if (getFileType(getPathTo(uri, true)) == _cgi_extension) {
+		std::vector<std::string>::const_iterator it, end;
+		std::string tmp(uri);
+		for (it = _index.begin(), end = _index.end(); it != end; it++) {
+			if (getFileType(*it) == _cgi_extension) {
+				if (*tmp.rbegin() != '/')
+					tmp += "/";
+				tmp += *it;
+				break;
+			}
+		}
+		return responseGET(tmp, query);
+	}
 	
 	body = getBody(uri);
 
