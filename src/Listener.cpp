@@ -39,7 +39,10 @@ void Listener::parseSocket(std::string str, int fd)
 	new_sock.fd = atoi(str.substr(ind).c_str());
 	_cgi_sockets[fd] = new_sock;
 
-	for (; str[ind] != ' ' ; ind++) {}
+	for (; ind < str.size(); ind++) {
+		if (str[ind] == ' ')
+			break ;
+	}
 	if (ind != str.size())
 		_responses[new_sock.fd] = str.substr(ind + 1); //TODO: ver que no se haya cargado el get
 }
