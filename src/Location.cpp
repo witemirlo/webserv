@@ -495,11 +495,6 @@ std::string Location::getBodyError(int status_code) const
 	if (it == this->_error_pages.end()) std::cerr << __FILE__ << ":" << __LINE__ << " | it for status code " << status_code << " was not found" << std::endl;
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
-		// errno = EIO;
-		// buffer << "An error ocurred with "
-		//        << it->second
-		//        << "\n";
-
 		buffer << "<html><body>"
 		       << "<h1 style=\"text-align: center\">" << status_code << " " << getHttpMessage(status_code) << "</h1>"
 		       << "<p style=\"text-align: center\">webserv</p>"
@@ -583,18 +578,6 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 	std::string redirect = "REDIRECT_STATUS=true";
 
 	chdir(_root.c_str());
-
-	// std::cerr << "My variables" << std::endl;
-	// std::cerr << type_var << std::endl;
-	// std::cerr << len_var << std::endl;
-	// std::cerr << file_var << std::endl;
-	// std::cerr << method << std::endl;
-	// std::cerr << redirect << std::endl;
-
-	// char buff[101];
-	// buff[100] = 0;
-	// read(0, buff, atoi(len.c_str()));
-	// std::cerr << __FILE__ << ":" << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
 
 	int count;
 	std::string file = getPathTo(uri, false);
