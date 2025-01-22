@@ -20,12 +20,15 @@ private:
 	std::vector<struct pollfd> _derived_socks;
 	std::vector<Server> _assoc_servers;
 	std::map<int, ARequest *> _requests;
+	std::map<int, struct pollfd> _cgi_sockets;
+	std::map<int, std::string> _responses;
 
 	static const std::string request_types[];
 	static ARequest* (Listener::* const creators [])(std::string const &, std::vector<Server> &);
 public:
 	Listener(std::string const& where_to_listen);
 	void addServer(Server server);
+	void parseSocket(std::string str, int fd);
 
 //	fd and socket management
 
@@ -38,10 +41,14 @@ public:
 	void deleteFd(int fd);
 	void setFdToWrite(int fd);
 	void setFdToRead(int fd);
+	void setFdToWait(int fd);
+	bool is_cgi_socket(int fd) const;
+	void readFrom(int fd);
+	void respondTo(int fd);
 
 //	Requests and reponses
 
-	std::string respondTo(int fd);
+	std::string generateResponseOf(int fd);
 	void printRequest(int index);
 	int updateRequest(int index, std::string buffer);
 	

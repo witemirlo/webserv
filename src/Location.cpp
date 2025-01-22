@@ -599,10 +599,11 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  Small peek: " << std::string(buff) << std::endl;
 
 	int count;
+	std::string file = getPathTo(uri, false);
 	for (count = 0; environ[count]; count++) {}
 	
 	char const ** new_envp = new char const *[count + 8];
-	char * argv[] = {(char *)"/usr/bin/php-cgi", NULL};
+	char const * argv[] = {(char *)"/usr/bin/php-cgi", file.c_str(), NULL};
 
 	for (count = 0; environ[count]; count++) {
 		new_envp[count] = environ[count];
@@ -615,8 +616,7 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 	new_envp[count + 5] = path_var.c_str();
 	new_envp[count + 6] = NULL; 
 
-
-	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
+	execve("/usr/bin/php-cgi", (char * const *)argv, (char * const *)new_envp);
 	delete [] new_envp;
 	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callPOSTcgi()" << std::endl;
 	exit(errno);
@@ -625,28 +625,28 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 std::string Location::CGIpost(std::string const& uri, std::string const& body, std::string const& type, std::string const& len) const
 {
 	errno = 0;
-	int readpipe[2];
-	int writepipe[2];
-	pipe(readpipe);
-	pipe(writepipe);
+	int pipefds[2];
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipefds) == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
 
-	pid_t pid = fork(); //TODO: fallo?
+	pid_t pid = fork();
+	if (pid == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
+
 	if (pid == 0)
 	{
-		dup2(readpipe[1], STDOUT_FILENO);
-		dup2(writepipe[0], STDIN_FILENO);
-		close(writepipe[0]);
-		close(writepipe[1]);
-		close(readpipe[0]);
-		close(readpipe[1]);
+		dup2(pipefds[1], STDOUT_FILENO);
+		dup2(pipefds[1], STDIN_FILENO);
+		close(pipefds[0]);
+		close(pipefds[1]);
 		callPOSTcgi(uri, type, len);
 	}
-	close(writepipe[0]);
-	write(writepipe[1], body.c_str(), body.size());
-	close(writepipe[1]);
-	close(readpipe[1]);
+	close(pipefds[1]);
 
-	return read_cgi_response(readpipe[0]); //TODO: y si algo del otro lado ha ido mal??
+	std::stringstream fd;
+	fd << pipefds[0];
+
+	return "POLLOUT" + fd.str() + " " + body; //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 
@@ -663,10 +663,7 @@ std::string Location::responsePOST(std::string const& uri, std::string const& ms
 		return (responseGET(METHOD_NOT_ALLOWED, uri));
 
 	if (getFileType(uri) == _cgi_extension)
-	{
-		body = CGIpost(uri, msg, type, len);
-		return (getStatusLine(OK) + body);
-	}
+		return (CGIpost(uri, msg, type, len));
 	return (responseGET(METHOD_NOT_ALLOWED, uri)); //TODO: ajustar con allowed methods
 }
 
@@ -683,14 +680,13 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	std::string status_line, headers, body;
 	int         status_code;
-	(void)query;
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  uri: " << uri << std::endl;
 	// std::cerr << __FILE__ << ":" << __LINE__  << " |  query: " << query << std::endl;
 
 	// TODO: leer lo que quiera que haya fallado al procesar la respuesta
 
 	if (getFileType(uri) == _cgi_extension)// no siempre activa cgi, y la extension no necesariamente tiene la extencion .php
-		body = CGIget(uri, query);// content lenght y content type
+		return(CGIget(uri, query));// content lenght y content type
 	else
 	{
 		body = getBody(uri);
@@ -832,9 +828,13 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 {
 	errno = 0;
 	int pipefds[2];
-	pipe(pipefds);
+	if (socketpair(AF_LOCAL, SOCK_STREAM, 0, pipefds) == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
 
-	pid_t pid = fork(); //TODO: fallo?
+	pid_t pid = fork();
+	if (pid == -1)
+		return (responseGET(INTERNAL_SERVER_ERROR));
+
 	if (pid == 0)
 	{
 		dup2(pipefds[1], STDOUT_FILENO);
@@ -843,7 +843,11 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 		callGETcgi(uri, query);
 	}
 	close(pipefds[1]);
-	return read_cgi_response(pipefds[0]); //TODO: y si algo del otro lado ha ido mal??
+
+	std::stringstream fd;
+	fd << pipefds[0];
+
+	return "POLLIN" + fd.str(); //TODO: y si algo del otro lado ha ido mal??
 	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
 }
 

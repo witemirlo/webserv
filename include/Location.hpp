@@ -4,6 +4,10 @@
 
 # include "Server.hpp"
 
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <poll.h>
+
 class Location : public Server {
 private:
 	unsigned int _deepness;
@@ -21,10 +25,8 @@ private:
 	std::string autoIndex(std::string const& uri) const;
 
 	std::string getStatusLine(void) const;
-	std::string getStatusLine(unsigned int code) const;
 	int getStatusCode(void) const;
 
-	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
 	std::string CGIget(std::string const& file, std::string const& query) const;
 	std::string CGIpost(std::string const& file, std::string const& body, std::string const& type, std::string const& len) const;
@@ -40,6 +42,9 @@ public:
 	~Location();
 	Location(const Location &other);
 	Location(Server const& o, std::string const & config, std::string const & my_path);
+
+	std::string getStatusLine(unsigned int code) const;
+	std::string getHeaders(std::string const& body, std::string const& uri, int status_code) const;
 
 	Location &operator=(const Location &other);
 	bool operator>(const Location & other) const;
