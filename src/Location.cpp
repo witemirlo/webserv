@@ -193,24 +193,20 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	if (path.find(this->_cgi_extension) != std::string::npos)
 		path = path.substr(0, (path.find(this->_cgi_extension) + this->_cgi_extension.length()));
 
-	if (stat(path.c_str(), &file_info) < 0) {
-		std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
+	if (stat(path.c_str(), &file_info) < 0)
 		return ""; 
-	}
 
 	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			errno = 0;
 			if (access((path + *index_it).c_str(), F_OK) == 0) {
 				path += *index_it;
-				std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
 				return path;
 			}
 		}
 	}
 
-	std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
-	return "";
+	return path;
 }
 
 /**
@@ -776,11 +772,19 @@ void Location::callGETcgi(std::string const& uri, std::string const& query) cons
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + getPathTo(uri, true);
-	std::string path_var = "PATH_INFO=" + uri;
+	// std::string path_var = "PATH_INFO=" + uri; // TODO: seguro que seria esto?
+	std::string path_var = "PATH_INFO=" + getPathTo(uri, true);
 	std::string method = "REQUEST_METHOD=GET";
 	std::string redirect = "REDIRECT_STATUS=0";
 
 	chdir(_root.c_str());
+
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << query_var << std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << file_var << std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << path_var << std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << method << std::endl;
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << redirect << std::endl;
+
 
 	int count;
 	for (count = 0; environ[count]; count++) {}
@@ -826,7 +830,7 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 
 	std::stringstream fd;
 	fd << pipefds[0];
-
+	std::cerr << __FILE__ << ":" << __LINE__ << ": " << uri << std::endl;
 	return "POLLIN" + fd.str();
 }
 
