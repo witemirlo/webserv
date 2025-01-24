@@ -96,7 +96,7 @@ Server::Server(std::map<std::string, std::string> & config)
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
 		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8));
 	
-	if (loc_to_process.size() == 0)
+	if (_locations.find("/") == _locations.end())
 		_locations["/"] = Location(*this, "", "/");
 }
 
