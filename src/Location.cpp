@@ -118,7 +118,7 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 	if (my_path == "/")
 		this->_deepness = 0;
 	else
-		this->_deepness = std::count(my_path.begin(),  my_path.end(), '/');
+		this->_deepness = std::count(my_path.begin(),  my_path.end(), '/') - 1;
 }
 
 Location &Location::operator=(const Location &other)
@@ -159,8 +159,9 @@ bool Location::operator<=(const Location & other) const
  */
 std::string Location::getPathTo(std::string const& uri, bool index) const
 {
+	// TODO: revisar el valor de retorno de esta funcion
 	std::vector<std::string>::const_iterator index_it;
-	std::string                              path;
+	std::string                              path, cleaned_uri;
 	struct stat                              file_info;
 
 	if (*(this->_root.rbegin()) == '/')
@@ -168,28 +169,48 @@ std::string Location::getPathTo(std::string const& uri, bool index) const
 	else
 		path = this->_root;
 	
-	if (this->_redirect.find(uri) == this->_redirect.end())
-		path += uri;
+	cleaned_uri = uri;
+	if (cleaned_uri[0] == '/')
+		cleaned_uri = cleaned_uri.substr(1);
+	if (this->_deepness != 0) {
+		for (unsigned int i = 0; i < this->_deepness; i++) {
+			if (cleaned_uri.find('/') != std::string::npos) {
+				cleaned_uri = cleaned_uri.substr(cleaned_uri.find('/'));
+				if (cleaned_uri[0] == '/')
+					cleaned_uri = cleaned_uri.substr(1);
+			} else
+				cleaned_uri = "/";
+		}
+	}
+
+
+	if (this->_redirect.find(cleaned_uri) == this->_redirect.end())
+		path = path + "/" + cleaned_uri;
 	else
-		path = this->_root + this->_redirect.find(uri)->second;
+		path = this->_root + "/" + this->_redirect.find(cleaned_uri)->second;
+
 	
 	if (path.find(this->_cgi_extension) != std::string::npos)
 		path = path.substr(0, (path.find(this->_cgi_extension) + this->_cgi_extension.length()));
 
-	if (stat(path.c_str(), &file_info) < 0)
-		return "";
-	
+	if (stat(path.c_str(), &file_info) < 0) {
+		std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
+		return ""; 
+	}
+
 	if (index && S_ISDIR(file_info.st_mode)) {
 		for (index_it = this->_index.begin(); index_it != this->_index.end(); index_it++) {
 			errno = 0;
 			if (access((path + *index_it).c_str(), F_OK) == 0) {
 				path += *index_it;
-				break;
+				std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
+				return path;
 			}
 		}
 	}
 
-	return path;
+	std::cerr << __FILE__ << ":" << __LINE__ << " | Location::getPathTo(" << uri << ", " << index << ") returned: " << path << std::endl;
+	return "";
 }
 
 /**
@@ -653,9 +674,19 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	std::string status_line, headers, body;
 	int         status_code;
 
+	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getPathTo(" << uri << ", " << true << ")" << std::endl;
+	if (getPathTo(uri, true) == "") {
+		// TODO: bug get a /a/aa/index.php
+		std::cerr << __FILE__ << ":" << __LINE__ << " | 404" << std::endl;
+		return responseGET(NOT_FOUND, uri);
+	}
+
+	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getFileType(" << uri << ")" << std::endl;
 	if (getFileType(uri) == _cgi_extension)
 		return (CGIget(uri, query));
-	else if (getFileType(getPathTo(uri, true)) == _cgi_extension) {
+
+	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getFileType(getPathTo(" << uri << ", " << true << "))" << std::endl;
+	if (getFileType(getPathTo(uri, true)) == _cgi_extension) {
 		std::vector<std::string>::const_iterator it, end;
 		std::string tmp(uri);
 		for (it = _index.begin(), end = _index.end(); it != end; it++) {

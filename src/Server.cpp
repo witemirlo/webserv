@@ -82,6 +82,7 @@ Server::Server(std::map<std::string, std::string> & config)
 	_allow(setVector(DEF_METHODS))
 {
 	std::vector<std::string> loc_to_process;
+	std::string              tmp;
 
 	for (std::map<std::string, std::string>::iterator it = config.begin(); it != config.end(); it++)
 	{
@@ -93,8 +94,12 @@ Server::Server(std::map<std::string, std::string> & config)
 		procRule(it->first, it->second);
 	}
 	setErrorPages("");
-	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
-		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8));
+	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++) {
+		tmp = it->substr(8);
+		if (*tmp.rbegin() != '/')
+			tmp.push_back('/');
+		_locations[tmp] = Location(*this, config[*it], tmp);
+	}
 	
 	if (_locations.find("/") == _locations.end())
 		_locations["/"] = Location(*this, "", "/");
@@ -143,10 +148,15 @@ Location const& Server::getLocation(std::string const& uri) const
 	
 	if (*uri.begin() != '/')
 		return this->_locations.at("/");
+
+	if (*route.rbegin() != '/')
+		route.push_back('/');
 	
 	while (route.size() > 1) {
 		for (it = this->_locations.begin(); it != this->_locations.end(); it++) {
 			tmp = it->first.substr(0, (it->first.find_last_of('/') + 1));
+			if (*tmp.rbegin() != '/')
+				tmp.push_back('/');
 			if (tmp == route)
 				return this->_locations.at(tmp);
 		}
