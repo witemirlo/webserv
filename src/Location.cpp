@@ -111,11 +111,6 @@ Location::Location(Server const& o, std::string const & config, std::string cons
 		key = line.substr(0, line.find('='));
 		value = line.substr(line.find('=') + 1, line.size());
 		
-		/*
-		TODO: if key en prohibidas
-			std::cerr key solo se permite en server
-		*/
-
 		procRule(key, value);
 
 	}
@@ -240,7 +235,6 @@ std::string Location::readFile(std::string const& path) const
 	std::string const file_extension = getFileType(path);
 	std::ifstream     file;
 	
-	// TODO: aqui se cuelan archivos del cgi si estan en el index y en la peticion hay una ruta
 	file.open(path.c_str(), std::ios::binary);
 	if (!file.is_open()) {
 		errno = ENOENT;
@@ -492,7 +486,6 @@ std::string Location::getBodyError(int status_code) const
 	std::stringstream                          headers, buffer;
 
 	it = this->_error_pages.find(status_code);
-	if (it == this->_error_pages.end()) std::cerr << __FILE__ << ":" << __LINE__ << " | it for status code " << status_code << " was not found" << std::endl;
 	file.open(it->second.c_str());
 	if (!file.is_open()) {
 		buffer << "<html><body>"
@@ -599,7 +592,6 @@ void Location::callPOSTcgi(std::string const& uri, std::string const& type, std:
 
 	execve("/usr/bin/php-cgi", (char * const *)argv, (char * const *)new_envp);
 	delete [] new_envp;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callPOSTcgi()" << std::endl;
 	exit(errno);
 }
 
@@ -627,8 +619,7 @@ std::string Location::CGIpost(std::string const& uri, std::string const& body, s
 	std::stringstream fd;
 	fd << pipefds[0];
 
-	return "POLLOUT" + fd.str() + " " + body; //TODO: y si algo del otro lado ha ido mal??
-	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
+	return "POLLOUT" + fd.str() + " " + body;
 }
 
 /**
@@ -703,7 +694,7 @@ std::string Location::responseGET(unsigned int error_code, std::string const& ur
 	return (getStatusLine(error_code) + getHeaders(body, uri, error_code)  + body);
 }
 
-std::string Location::responseDELETE(std::string const& uri, std::string const& query) const
+std::string Location::responseDELETE(std::string const& uri) const
 {
 	if (std::find(_allow.begin(), _allow.end(), "DELETE") == _allow.end())
 		return (responseGET(METHOD_NOT_ALLOWED, uri));
@@ -711,26 +702,19 @@ std::string Location::responseDELETE(std::string const& uri, std::string const& 
 	std::string file_path;
 	struct stat file_info;
 
-	(void)query;// TODO: esto haria falta para algo?
-
 	errno = 0;
 	std::memset(&file_info, 0, sizeof(struct stat));
 
 	file_path = getPathTo(uri, false);
 
-	// TODO: cuales son los permisos para borrar un archivo?
-	// TODO: delete de un archivo que no existe?
-	if (access(file_path.c_str(), F_OK) < 0) { // TODO: si existe pero no tiene permisos internal server error
+	if (access(file_path.c_str(), F_OK) < 0)
 		return (getStatusLine() + getHeaders(CRLF, uri, NOT_FOUND) + CRLF);
-	}
 
-	if (stat(file_path.c_str(), &file_info) < 0) {
+	if (stat(file_path.c_str(), &file_info) < 0)
 		return (getStatusLine() + getHeaders(CRLF, uri, INTERNAL_SERVER_ERROR) + CRLF);
-	}
 
-	if (std::remove(file_path.c_str()) < 0) {
+	if (std::remove(file_path.c_str()) < 0)
 		return (getStatusLine() + getHeaders(CRLF, uri, INTERNAL_SERVER_ERROR) + CRLF);
-	}
 
 	return (getStatusLine(NO_CONTENT) + getHeaders(CRLF, uri, getStatusCode()) + CRLF);
 }
@@ -786,7 +770,6 @@ void Location::callGETcgi(std::string const& uri, std::string const& query) cons
 
 	execve("/usr/bin/php-cgi", argv, (char * const *)new_envp);
 	delete [] new_envp;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": Server::callGETcgi()" << std::endl;
 	exit(errno);
 }
 
@@ -813,8 +796,7 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 	std::stringstream fd;
 	fd << pipefds[0];
 
-	return "POLLIN" + fd.str(); //TODO: y si algo del otro lado ha ido mal??
-	// TODO: waitpid para sacar el exit status (errno, setear en global para luego)
+	return "POLLIN" + fd.str();
 }
 
 /**

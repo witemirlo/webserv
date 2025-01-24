@@ -6,21 +6,14 @@
 
 #include <iostream>
 
-DELETERequest::DELETERequest(void) : ARequest()
-{
-	// std::cout << GREEN "DELETERequest default constructor called" NC << std::endl;
-}
+DELETERequest::DELETERequest(void) : ARequest() {}
 
 DELETERequest::DELETERequest(DELETERequest const& other) : ARequest()
 {
-	// std::cout << GREEN "DELETERequest copy constructor called" NC << std::endl;
 	*this = other;
 }
 
-DELETERequest::~DELETERequest(void)
-{
-	// std::cout << RED "DELETERequest destructor called" NC << std::endl;
-}
+DELETERequest::~DELETERequest(void) {}
 
 DELETERequest& DELETERequest::operator=(DELETERequest const& other)
 {
@@ -28,10 +21,7 @@ DELETERequest& DELETERequest::operator=(DELETERequest const& other)
 	return *this;
 }
 
-DELETERequest::DELETERequest(std::string const &uri, std::vector<Server> & servers) : ARequest(uri, servers)
-{
-
-}
+DELETERequest::DELETERequest(std::string const &uri, std::vector<Server> & servers) : ARequest(uri, servers) {}
 
 std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 {
@@ -43,5 +33,5 @@ std::string DELETERequest::generateResponse(std::vector<Server> & servers)
 	if (tmp.getRedirections().find(_uri) != tmp.getRedirections().end())
 		return tmp.responseGET(MOVED_PERMANENTLY, tmp.getRedirections().at(_uri));
 
-	return tmp.responseDELETE(_uri, _query);
+	return tmp.responseDELETE(_uri);
 }

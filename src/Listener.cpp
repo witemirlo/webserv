@@ -44,7 +44,7 @@ void Listener::parseSocket(std::string str, int fd)
 			break ;
 	}
 	if (ind != str.size())
-		_responses[new_sock.fd] = str.substr(ind + 1); //TODO: ver que no se haya cargado el get
+		_responses[new_sock.fd] = str.substr(ind + 1);
 }
 
 void Listener::respondTo(int fd)
@@ -66,9 +66,21 @@ void Listener::respondTo(int fd)
 
 	if (bits == -1)
 	{
-		std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl; // TODO: GET a img/big.png genera error y cierra el servidor (httpie)
-		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
-		exit(EXIT_FAILURE);
+		if (is_cgi_socket(fd))
+		{
+			int parent_fd = 0;
+			for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+				if (it->second.fd == fd)
+				{
+					parent_fd = it->first;
+					break;
+				}
+			}
+			_responses[parent_fd] = _requests[parent_fd]->getSelectedLocation(_assoc_servers).responseGET(INTERNAL_SERVER_ERROR);
+			setFdToWrite(parent_fd);
+		}
+		deleteFd(fd);
+		return ;
 	}
 	if ((size_t)bits < _responses[fd].size())
 		_responses[fd].erase(0, bits);
@@ -87,9 +99,21 @@ void Listener::readFrom(int fd)
 
 	if (bytes == -1)
 	{
-		std::cout << RED "Error: " NC  << std::strerror(errno) << std::endl; // TODO: GET img/marioneta.jpg salta y cierra el serve (httpie)
-		// TODO: conexion reset by peer no parece un motivo para cerrar el servidor
-		exit (EXIT_FAILURE);
+		if (is_cgi_socket(fd))
+		{
+			int parent_fd = 0;
+			for (std::map<int, struct pollfd>::const_iterator it = _cgi_sockets.begin(); it != _cgi_sockets.end(); it++) {
+				if (it->second.fd == fd)
+				{
+					parent_fd = it->first;
+					break;
+				}
+			}
+			_responses[parent_fd] = _requests[parent_fd]->getSelectedLocation(_assoc_servers).responseGET(INTERNAL_SERVER_ERROR);
+			setFdToWrite(parent_fd);
+		}
+		deleteFd(fd);
+		return ;
 	}
 
 	if (bytes == 0)
@@ -106,7 +130,6 @@ void Listener::readFrom(int fd)
 
 	if (is_cgi_socket(fd))
 	{
-		std::cerr << __FILE__ << ":" << __LINE__ << " Reading CGI" << std::endl;
 		_responses[fd] = _responses[fd] + std::string(buffer, bytes);
 		return ;
 	}
@@ -193,12 +216,6 @@ ARequest *Listener::createPost(std::string const & init, std::vector<Server> & s
 ARequest *Listener::createDelete(std::string const & init, std::vector<Server> & servers)
 {
 	return (new DELETERequest(init, servers));
-}
-
-void Listener::printRequest(int index)
-{
-	std::cout << "My request: ";
-	std::cout << (ARequest *)(_requests[index]) << std::endl;
 }
 
 /**
@@ -358,7 +375,7 @@ void Listener::deleteFd(int fd)
 	{
 		if (fd == _derived_socks[i].fd)
 		{
-			close(fd); //TODO: esto falla?
+			close(fd);
 			_derived_socks.erase(_derived_socks.begin() + i);
 			_requests.erase(fd);
 			return ;
@@ -465,10 +482,7 @@ std::string Listener::generateResponseOf(int fd)
 
 //	OCCF
 
-Listener::Listener(void)
-{
-	std::cout << GREEN "Listener default constructor called" NC << std::endl;
-}
+Listener::Listener(void) {}
 
 Listener::Listener(const Listener &other) : _listener(other._listener), _derived_socks(other._derived_socks), _assoc_servers(other._assoc_servers), _cgi_sockets(other._cgi_sockets)
 {

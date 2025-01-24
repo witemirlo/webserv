@@ -31,7 +31,6 @@ int ARequest::appendRequest(std::string & append)
 			try {
 				_headers.at("host");
 				_max_size = getSelectedLocation(_my_servers).getBodySize();
-				std::cerr << "Request max size = " << _max_size << std::endl;
 			}
 			catch(const std::exception& e) {}
 		}
@@ -40,10 +39,7 @@ int ARequest::appendRequest(std::string & append)
 	{
 		body_size = raw.size();
 		if (GET_ERROR(_status) == CONTENT_TOO_LARGE)
-		{
-			std::cout << "Zaddy, im soooo full" << std::endl;
-			raw.erase();	
-		}
+			raw.erase();
 		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= body_size)
 		{
 			_body = raw.substr();
@@ -164,35 +160,6 @@ ARequest::ARequest(std::string const & uri, std::vector<Server> & servers) : _ma
 		_uri = uri.substr(0, ind);
 		_query = uri.substr(ind + 1);
 	}
-}
-
-//	GETTERs TODO: maybe its only for debug
-
-std::string const&ARequest::getInitial(void)
-{
-	return (_uri);
-}
-
-std::string ARequest::getHeaders(void)
-{
-	std::string all_headers;
-
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
-	{
-		all_headers += (it->first + ":" + it->second) + CRLF;
-	}
-	return (all_headers);
-}
-
-std::string &ARequest::getBody(void)
-{
-	return (_body);
-}
-
-std::ostream & operator<<(std::ostream & out, ARequest * req)
-{
-	out << req->getInitial() << req->getHeaders() << req->getBody();
-	return (out);
 }
 
 //	OCCF

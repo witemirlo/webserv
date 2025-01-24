@@ -45,11 +45,6 @@ public:
 
 	Location const& getSelectedLocation(std::vector<Server> & servers);
 
-//	GETTERs TODO: maybe its only for debug
-	std::string const&getInitial(void);
-	std::string getHeaders(void);
-	std::string &getBody(void);
-
 //	OCCF
 	ARequest();
 	ARequest(const ARequest &other);

@@ -49,7 +49,6 @@ public:
 //	Requests and reponses
 
 	std::string generateResponseOf(int fd);
-	void printRequest(int index);
 	int updateRequest(int index, std::string buffer);
 	
 	ARequest *createRequest(std::string & buffer, std::vector<Server> & servers);

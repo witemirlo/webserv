@@ -32,7 +32,7 @@ std::vector<Listener> setup(std::vector<std::map<std::string, std::string> > & c
 	{
 		my_servers.push_back(Server(config[i]));
 	}
-	std::map<std::string, int> host_index; //TODO: revisar, se puede hacer + limpio
+	std::map<std::string, int> host_index;
 	std::vector<Listener> listener_socks;
 
 	for (size_t i = 0; i < my_servers.size(); i++)
@@ -79,7 +79,7 @@ void pollloop(std::vector<Listener> sockets)
 		if (n_events == -1)
 		{
 			std::cerr << RED "Error: " NC << std::strerror(errno) << std::endl;
-			exit (EXIT_FAILURE);
+			continue;
 		}
 
 		for (int i = 0; i < fd_num; i++)

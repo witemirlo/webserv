@@ -17,11 +17,9 @@ BADRequest::BADRequest(unsigned int code)
 	, _code(code)
 {
 	_status = HEADERS;
-	std::cerr << __FILE__ << ":" << __LINE__ << " | BADRequest(" << code << ") contructor called" << std::endl;
 }
 
 std::string BADRequest::generateResponse(std::vector<Server> & servers)
 {
-	std::cerr << __FILE__ << ":" << __LINE__ << " | BADRequest(" << _code << ")::generateResponse called " << std::endl;
 	return getSelectedLocation(servers).responseGET(_code);
 }

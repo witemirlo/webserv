@@ -94,10 +94,8 @@ Server::Server(std::map<std::string, std::string> & config)
 	}
 	setErrorPages("");
 	for (std::vector<std::string>::iterator it = loc_to_process.begin(); it != loc_to_process.end(); it++)
-	{
-		// TODO: en general los index dentro de un location funcionan raro, cuando hay varios directamente lo pone mal
 		_locations[it->substr(8)] = Location(*this, config[*it], it->substr(8));
-	}
+	
 	if (loc_to_process.size() == 0)
 		_locations["/"] = Location(*this, "", "/");
 }
@@ -161,7 +159,6 @@ Location const& Server::getLocation(std::string const& uri) const
 
 void Server::setIndex(std::string const &index)
 {
-	// TODO: el index de las location aparece con un / al final
 	_index = setVector(index);
 }
 
@@ -431,12 +428,7 @@ static bool has_delimiter(std::string const & str)
 
 //	OCCF
 
-Server::Server(void)
-{
-#ifdef DEBUF
-	std::cout << GREEN "Server default constructor called" NC << std::endl;
-#endif
-}
+Server::Server(void) {}
 
 Server::Server(const Server &other) : 
 	_locations(other._locations),
