@@ -669,17 +669,13 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 	std::string status_line, headers, body;
 	int         status_code;
 
-	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getPathTo(" << uri << ", " << true << ")" << std::endl;
 	if (getPathTo(uri, true) == "") {
-		std::cerr << __FILE__ << ":" << __LINE__ << " | 404" << std::endl;
 		return responseGET(NOT_FOUND, uri);
 	}
 
-	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getFileType(" << uri << ")" << std::endl;
 	if (getFileType(uri) == _cgi_extension)
 		return (CGIget(uri, query));
 
-	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getFileType(getPathTo(" << uri << ", " << true << "))" << std::endl;
 	if (getFileType(getPathTo(uri, true)) == _cgi_extension) {
 		std::vector<std::string>::const_iterator it, end;
 		std::string tmp(uri);
@@ -791,13 +787,6 @@ void Location::callGETcgi(std::string const& uri, std::string const& query) cons
 
 	chdir(_root.c_str());
 
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << query_var << std::endl;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << file_var << std::endl;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << path_var << std::endl;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << method << std::endl;
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << redirect << std::endl;
-
-
 	int count;
 	for (count = 0; environ[count]; count++) {}
 	
@@ -842,7 +831,6 @@ std::string Location::CGIget(std::string const& uri, std::string const& query) c
 
 	std::stringstream fd;
 	fd << pipefds[0];
-	std::cerr << __FILE__ << ":" << __LINE__ << ": " << uri << std::endl;
 	return "POLLIN" + fd.str();
 }
 

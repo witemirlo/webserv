@@ -37,9 +37,13 @@ int ARequest::appendRequest(std::string & append)
 	}
 	if ((this->_status & END) == BODY)
 	{
-		body_size = raw.size();
 		if (GET_ERROR(_status) == CONTENT_TOO_LARGE)
+		{
+			body_size += raw.size();
 			raw.erase();
+		}
+		else
+			body_size = raw.size();
 		if ((size_t)std::atoll(_headers["content-length"].c_str()) <= body_size)
 		{
 			_body = raw.substr();

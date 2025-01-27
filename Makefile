@@ -7,11 +7,11 @@ CXX = c++
 CPPFLAGS = -I include/ -D DEF_ROOT=$(DEFAULT_ROOT)#-D DEBUG
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -O0 -g3 -Wshadow -Wno-shadow -pedantic -fsanitize=address,leak
 
-DEFAULT_ROOT = \"$(shell pwd)/error_pages\"
+DEFAULT_ROOT = \"$(shell pwd)/www\"
 
 OBJ = $(SRC:.cpp=.o)
 
-DEFAULT_ROOT = \"$(shell pwd)/error_pages\"
+DEFAULT_ROOT = \"$(shell pwd)/www\"
 
 SRC = \
 	src/main.cpp\
