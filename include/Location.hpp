@@ -21,6 +21,7 @@ private:
 	std::string getGmtTime(void) const;
 	std::string getContentType(std::string const& path) const;
 	std::string getPathTo(std::string const& uri, bool index) const;
+	std::string getPathInfo(std::string const& uri) const;
 	std::string readFile(std::string const& path) const;
 	std::string autoIndex(std::string const& uri) const;
 

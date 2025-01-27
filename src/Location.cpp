@@ -159,7 +159,6 @@ bool Location::operator<=(const Location & other) const
  */
 std::string Location::getPathTo(std::string const& uri, bool index) const
 {
-	// TODO: revisar el valor de retorno de esta funcion
 	std::vector<std::string>::const_iterator index_it;
 	std::string                              path, cleaned_uri;
 	struct stat                              file_info;
@@ -672,7 +671,6 @@ std::string Location::responseGET(std::string const& uri, std::string const& que
 
 	std::cerr << __FILE__ << ":" << __LINE__ << " | responseGET::getPathTo(" << uri << ", " << true << ")" << std::endl;
 	if (getPathTo(uri, true) == "") {
-		// TODO: bug get a /a/aa/index.php
 		std::cerr << __FILE__ << ":" << __LINE__ << " | 404" << std::endl;
 		return responseGET(NOT_FOUND, uri);
 	}
@@ -768,12 +766,26 @@ std::string read_cgi_response(int fd)
 	return (response);
 }
 
+std::string Location::getPathInfo(std::string const& uri) const
+{
+	size_t ind, start;
+
+	ind = uri.find("." + this->_cgi_extension);
+	if (ind == std::string::npos)
+		return ("");
+
+	start = uri.find('/', ind);
+	if (start == std::string::npos)
+		return ("");
+
+	return (uri.substr(start));
+}
+
 void Location::callGETcgi(std::string const& uri, std::string const& query) const
 {
 	std::string query_var = "QUERY_STRING=" + query;
 	std::string file_var = "SCRIPT_FILENAME=" + getPathTo(uri, true);
-	// std::string path_var = "PATH_INFO=" + uri; // TODO: seguro que seria esto?
-	std::string path_var = "PATH_INFO=" + getPathTo(uri, true);
+	std::string path_var = "PATH_INFO=" + getPathTo(uri, true) + getPathInfo(uri);
 	std::string method = "REQUEST_METHOD=GET";
 	std::string redirect = "REDIRECT_STATUS=0";
 
